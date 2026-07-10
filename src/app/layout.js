@@ -12,8 +12,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "Para League Newsroom",
-  description: "Generation-first Para League newsroom shell.",
+  title: "Para-Poker League",
+  description: "Official Para-Poker League newsroom, standings, sessions, and player archive.",
 };
 
 export default function RootLayout({ children }) {
