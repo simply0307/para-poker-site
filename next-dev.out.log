@@ -1,0 +1,146 @@
+
+> para-poker-site@0.1.0 dev
+> next dev
+
+▲ Next.js 16.2.9 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.50.135:3000
+- Environments: .env.local
+✓ Ready in 1108ms
+
+ GET /admin/sessions/S0-001 200 in 4.5s (next.js: 2.7s, application-code: 1770ms)
+ GET /admin/sessions/S0-001 200 in 1269ms (next.js: 21ms, application-code: 1248ms)
+[api/recaps/generate] env diagnostics {
+  aiWritingProvider: 'gemini',
+  selectedProvider: 'gemini',
+  hasGeminiKey: true,
+  hasOpenAiKey: false,
+  hasAnthropicKey: false,
+  expectedKeyName: 'GEMINI_API_KEY'
+}
+[api/recaps/generate] editorial docs included {
+  ids: [
+    'native-v2-product-brief',
+    'public-vs-internal-ui',
+    'recap-formats',
+    'recap-voice-guide',
+    'player-archetypes',
+    'sample-session-s0-001',
+    'acceptance-criteria',
+    'implementation-brief'
+  ]
+}
+[newsroom-ai] provider diagnostics {
+  aiWritingProvider: 'gemini',
+  selectedProvider: 'gemini',
+  hasGeminiKey: true,
+  hasOpenAiKey: false,
+  hasAnthropicKey: false,
+  expectedKeyName: 'GEMINI_API_KEY'
+}
+ POST /api/recaps/generate 200 in 7.2s (next.js: 200ms, application-code: 7.0s)
+[api/recaps/generate] env diagnostics {
+  aiWritingProvider: 'gemini',
+  selectedProvider: 'gemini',
+  hasGeminiKey: true,
+  hasOpenAiKey: false,
+  hasAnthropicKey: false,
+  expectedKeyName: 'GEMINI_API_KEY'
+}
+[api/recaps/generate] editorial docs included {
+  ids: [
+    'native-v2-product-brief',
+    'public-vs-internal-ui',
+    'recap-formats',
+    'recap-voice-guide',
+    'player-archetypes',
+    'sample-session-s0-001',
+    'acceptance-criteria',
+    'implementation-brief'
+  ]
+}
+[newsroom-ai] provider diagnostics {
+  aiWritingProvider: 'gemini',
+  selectedProvider: 'gemini',
+  hasGeminiKey: true,
+  hasOpenAiKey: false,
+  hasAnthropicKey: false,
+  expectedKeyName: 'GEMINI_API_KEY'
+}
+ POST /api/recaps/generate 200 in 2.2min (next.js: 7ms, application-code: 2.2min)
+ GET /admin/sessions/S0-001 200 in 1271ms (next.js: 15ms, application-code: 1256ms)
+[api/recaps/generate] env diagnostics {
+  aiWritingProvider: 'gemini',
+  selectedProvider: 'gemini',
+  hasGeminiKey: true,
+  hasOpenAiKey: false,
+  hasAnthropicKey: false,
+  expectedKeyName: 'GEMINI_API_KEY'
+}
+[api/recaps/generate] editorial docs included {
+  ids: [
+    'native-v2-product-brief',
+    'public-vs-internal-ui',
+    'recap-formats',
+    'recap-voice-guide',
+    'player-archetypes',
+    'sample-session-s0-001',
+    'acceptance-criteria',
+    'implementation-brief'
+  ]
+}
+[newsroom-ai] provider diagnostics {
+  aiWritingProvider: 'gemini',
+  selectedProvider: 'gemini',
+  hasGeminiKey: true,
+  hasOpenAiKey: false,
+  hasAnthropicKey: false,
+  expectedKeyName: 'GEMINI_API_KEY'
+}
+ POST /api/recaps/generate 200 in 97s (next.js: 9ms, application-code: 97s)
+ GET /admin/sessions/S0-001 200 in 975ms (next.js: 16ms, application-code: 958ms)
+ POST /api/admin/recap-drafts/cc416023-5e94-4dae-ab61-12810e00ebd8/publish 200 in 1183ms (next.js: 1089ms, application-code: 93ms)
+[api/recaps/generate] env diagnostics {
+  aiWritingProvider: 'gemini',
+  selectedProvider: 'gemini',
+  hasGeminiKey: true,
+  hasOpenAiKey: false,
+  hasAnthropicKey: false,
+  expectedKeyName: 'GEMINI_API_KEY'
+}
+[api/recaps/generate] editorial docs included {
+  ids: [
+    'native-v2-product-brief',
+    'public-vs-internal-ui',
+    'recap-formats',
+    'recap-voice-guide',
+    'player-archetypes',
+    'sample-session-s0-001',
+    'acceptance-criteria',
+    'implementation-brief'
+  ]
+}
+[newsroom-ai] provider diagnostics {
+  aiWritingProvider: 'gemini',
+  selectedProvider: 'gemini',
+  hasGeminiKey: true,
+  hasOpenAiKey: false,
+  hasAnthropicKey: false,
+  expectedKeyName: 'GEMINI_API_KEY'
+}
+ POST /api/recaps/generate 200 in 32.9s (next.js: 4ms, application-code: 32.9s)
+ GET /players-v2 200 in 984ms (next.js: 882ms, application-code: 102ms)
+ PATCH /api/admin/recap-drafts/91424f29-4d57-4ca8-9388-09b53bbd12f7 200 in 2.5s (next.js: 2.1s, application-code: 429ms)
+ POST /api/admin/recap-drafts/91424f29-4d57-4ca8-9388-09b53bbd12f7/publish 200 in 205ms (next.js: 20ms, application-code: 185ms)
+ GET /admin/sessions/S0-001 200 in 876ms (next.js: 18ms, application-code: 858ms)
+ GET /players-v2 200 in 240ms (next.js: 11ms, application-code: 229ms)
+ GET /players-v2 200 in 28ms (next.js: 9ms, application-code: 18ms)
+ GET /players-v2 200 in 131ms (next.js: 8ms, application-code: 123ms)
+ GET /players-v2 200 in 32ms (next.js: 11ms, application-code: 21ms)
+ GET /players-v2 200 in 191ms (next.js: 10ms, application-code: 181ms)
+ GET /sessions-v2 200 in 1133ms (next.js: 815ms, application-code: 318ms)
+ GET /sessions-v2/S0-001 200 in 4.5s (next.js: 3.0s, generate-params: 2.1s, application-code: 1482ms)
+ POST /api/admin/recap-drafts/91424f29-4d57-4ca8-9388-09b53bbd12f7/publish 200 in 246ms (next.js: 13ms, application-code: 233ms)
+ GET /players-v2 200 in 624ms (next.js: 5ms, application-code: 618ms)
+ GET /players-v2/panicmixie-at-l57fne6bbg 200 in 2.7s (next.js: 1738ms, generate-params: 1253ms, application-code: 914ms)
+ GET /sessions-v2/S0-001 200 in 882ms (next.js: 18ms, generate-params: 10ms, application-code: 864ms)
