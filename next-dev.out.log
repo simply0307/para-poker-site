@@ -6,30 +6,22 @@
 - Local:         http://localhost:3000
 - Network:       http://192.168.50.135:3000
 - Environments: .env.local
-✓ Ready in 1108ms
+✓ Ready in 3.2s
 
- GET /admin/sessions/S0-001 200 in 4.5s (next.js: 2.7s, application-code: 1770ms)
- GET /admin/sessions/S0-001 200 in 1269ms (next.js: 21ms, application-code: 1248ms)
-[api/recaps/generate] env diagnostics {
-  aiWritingProvider: 'gemini',
-  selectedProvider: 'gemini',
-  hasGeminiKey: true,
-  hasOpenAiKey: false,
-  hasAnthropicKey: false,
-  expectedKeyName: 'GEMINI_API_KEY'
-}
-[api/recaps/generate] editorial docs included {
-  ids: [
-    'native-v2-product-brief',
-    'public-vs-internal-ui',
-    'recap-formats',
-    'recap-voice-guide',
-    'player-archetypes',
-    'sample-session-s0-001',
-    'acceptance-criteria',
-    'implementation-brief'
-  ]
-}
+○ Compiling /admin/players ...
+ GET /admin/players 200 in 9.7s (next.js: 7.6s, application-code: 2.1s)
+ GET /admin/player-session-recaps 200 in 1794ms (next.js: 1347ms, application-code: 447ms)
+ GET /admin/sessions/S0-001 200 in 13.4s (next.js: 12.1s, application-code: 1238ms)
+ GET /admin/moments 200 in 1673ms (next.js: 1460ms, application-code: 214ms)
+ GET /admin/sessions/S0-001 200 in 924ms (next.js: 263ms, application-code: 661ms)
+ GET /admin/sessions/S0-001 200 in 1653ms (next.js: 117ms, application-code: 1536ms)
+ GET /admin 200 in 1937ms (next.js: 1609ms, application-code: 328ms)
+ GET /admin/newsroom 200 in 668ms (next.js: 566ms, application-code: 102ms)
+ GET /admin/articles 200 in 761ms (next.js: 691ms, application-code: 70ms)
+ GET /admin/standings 200 in 761ms (next.js: 704ms, application-code: 56ms)
+ GET /admin/moments 200 in 842ms (next.js: 19ms, application-code: 823ms)
+ GET /admin/players 200 in 631ms (next.js: 15ms, application-code: 616ms)
+ GET /admin/players/panicmixie-at-l57fne6bbg 200 in 2.1s (next.js: 1995ms, application-code: 72ms)
 [newsroom-ai] provider diagnostics {
   aiWritingProvider: 'gemini',
   selectedProvider: 'gemini',
@@ -38,27 +30,61 @@
   hasAnthropicKey: false,
   expectedKeyName: 'GEMINI_API_KEY'
 }
- POST /api/recaps/generate 200 in 7.2s (next.js: 200ms, application-code: 7.0s)
-[api/recaps/generate] env diagnostics {
-  aiWritingProvider: 'gemini',
-  selectedProvider: 'gemini',
-  hasGeminiKey: true,
-  hasOpenAiKey: false,
-  hasAnthropicKey: false,
-  expectedKeyName: 'GEMINI_API_KEY'
-}
-[api/recaps/generate] editorial docs included {
-  ids: [
-    'native-v2-product-brief',
-    'public-vs-internal-ui',
-    'recap-formats',
-    'recap-voice-guide',
-    'player-archetypes',
-    'sample-session-s0-001',
-    'acceptance-criteria',
-    'implementation-brief'
-  ]
-}
+ POST /api/profiles/generate 500 in 5.0s (next.js: 683ms, application-code: 4.3s)
+ GET /admin/player-session-recaps 200 in 362ms (next.js: 12ms, application-code: 350ms)
+✓ Compiled in 136ms
+ GET /admin 200 in 398ms (next.js: 145ms, application-code: 253ms)
+ GET /admin 200 in 167ms (next.js: 17ms, application-code: 151ms)
+ GET /admin 200 in 76ms (next.js: 14ms, application-code: 63ms)
+ GET /admin 200 in 714ms (next.js: 197ms, application-code: 517ms)
+ GET /admin 200 in 333ms (next.js: 22ms, application-code: 311ms)
+ GET /admin 200 in 186ms (next.js: 34ms, application-code: 152ms)
+ GET /admin 200 in 517ms (next.js: 337ms, application-code: 180ms)
+✓ Compiled in 248ms
+ GET /admin 200 in 538ms (next.js: 206ms, application-code: 332ms)
+ GET /admin 200 in 218ms (next.js: 29ms, application-code: 189ms)
+ GET /admin 200 in 100ms (next.js: 15ms, application-code: 85ms)
+✓ Compiled in 326ms
+ GET /admin 200 in 487ms (next.js: 150ms, application-code: 337ms)
+ GET /admin 200 in 392ms (next.js: 34ms, application-code: 358ms)
+ GET /admin 200 in 198ms (next.js: 31ms, application-code: 167ms)
+✓ Compiled in 165ms
+ GET /admin 200 in 618ms (next.js: 224ms, application-code: 394ms)
+ GET /admin 200 in 292ms (next.js: 16ms, application-code: 276ms)
+ GET /admin 200 in 158ms (next.js: 29ms, application-code: 128ms)
+✓ Compiled in 513ms
+ GET /admin 200 in 1170ms (next.js: 539ms, application-code: 632ms)
+ GET /admin 200 in 385ms (next.js: 35ms, application-code: 350ms)
+ GET /admin 200 in 190ms (next.js: 50ms, application-code: 140ms)
+✓ Compiled in 148ms
+ GET /admin 200 in 542ms (next.js: 193ms, application-code: 349ms)
+ GET /admin 200 in 224ms (next.js: 21ms, application-code: 203ms)
+ GET /admin 200 in 121ms (next.js: 21ms, application-code: 100ms)
+✓ Compiled in 199ms
+ GET /admin 200 in 278ms (next.js: 165ms, application-code: 114ms)
+ GET /admin 200 in 389ms (next.js: 192ms, application-code: 198ms)
+ GET /admin 200 in 729ms (next.js: 548ms, application-code: 181ms)
+✓ Compiled in 236ms
+ GET /admin 200 in 335ms (next.js: 172ms, application-code: 163ms)
+ GET /admin 200 in 241ms (next.js: 25ms, application-code: 215ms)
+ GET /admin 200 in 101ms (next.js: 19ms, application-code: 83ms)
+ GET /admin 200 in 459ms (next.js: 292ms, application-code: 167ms)
+ GET /admin 200 in 1023ms (next.js: 601ms, application-code: 422ms)
+ GET /admin 200 in 244ms (next.js: 154ms, application-code: 89ms)
+✓ Compiled in 329ms
+ GET /admin 200 in 349ms (next.js: 224ms, application-code: 126ms)
+ GET /admin/moments 200 in 1019ms (next.js: 496ms, application-code: 522ms)
+ GET /admin/players 200 in 1105ms (next.js: 51ms, application-code: 1054ms)
+ GET /admin/sessions/S0-001 200 in 2.5s (next.js: 469ms, application-code: 2.0s)
+ GET /admin 200 in 598ms (next.js: 197ms, application-code: 401ms)
+ GET /admin/players 200 in 410ms (next.js: 80ms, application-code: 330ms)
+ GET /admin/players/panicmixie-at-l57fne6bbg 200 in 3.2s (next.js: 2.9s, application-code: 281ms)
+ GET /admin/player-session-recaps 200 in 794ms (next.js: 381ms, application-code: 413ms)
+ GET /admin/standings 200 in 288ms (next.js: 213ms, application-code: 75ms)
+ GET /admin/sessions 200 in 1215ms (next.js: 805ms, application-code: 410ms)
+ GET /admin/sessions/S0-001 200 in 844ms (next.js: 76ms, application-code: 768ms)
+ GET /admin/moments 200 in 935ms (next.js: 43ms, application-code: 893ms)
+ GET /admin/articles 200 in 392ms (next.js: 286ms, application-code: 106ms)
 [newsroom-ai] provider diagnostics {
   aiWritingProvider: 'gemini',
   selectedProvider: 'gemini',
@@ -67,28 +93,17 @@
   hasAnthropicKey: false,
   expectedKeyName: 'GEMINI_API_KEY'
 }
- POST /api/recaps/generate 200 in 2.2min (next.js: 7ms, application-code: 2.2min)
- GET /admin/sessions/S0-001 200 in 1271ms (next.js: 15ms, application-code: 1256ms)
-[api/recaps/generate] env diagnostics {
-  aiWritingProvider: 'gemini',
-  selectedProvider: 'gemini',
-  hasGeminiKey: true,
-  hasOpenAiKey: false,
-  hasAnthropicKey: false,
-  expectedKeyName: 'GEMINI_API_KEY'
-}
-[api/recaps/generate] editorial docs included {
-  ids: [
-    'native-v2-product-brief',
-    'public-vs-internal-ui',
-    'recap-formats',
-    'recap-voice-guide',
-    'player-archetypes',
-    'sample-session-s0-001',
-    'acceptance-criteria',
-    'implementation-brief'
-  ]
-}
+ POST /api/articles/generate 500 in 47s (next.js: 648ms, application-code: 46s)
+ GET /admin/articles 200 in 466ms (next.js: 238ms, application-code: 228ms)
+ GET /admin/articles 200 in 418ms (next.js: 16ms, application-code: 402ms)
+ GET /admin/articles 200 in 348ms (next.js: 219ms, application-code: 129ms)
+ GET /admin/articles 200 in 349ms (next.js: 104ms, application-code: 244ms)
+ GET /admin/articles 200 in 782ms (next.js: 25ms, application-code: 757ms)
+ GET /admin/players 200 in 1534ms (next.js: 91ms, application-code: 1442ms)
+ GET /admin/sessions/S0-001 200 in 1909ms (next.js: 408ms, application-code: 1501ms)
+ GET /admin 200 in 272ms (next.js: 118ms, application-code: 154ms)
+ GET /admin/players 200 in 242ms (next.js: 19ms, application-code: 223ms)
+ GET /admin/articles 200 in 99ms (next.js: 13ms, application-code: 85ms)
 [newsroom-ai] provider diagnostics {
   aiWritingProvider: 'gemini',
   selectedProvider: 'gemini',
@@ -97,29 +112,7 @@
   hasAnthropicKey: false,
   expectedKeyName: 'GEMINI_API_KEY'
 }
- POST /api/recaps/generate 200 in 97s (next.js: 9ms, application-code: 97s)
- GET /admin/sessions/S0-001 200 in 975ms (next.js: 16ms, application-code: 958ms)
- POST /api/admin/recap-drafts/cc416023-5e94-4dae-ab61-12810e00ebd8/publish 200 in 1183ms (next.js: 1089ms, application-code: 93ms)
-[api/recaps/generate] env diagnostics {
-  aiWritingProvider: 'gemini',
-  selectedProvider: 'gemini',
-  hasGeminiKey: true,
-  hasOpenAiKey: false,
-  hasAnthropicKey: false,
-  expectedKeyName: 'GEMINI_API_KEY'
-}
-[api/recaps/generate] editorial docs included {
-  ids: [
-    'native-v2-product-brief',
-    'public-vs-internal-ui',
-    'recap-formats',
-    'recap-voice-guide',
-    'player-archetypes',
-    'sample-session-s0-001',
-    'acceptance-criteria',
-    'implementation-brief'
-  ]
-}
+ POST /api/articles/generate 200 in 3.5s (next.js: 139ms, application-code: 3.4s)
 [newsroom-ai] provider diagnostics {
   aiWritingProvider: 'gemini',
   selectedProvider: 'gemini',
@@ -128,19 +121,17 @@
   hasAnthropicKey: false,
   expectedKeyName: 'GEMINI_API_KEY'
 }
- POST /api/recaps/generate 200 in 32.9s (next.js: 4ms, application-code: 32.9s)
- GET /players-v2 200 in 984ms (next.js: 882ms, application-code: 102ms)
- PATCH /api/admin/recap-drafts/91424f29-4d57-4ca8-9388-09b53bbd12f7 200 in 2.5s (next.js: 2.1s, application-code: 429ms)
- POST /api/admin/recap-drafts/91424f29-4d57-4ca8-9388-09b53bbd12f7/publish 200 in 205ms (next.js: 20ms, application-code: 185ms)
- GET /admin/sessions/S0-001 200 in 876ms (next.js: 18ms, application-code: 858ms)
- GET /players-v2 200 in 240ms (next.js: 11ms, application-code: 229ms)
- GET /players-v2 200 in 28ms (next.js: 9ms, application-code: 18ms)
- GET /players-v2 200 in 131ms (next.js: 8ms, application-code: 123ms)
- GET /players-v2 200 in 32ms (next.js: 11ms, application-code: 21ms)
- GET /players-v2 200 in 191ms (next.js: 10ms, application-code: 181ms)
- GET /sessions-v2 200 in 1133ms (next.js: 815ms, application-code: 318ms)
- GET /sessions-v2/S0-001 200 in 4.5s (next.js: 3.0s, generate-params: 2.1s, application-code: 1482ms)
- POST /api/admin/recap-drafts/91424f29-4d57-4ca8-9388-09b53bbd12f7/publish 200 in 246ms (next.js: 13ms, application-code: 233ms)
- GET /players-v2 200 in 624ms (next.js: 5ms, application-code: 618ms)
- GET /players-v2/panicmixie-at-l57fne6bbg 200 in 2.7s (next.js: 1738ms, generate-params: 1253ms, application-code: 914ms)
- GET /sessions-v2/S0-001 200 in 882ms (next.js: 18ms, generate-params: 10ms, application-code: 864ms)
+ POST /api/articles/generate 200 in 7.9s (next.js: 11ms, application-code: 7.9s)
+ GET /admin/moments 200 in 664ms (next.js: 42ms, application-code: 623ms)
+ GET /admin/player-session-recaps 200 in 290ms (next.js: 36ms, application-code: 254ms)
+ GET /admin/moments 200 in 193ms (next.js: 12ms, application-code: 181ms)
+[newsroom-ai] provider diagnostics {
+  aiWritingProvider: 'gemini',
+  selectedProvider: 'gemini',
+  hasGeminiKey: true,
+  hasOpenAiKey: false,
+  hasAnthropicKey: false,
+  expectedKeyName: 'GEMINI_API_KEY'
+}
+ POST /api/moments/generate 200 in 3.2s (next.js: 216ms, application-code: 3.0s)
+ PATCH /api/admin/recap-drafts/95a66c1f-b6a1-4adf-9cb0-e78a86ebb34d 200 in 2.1s (next.js: 1862ms, application-code: 243ms)
