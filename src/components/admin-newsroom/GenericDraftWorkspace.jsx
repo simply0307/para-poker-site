@@ -197,6 +197,8 @@ export function GenericDraftWorkspace({ title, endpoint, defaultPayload = {}, va
             provider: draftRow.provider_used || draftRow.provider,
             model: draftRow.model_used,
             variation: draftRow.context_packet?.selected_variation?.label || draftRow.context_packet?.selected_variation?.key,
+            article_type: draftRow.context_packet?.article_request?.articleType,
+            season_context: draftRow.context_packet?.season_context,
             fallback_trace: draftRow.fallback_trace || draftRow.context_packet?.generation_debug?.fallback_trace,
             docs: draftRow.context_packet?.editorial_docs?.manifest,
             context_packet: draftRow.context_packet,

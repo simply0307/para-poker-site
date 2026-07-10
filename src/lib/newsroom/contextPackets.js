@@ -360,6 +360,21 @@ export async function buildArticleInputPacket(articleRequest = {}) {
   const editorialDocs = await loadNewsroomEditorialDocs();
   const standings = await getStandingsRows(articleRequest.seasonCode || "S0");
   const taskContext = await buildTaskContext("league_article", articleRequest.variation || articleRequest.variationKey);
+  const finalityRules = [
+    "Do not say the season is over unless articleRequest.seasonStatus is complete.",
+    "Do not say a player has clinched, secured, finished the season, closed the campaign, or ended the race unless supplied data explicitly says so.",
+    "Use provisional language: currently, so far, through the available sessions, early board, opening marker, current standings line.",
+    "Do not write final-season conclusions from a standings snapshot.",
+  ];
+  const seasonContext = {
+    season_code: articleRequest.seasonCode || "S0",
+    season_phase: articleRequest.seasonPhase || "preseason",
+    season_status: articleRequest.seasonStatus || "in_progress",
+    lifecycle_note:
+      articleRequest.lifecycleNote ||
+      "This season is ongoing. Treat standings and results as current markers, not final outcomes.",
+    finality_rules: finalityRules,
+  };
 
   return {
     scope: "article",
@@ -382,10 +397,12 @@ export async function buildArticleInputPacket(articleRequest = {}) {
       voice_rules: paraLeagueVoiceRules,
       editorial_docs: editorialDocs,
       article_request: articleRequest,
+      season_context: seasonContext,
       standings_snapshot: standings,
       constraints: [
         "Request additional structured data if the article cannot be grounded.",
         "Do not invent standings, sessions, moments, rivalries, or player intent.",
+        ...finalityRules,
       ],
     },
   };

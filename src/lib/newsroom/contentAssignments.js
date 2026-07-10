@@ -192,25 +192,37 @@ export const contentAssignments = {
         key: "beat_report",
         label: "Beat report",
         instruction:
-          "Write like a league beat note: specific, direct, grounded, and readable as public coverage.",
-      },
-      {
-        key: "digest",
-        label: "Digest",
-        instruction:
-          "Write a compact multi-item digest if the request covers multiple players, moments, or standings notes.",
+          "Write a current league beat report from the supplied data. Lead with the newest verified development and keep the season state provisional.",
       },
       {
         key: "feature_angle",
         label: "Feature angle",
         instruction:
-          "Write the most article-like version with a clear angle and measured narrative flow. Do not invent quotes or behind-the-scenes context.",
+          "Write a focused feature-style article around one supplied angle, player, session, or standings thread. Do not invent quotes, motives, rivalries, or completed-season conclusions.",
+      },
+      {
+        key: "preseason_context",
+        label: "Preseason context",
+        instruction:
+          "Use ongoing-season language. Frame results as early signals, opening markers, and current table shape. Do not write as if the preseason is complete.",
+      },
+      {
+        key: "player_race",
+        label: "Player race",
+        instruction:
+          "Use only current standings data. Do not say anyone has clinched, locked, closed, or finished unless qualification data is explicitly supplied.",
+      },
+      {
+        key: "weekly_digest",
+        label: "Weekly digest",
+        instruction:
+          "Summarize current approved beats from the available data. If only one session or limited data is supplied, say this is a short current update, not a full week in review.",
       },
       {
         key: "preview_setup",
         label: "Preview setup",
         instruction:
-          "Use only when the article request asks for a preview. Discuss what is known and what is upcoming without inventing future outcomes.",
+          "Set up an upcoming session, player watch, or standings question using only supplied schedule/context. Do not predict outcomes or imply the race is settled.",
       },
     ],
   },
