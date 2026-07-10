@@ -3,52 +3,34 @@ import path from "node:path";
 
 const EDITORIAL_DOCS = [
   {
-    id: "native-v2-product-brief",
-    title: "Native v2 Product Brief",
-    filename: "00-product-brief.md",
-    purpose: "Product purpose, audience, feel, and public loop.",
+    id: "newsroom-product-model",
+    title: "Newsroom Product Model",
+    filename: "00-product-model.md",
+    purpose: "Generation-first product loop and public/admin behavior.",
   },
   {
     id: "public-vs-internal-ui",
-    title: "Public vs Internal UI",
-    filename: "02-public-vs-internal-ui.md",
+    title: "Public vs Admin",
+    filename: "01-public-vs-admin.md",
     purpose: "Rules for hiding debug/source metadata from public recap copy.",
   },
   {
-    id: "recap-formats",
-    title: "Recap Formats",
-    filename: "03-recap-formats.md",
-    purpose: "Moment, session, profile, and digest format rules.",
-  },
-  {
     id: "recap-voice-guide",
-    title: "Recap Voice Guide",
-    filename: "04-recap-voice-guide.md",
+    title: "Session Recap Voice",
+    filename: "02-session-recap-voice.md",
     purpose: "Voice, examples, allowed liberties, and forbidden claims.",
   },
   {
-    id: "player-archetypes",
-    title: "Player Archetypes",
-    filename: "05-player-archetypes.md",
-    purpose: "Player-facing style language and dignity rules.",
+    id: "draft-formats",
+    title: "Draft Formats",
+    filename: "03-draft-formats.md",
+    purpose: "Session, profile, moment, standings, and article draft formats.",
   },
   {
-    id: "sample-session-s0-001",
-    title: "Sample Session S0-001",
-    filename: "06-sample-session-S0-001.md",
-    purpose: "Grounded sample recap shape and factual boundaries.",
-  },
-  {
-    id: "acceptance-criteria",
-    title: "Acceptance Criteria",
-    filename: "07-acceptance-criteria.md",
-    purpose: "Done-state rules for public recap tone and internal separation.",
-  },
-  {
-    id: "implementation-brief",
-    title: "Implementation Brief",
-    filename: "08-implementation-brief.md",
-    purpose: "Native v2 implementation and editorial UX requirements.",
+    id: "generation-rules",
+    title: "Generation Rules",
+    filename: "04-generation-rules.md",
+    purpose: "Generation boundaries, inspection requirements, and draft workflow.",
   },
 ];
 
@@ -58,10 +40,10 @@ function clampContent(value, maxChars = 12000) {
 }
 
 export async function loadNewsroomEditorialDocs() {
-  const docsRoot = path.join(process.cwd(), "docs", "native-v2");
+  const docsRoot = path.join(process.cwd(), "docs", "newsroom");
   const docs = await Promise.all(
     EDITORIAL_DOCS.map(async (doc) => {
-      const relativePath = `docs/native-v2/${doc.filename}`;
+      const relativePath = `docs/newsroom/${doc.filename}`;
       const absolutePath = path.join(docsRoot, doc.filename);
       try {
         const content = await fs.readFile(absolutePath, "utf8");
@@ -86,7 +68,7 @@ export async function loadNewsroomEditorialDocs() {
   );
 
   return {
-    version: "native-v2-editorial-docs-v1",
+    version: "newsroom-editorial-docs-v1",
     manifest: docs.map(({ id, title, relativePath, purpose, included, charCount, error }) => ({
       id,
       title,
@@ -111,4 +93,58 @@ export function editorialDocIds(editorialDocs) {
   return (editorialDocs?.manifest || [])
     .filter((doc) => doc.included)
     .map((doc) => doc.id);
+}
+
+export async function loadSessionRecapMagicGuide() {
+  const relativePath = "newsroom-library/docs/09-session-recap-magic-guide.md";
+  const absolutePath = path.join(process.cwd(), "newsroom-library", "docs", "09-session-recap-magic-guide.md");
+
+  try {
+    const content = await fs.readFile(absolutePath, "utf8");
+    return {
+      id: "session-recap-magic-guide",
+      title: "Session Recap Magic Guide",
+      path: relativePath,
+      included: true,
+      charCount: content.length,
+      content: clampContent(content, 14000),
+    };
+  } catch (error) {
+    return {
+      id: "session-recap-magic-guide",
+      title: "Session Recap Magic Guide",
+      path: relativePath,
+      included: false,
+      charCount: 0,
+      content: "",
+      error: error instanceof Error ? error.message : "Could not read magic guide.",
+    };
+  }
+}
+
+export async function loadTaskGuide(filename, id, title) {
+  const relativePath = `newsroom-library/docs/${filename}`;
+  const absolutePath = path.join(process.cwd(), "newsroom-library", "docs", filename);
+
+  try {
+    const content = await fs.readFile(absolutePath, "utf8");
+    return {
+      id,
+      title,
+      path: relativePath,
+      included: true,
+      charCount: content.length,
+      content: clampContent(content, 12000),
+    };
+  } catch (error) {
+    return {
+      id,
+      title,
+      path: relativePath,
+      included: false,
+      charCount: 0,
+      content: "",
+      error: error instanceof Error ? error.message : "Could not read task guide.",
+    };
+  }
 }

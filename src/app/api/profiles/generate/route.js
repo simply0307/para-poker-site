@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { buildPlayerRecapInputPacket } from "@/lib/newsroom/contextPackets";
 import { callNewsroomAiJson } from "@/lib/newsroom/aiClient";
-import { saveRecapDraft } from "@/lib/newsroom/drafts";
+import { logGeneration, saveNewsroomDraft } from "@/lib/newsroom/drafts";
 import { profileDraftSchema, validateDraftShape } from "@/lib/newsroom/schemas";
 
 export const runtime = "nodejs";
@@ -16,7 +16,10 @@ export async function POST(request) {
       return NextResponse.json({ error: "playerId is required." }, { status: 400 });
     }
 
-    const input = await buildPlayerRecapInputPacket(playerId);
+    const input = await buildPlayerRecapInputPacket(playerId, {
+      editorialNotes: body.editorialNotes || "",
+      variation: body.variation || body.variationKey || "",
+    });
     const aiResult = await callNewsroomAiJson({
       scope: "player",
       schema: profileDraftSchema,
@@ -35,7 +38,8 @@ export async function POST(request) {
       return NextResponse.json({ error: "AI response failed validation.", details: shapeErrors }, { status: 502 });
     }
 
-    const draft = await saveRecapDraft({
+    const draft = await saveNewsroomDraft({
+      table: "profile_drafts",
       scope: input.scope,
       sourcePlayerId: input.sourcePlayerId,
       contextPacket: input.packet,
@@ -50,6 +54,7 @@ export async function POST(request) {
     return NextResponse.json({ draft });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Could not generate profile draft.";
+    await logGeneration({ scope: "player", generationError: message, fallbackTrace: error?.fallbackTrace || [] });
     const status = /quota|rate limit/i.test(message) ? 429 : /missing .*api_key/i.test(message) ? 503 : 500;
     return NextResponse.json({ error: message, fallbackTrace: error?.fallbackTrace || [] }, { status });
   }

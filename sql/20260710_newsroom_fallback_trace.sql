@@ -20,3 +20,5 @@ comment on column public.recap_drafts.fallback_trace is
 
 comment on column public.recap_drafts.generation_error is
   'Admin-only final generation error when persisted by editorial tooling.';
+
+select pg_notify('pgrst', 'reload schema');

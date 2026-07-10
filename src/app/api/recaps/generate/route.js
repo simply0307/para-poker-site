@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { buildSessionRecapInputPacket } from "@/lib/newsroom/contextPackets";
 import { callNewsroomAiJson, getNewsroomAiDiagnostics } from "@/lib/newsroom/aiClient";
-import { saveRecapDraft } from "@/lib/newsroom/drafts";
+import { logGeneration, saveRecapDraft } from "@/lib/newsroom/drafts";
 import { editorialDocIds } from "@/lib/newsroom/editorialDocs";
 import { sessionRecapDraftSchema, validateDraftShape } from "@/lib/newsroom/schemas";
 
@@ -20,9 +20,14 @@ export async function POST(request) {
       return NextResponse.json({ error: "sessionId is required." }, { status: 400 });
     }
 
-    const input = await buildSessionRecapInputPacket(sessionId);
+    const input = await buildSessionRecapInputPacket(sessionId, {
+      variation: body.variation || body.variationKey || "",
+    });
     console.info("[api/recaps/generate] editorial docs included", {
       ids: editorialDocIds(input.packet.editorial_docs),
+      sessionMagicGuide: input.packet.session_recap_magic_guide?.included
+        ? input.packet.session_recap_magic_guide.id
+        : "missing",
     });
     const aiResult = await callNewsroomAiJson({
       scope: "session",
@@ -60,6 +65,7 @@ export async function POST(request) {
     return NextResponse.json({ draft });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Could not generate recap draft.";
+    await logGeneration({ scope: "session", generationError: message, fallbackTrace: error?.fallbackTrace || [] });
     const status = /quota|rate limit/i.test(message) ? 429 : /missing .*api_key/i.test(message) ? 503 : 500;
     return NextResponse.json({ error: message, fallbackTrace: error?.fallbackTrace || [] }, { status });
   }

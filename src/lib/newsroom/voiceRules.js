@@ -35,7 +35,7 @@ export function buildNewsroomSystemPrompt(scope) {
     paraLeagueVoiceRules.productRole,
     `Scope: ${scope}.`,
     scope === "session"
-      ? "For session recaps, follow packet.session_recap_assignment first. It outranks broad editorial docs and source-fact summaries."
+      ? "For session recaps, follow packet.session_recap_assignment first, then hard factual guardrails, then packet.session_recap_magic_guide. These outrank broad editorial docs and source-fact summaries."
       : "",
     `Tone: ${paraLeagueVoiceRules.tone}`,
     "Required behavior:",

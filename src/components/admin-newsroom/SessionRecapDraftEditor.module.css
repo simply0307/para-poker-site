@@ -64,6 +64,67 @@
   font-size: 13px;
 }
 
+.variationPanel {
+  margin-top: 18px;
+  border: 1px solid #e4e4e7;
+  border-radius: 8px;
+  background: #fafafa;
+  padding: 14px;
+}
+
+.variationPanel > span {
+  display: block;
+  color: #7c2d12;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.variationButtons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.variationButtons button {
+  border: 1px solid #d4d4d8;
+  border-radius: 6px;
+  background: #fff;
+  color: #27272a;
+  cursor: pointer;
+  font-weight: 800;
+  padding: 8px 10px;
+}
+
+.variationButtons .variationActive {
+  border-color: #18181b;
+  background: #18181b;
+  color: #fff;
+}
+
+.variationNotes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.variationNotes p {
+  margin: 0;
+  border-radius: 6px;
+  background: #fff;
+  color: #52525b;
+  font-size: 13px;
+  line-height: 1.45;
+  padding: 10px;
+}
+
+.variationNotes strong {
+  color: #18181b;
+}
+
 .debugPanel {
   margin-top: 12px;
   border: 1px solid #e4e4e7;

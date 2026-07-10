@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { updateRecapDraft } from "@/lib/newsroom/drafts";
+import { updateDraft } from "@/lib/newsroom/drafts";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -17,7 +17,8 @@ export async function PATCH(request, { params }) {
       return NextResponse.json({ error: "draft object is required." }, { status: 400 });
     }
 
-    const draft = await updateRecapDraft(draftId, {
+    const table = typeof body.table === "string" ? body.table : "recap_drafts";
+    const draft = await updateDraft(table, draftId, {
       draft: body.draft,
       status: body.status,
       visibility: body.visibility,

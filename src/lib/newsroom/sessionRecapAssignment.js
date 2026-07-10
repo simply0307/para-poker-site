@@ -41,7 +41,47 @@ export const sessionRecapAssignment = {
     "Key moments: 3-4 distinct moments with different narrative roles.",
     "Player blurbs: short, dignified notes on each relevant player.",
   ],
+  defaultVariation: "turning_point_led",
+  variations: [
+    {
+      key: "turning_point_led",
+      label: "Turning point led",
+      instruction:
+        "Open from the hand or sequence that changed the session picture, then land the result and consequences.",
+    },
+    {
+      key: "winner_story",
+      label: "Winner story",
+      instruction:
+        "Lead with how the winner earned the night, using verified result lines and the strongest supplied hand evidence.",
+    },
+    {
+      key: "resistance_story",
+      label: "Resistance story",
+      instruction:
+        "Give the winner the result while making the strongest non-winner's verified resistance part of the article shape.",
+    },
+    {
+      key: "standings_marker",
+      label: "Standings marker",
+      instruction:
+        "Frame the session around what the first board or current standings line now says. Do not invent movement or stakes.",
+    },
+  ],
 };
+
+export function getSessionRecapVariationOptions() {
+  return sessionRecapAssignment.variations;
+}
+
+export function getSelectedSessionRecapVariation(requestedKey = "") {
+  const requested = String(requestedKey || "").trim();
+  return (
+    sessionRecapAssignment.variations.find((variation) => variation.key === requested) ||
+    sessionRecapAssignment.variations.find((variation) => variation.key === sessionRecapAssignment.defaultVariation) ||
+    sessionRecapAssignment.variations[0]
+  );
+}
 
 function text(value, fallback = "") {
   if (value === null || value === undefined || value === "") return fallback;

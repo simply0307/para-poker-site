@@ -77,3 +77,5 @@ alter table public.published_articles enable row level security;
 -- No anon policies are created here. These tables are admin/editorial storage
 -- and should be accessed by server-side service-role routes until a real admin
 -- auth model is added.
+
+select pg_notify('pgrst', 'reload schema');

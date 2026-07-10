@@ -51,15 +51,22 @@ function editorialDocs(row) {
     : [];
 }
 
+function magicGuide(row) {
+  return row?.context_packet?.session_recap_magic_guide || null;
+}
+
 function storyPlan(row) {
   return row?.context_packet?.story_plan && typeof row.context_packet.story_plan === "object"
     ? row.context_packet.story_plan
     : null;
 }
 
-export function SessionRecapDraftEditor({ sessionKey, initialDraft }) {
+export function SessionRecapDraftEditor({ sessionKey, initialDraft, variationOptions = [] }) {
   const [draftRow, setDraftRow] = useState(initialDraft || null);
   const [draft, setDraft] = useState(normalizeDraft(initialDraft));
+  const [selectedVariation, setSelectedVariation] = useState(
+    initialDraft?.context_packet?.selected_variation?.key || variationOptions[0]?.key || "turning_point_led"
+  );
   const [busy, setBusy] = useState("");
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
@@ -86,7 +93,7 @@ export function SessionRecapDraftEditor({ sessionKey, initialDraft }) {
     const response = await fetch("/api/recaps/generate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sessionId: sessionKey }),
+      body: JSON.stringify({ sessionId: sessionKey, variation: selectedVariation }),
     });
     const payload = await response.json().catch(() => ({}));
 
@@ -118,7 +125,12 @@ export function SessionRecapDraftEditor({ sessionKey, initialDraft }) {
     const response = await fetch(`/api/admin/recap-drafts/${draftRow.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ draft, status: draftRow.status || "draft", visibility: draftRow.visibility || "admin" }),
+      body: JSON.stringify({
+        table: draftRow._draft_table || "recap_drafts",
+        draft,
+        status: draftRow.status || "draft",
+        visibility: draftRow.visibility || "admin",
+      }),
     });
     const payload = await response.json().catch(() => ({}));
 
@@ -147,7 +159,7 @@ export function SessionRecapDraftEditor({ sessionKey, initialDraft }) {
     const response = await fetch(`/api/admin/recap-drafts/${draftRow.id}/publish`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action }),
+      body: JSON.stringify({ action, table: draftRow._draft_table || "recap_drafts" }),
     });
     const payload = await response.json().catch(() => ({}));
 
@@ -177,6 +189,31 @@ export function SessionRecapDraftEditor({ sessionKey, initialDraft }) {
           {busy === "generate" ? "Generating..." : "Generate Public Session Recap Draft"}
         </button>
       </div>
+
+      {variationOptions.length ? (
+        <section className={styles.variationPanel}>
+          <span>Draft variation</span>
+          <div className={styles.variationButtons}>
+            {variationOptions.map((option) => (
+              <button
+                key={option.key}
+                type="button"
+                className={selectedVariation === option.key ? styles.variationActive : ""}
+                onClick={() => setSelectedVariation(option.key)}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+          <div className={styles.variationNotes}>
+            {variationOptions.map((option) => (
+              <p key={option.key}>
+                <strong>{option.label}:</strong> {option.instruction}
+              </p>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <div className={styles.meta}>{generatedMeta}</div>
       {draftRow ? <AdminDebugPanel draftRow={draftRow} /> : null}
@@ -248,6 +285,7 @@ export function SessionRecapDraftEditor({ sessionKey, initialDraft }) {
 function AdminDebugPanel({ draftRow }) {
   const rows = traceRows(draftRow);
   const docs = editorialDocs(draftRow);
+  const guide = magicGuide(draftRow);
   const plan = storyPlan(draftRow);
 
   return (
@@ -257,6 +295,7 @@ function AdminDebugPanel({ draftRow }) {
         <DebugItem label="Provider used" value={draftRow.provider_used || draftRow.provider || "-"} />
         <DebugItem label="Model used" value={draftRow.model_used || draftRow.context_packet?.generation_debug?.model_used || "-"} />
         <DebugItem label="Status" value={draftRow.status || "-"} />
+        <DebugItem label="Variation" value={draftRow.context_packet?.selected_variation?.label || draftRow.context_packet?.selected_variation?.key || "-"} />
       </div>
       {draftRow.generation_error ? <p className={styles.debugError}>{draftRow.generation_error}</p> : null}
       {docs.length ? (
@@ -273,6 +312,19 @@ function AdminDebugPanel({ draftRow }) {
         </div>
       ) : (
         <p className={styles.debugMuted}>No editorial docs manifest saved for this draft.</p>
+      )}
+      {guide ? (
+        <div className={styles.docsList}>
+          <span>Session magic guide</span>
+          <ul>
+            <li>
+              <strong>{guide.id}</strong>
+              <small>{guide.included ? `${guide.charCount} chars` : guide.error || "not included"}</small>
+            </li>
+          </ul>
+        </div>
+      ) : (
+        <p className={styles.debugMuted}>No session magic guide saved for this draft.</p>
       )}
       {plan ? (
         <div className={styles.storyPlan}>

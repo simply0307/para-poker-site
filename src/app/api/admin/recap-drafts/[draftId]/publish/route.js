@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { setDraftPublishState } from "@/lib/newsroom/drafts";
+import { setDraftPublishStateForTable } from "@/lib/newsroom/drafts";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -14,7 +14,8 @@ export async function POST(request, { params }) {
       return NextResponse.json({ error: "draftId is required." }, { status: 400 });
     }
 
-    const draft = await setDraftPublishState(draftId, {
+    const table = typeof body.table === "string" ? body.table : "recap_drafts";
+    const draft = await setDraftPublishStateForTable(table, draftId, {
       publish: action === "publish",
       approvedBy: typeof body.approvedBy === "string" ? body.approvedBy : "admin",
     });
