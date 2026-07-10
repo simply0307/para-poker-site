@@ -11,9 +11,9 @@ export const contentAssignments = {
       "admin_notes: what needs review",
     ],
     rules: [
-      "Make the player proud to share it.",
-      "Do not invent style, motive, emotion, rivalry, or private scouting.",
-      "Use early-sample language when data is thin.",
+      "Make the player want to share it.",
+      "Fragments, rhythm, and dossier-style attitude are allowed.",
+      "Do not invent hands, results, actions, quotes, emotions, rivalries, or private scouting.",
     ],
     defaultVariation: "shareable_profile",
     variations: [
@@ -21,25 +21,25 @@ export const contentAssignments = {
         key: "shareable_profile",
         label: "Shareable profile",
         instruction:
-          "Write the public identity version: polished, concise, and player-facing. Lead with what the player has earned or shown, then explain what is still early.",
+          "Write the public identity version: polished, punchy, and player-facing. Lead with the cleanest earned fact and make it feel like the player's first page.",
       },
       {
         key: "result_first",
         label: "Result first",
         instruction:
-          "Lead from rank, points, finish, or biggest verified result. Use the numbers as the doorway into the player story, not as the story itself.",
+          "Lead from rank, points, finish, or biggest verified result. Use the numbers like a match strike, not a spreadsheet.",
       },
       {
         key: "signature_moment_led",
         label: "Signature moment led",
         instruction:
-          "Open from the strongest supplied moment or pot, then connect it back to the player's wider preseason identity. If no meaningful moment is supplied, say that plainly in admin notes.",
+          "Open from the strongest supplied moment or pot, then make the profile snap into focus. If no meaningful moment is supplied, say that plainly in admin notes.",
       },
       {
         key: "early_file",
         label: "Early file",
         instruction:
-          "Use restrained early-sample language. Make the player feel legitimate without pretending the record is complete.",
+          "Use early-sample language with edge. The player can feel real without being crowned.",
       },
     ],
   },
@@ -56,7 +56,7 @@ export const contentAssignments = {
     rules: [
       "Keep it public, not private coaching.",
       "Respect losing sessions.",
-      "Do not invent mistakes, emotions, or strategic intent.",
+      "Do not invent mistakes, cards, emotions, quotes, or strategic intent.",
     ],
     defaultVariation: "moment_led",
     variations: [
@@ -64,19 +64,19 @@ export const contentAssignments = {
         key: "moment_led",
         label: "Moment led",
         instruction:
-          "Start from the player's most meaningful supplied hand or sequence, then show how it affected their session line.",
+          "Start from the player's most meaningful supplied hand or sequence. Let the pot, result, and finish do the talking.",
       },
       {
         key: "winner_lane",
         label: "Winner lane",
         instruction:
-          "If the player won, write the earned-winner version: result, turning point, and why the finish stands. If the player did not win, use this only as contrast.",
+          "If the player won, write the earned-winner version with punch: result, turning point, and the hand or line that makes it stick.",
       },
       {
         key: "resistance_lane",
         label: "Resistance lane",
         instruction:
-          "For a non-winner, focus on verified resistance: late pots, pressure, survival, or meaningful involvement. Do not turn a loss into a fake victory.",
+          "For a non-winner, focus on verified resistance: late pots, pressure, survival, or meaningful involvement. Make the loss worthy without making it fake.",
       },
       {
         key: "next_session_setup",
@@ -106,7 +106,7 @@ export const contentAssignments = {
         key: "leaderboard_snapshot",
         label: "Leaderboard snapshot",
         instruction:
-          "Write the clean standings version: who leads, who is next, and what the current board says without inventing movement.",
+          "Write the current-board version: who owns the first line, who owns the chase, and why the board is no longer blank.",
       },
       {
         key: "chase_line",
@@ -118,7 +118,7 @@ export const contentAssignments = {
         key: "first_marker",
         label: "First marker",
         instruction:
-          "Use this for early-season tables. Keep the language provisional but make the first standings line feel meaningful.",
+          "Use this for early-season tables. Make the first standings line feel sharp without pretending it is final.",
       },
       {
         key: "movement_watch",
@@ -141,7 +141,7 @@ export const contentAssignments = {
     rules: [
       "Do not invent action, bluffs, reads, emotion, or rivalry.",
       "Do not overstate small pots.",
-      "Keep it sharp and player-facing.",
+      "Keep it sharp, player-facing, and memorable.",
     ],
     defaultVariation: "impact_blurb",
     variations: [
@@ -149,19 +149,19 @@ export const contentAssignments = {
         key: "impact_blurb",
         label: "Impact blurb",
         instruction:
-          "Explain why the moment mattered in one clear public beat: pot, winner, consequence, and session/player meaning if supplied.",
+          "Explain why the moment mattered in one sharp public beat: pot, winner, consequence, and the dent it left on the session if supplied.",
       },
       {
         key: "recap_card",
         label: "Recap card",
         instruction:
-          "Write a compact card-style version with a strong headline and short body. Keep it punchy and not overexplained.",
+          "Write a compact card-style version with a strong headline and short body. Make it hit fast.",
       },
       {
         key: "player_facing",
         label: "Player-facing",
         instruction:
-          "Write it as a player would want to see it attached to their public record, while staying factual and respectful to opponents.",
+          "Write it as a player would want to see it attached to their public record. Cool for the winner, respectful to the opponent.",
       },
       {
         key: "quiet_marker",
@@ -192,7 +192,7 @@ export const contentAssignments = {
         key: "beat_report",
         label: "Beat report",
         instruction:
-          "Write a current league beat report from the supplied data. Lead with the newest verified development and keep the season state provisional.",
+          "Write a current league beat report from the supplied data. Lead with the newest verified development and give it newsroom bite without declaring the race over.",
       },
       {
         key: "feature_angle",

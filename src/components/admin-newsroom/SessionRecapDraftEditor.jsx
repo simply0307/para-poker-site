@@ -171,7 +171,8 @@ export function SessionRecapDraftEditor({ sessionKey, initialDraft, variationOpt
 
     setDraftRow(payload.draft);
     setDraft(normalizeDraft(payload.draft));
-    setNotice(action === "publish" ? "Draft marked published for future public wiring." : "Draft unpublished.");
+    const warnings = Array.isArray(payload.warnings) && payload.warnings.length ? ` ${payload.warnings.join(" ")}` : "";
+    setNotice(`${action === "publish" ? "Draft published to the public session route." : "Draft unpublished."}${warnings}`);
     setBusy("");
   }
 

@@ -411,20 +411,23 @@ async function upsertPublishedArticle(row, scope) {
     await upsertWithSchemaCacheFallback(
       "published_articles",
       {
-      draft_id: row.id,
-      scope,
-      slug: articleSlug(row),
-      title,
-      body: row.draft || {},
-      published_at: row.published_at || new Date().toISOString(),
-      unpublished_at: row.unpublished_at || null,
+        draft_id: row.id,
+        scope,
+        slug: articleSlug(row),
+        title,
+        body: row.draft || {},
+        published_at: row.published_at || new Date().toISOString(),
+        unpublished_at: row.unpublished_at || null,
       },
       { onConflict: "draft_id" }
     );
+    return "";
   } catch (error) {
     if (!isMissingTable(error)) {
       console.warn("[newsroom] published article upsert failed", error.message);
+      return `Published draft saved, but published_articles mirror failed: ${error.message}`;
     }
+    return `Published draft saved, but published_articles is not available: ${error.message}`;
   }
 }
 
@@ -460,13 +463,17 @@ export async function setDraftPublishStateForTable(table, draftId, { publish, ap
   }
 
   const { data } = await updateSingleWithSchemaCacheFallback(cleanTable, draftId, patch);
+  const warnings = [];
 
   if (cleanTable === "article_drafts") {
-    if (publish) await upsertPublishedArticle(data, "article");
+    if (publish) {
+      const warning = await upsertPublishedArticle(data, "article");
+      if (warning) warnings.push(warning);
+    }
     else await unpublishArticle(data);
   }
 
-  return { ...data, _draft_table: cleanTable };
+  return { ...data, _draft_table: cleanTable, _publish_warnings: warnings };
 }
 
 export async function setDraftPublishState(draftId, options) {

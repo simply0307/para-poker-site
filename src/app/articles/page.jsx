@@ -1,4 +1,4 @@
-import { NewsroomShell, PageHeader, NewsroomCard, CardGrid } from "@/components/newsroom/NewsroomShell";
+import { CardGrid, LeagueHero, MomentCard, NewsroomShell, StatCard, StatStrip } from "@/components/newsroom/NewsroomShell";
 import { getPublishedArticlesIndex } from "@/lib/newsroom/data";
 import { waitingCopy } from "@/lib/newsroom/rendering";
 
@@ -8,24 +8,29 @@ export default async function ArticlesPage() {
   const articles = await getPublishedArticlesIndex();
 
   return (
-    <NewsroomShell eyebrow="Public Coverage">
-      <PageHeader title="Articles">
-        <p>{articles.length ? "Published Para League articles." : waitingCopy}</p>
-      </PageHeader>
+    <NewsroomShell eyebrow="Coverage">
+      <LeagueHero
+        eyebrow="League coverage"
+        title="League Coverage"
+        dek={articles.length ? "Latest league notes." : waitingCopy}
+      />
+      <StatStrip>
+        <StatCard label="Published articles" value={articles.length} />
+      </StatStrip>
       <CardGrid>
         {articles.length ? articles.map((article) => (
-          <NewsroomCard
+          <MomentCard
             key={article.id}
             href={`/articles/${encodeURIComponent(article.slug || article.id)}`}
             title={article.title}
             meta={article.scope || "Article"}
           >
-            <p>{article.body?.subheadline || article.body?.headline || "Read the published newsroom article."}</p>
-          </NewsroomCard>
+            <p>{article.body?.subheadline || article.body?.headline || "Read article."}</p>
+          </MomentCard>
         )) : (
-          <NewsroomCard href="/articles/latest" title="Latest newsroom article" meta="Placeholder">
+          <MomentCard href="/articles/latest" title="Latest article" meta="Placeholder">
             <p>{waitingCopy}</p>
-          </NewsroomCard>
+          </MomentCard>
         )}
       </CardGrid>
     </NewsroomShell>

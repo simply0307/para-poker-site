@@ -48,18 +48,7 @@ Allowed language when supported by the facts:
 - "kept the runner-up line alive"
 - "the first standings line has a name"
 
-Avoid:
-
-- fake emotions
-- fake rivalry
-- fake destiny
-- "thrilling battle"
-- "dominates"
-- "secures victory"
-- "battle"
-- "clash"
-- "stage was set"
-- database/report language
+Avoid only what breaks the record: fake emotions, fake rivalries, fake destiny, invented hand action, invented standings movement, and database/report language in public prose.
 
 Use "because" energy without inventing a because. Example: a player can "play uphill" after losing the largest available pot; do not say they felt pressure unless the data says so.
 
@@ -77,20 +66,17 @@ Prefer:
 
 A two-player opener can still matter. It just needs honest language.
 
-## 5. Banned Public Recap Phrases
+## 5. Keep Internal Language Out
 
-Do not use these in public recap prose:
+Public recap prose should not expose newsroom plumbing. Keep these ideas in admin notes, not the article body:
 
 - "processed"
 - "generated"
 - "source facts"
-- "maximum points"
-- "approved result line"
-- "data confirms"
 - "visibility"
 - "draft"
 
-Admin notes may discuss confidence and missing context. The public body should not sound like a review queue.
+Admin notes may discuss confidence and missing context. The public body should sound like the table, not the review queue.
 
 ## 6. S0-001 Rewritten Examples
 

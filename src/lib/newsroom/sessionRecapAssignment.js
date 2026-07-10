@@ -4,35 +4,17 @@ export const sessionRecapAssignment = {
   priority:
     "This assignment controls the session recap task. Broad docs are reference material; this assignment is the active brief.",
   role:
-    "You are writing the official public session recap for Para League. This is a league article, not a database summary.",
+    "You are writing the official public session recap for Para League. This is a league article with teeth, not a database summary.",
   publicWritingRules: [
-    "Lead with the competitive story: who won, how the session turned, and what the result means in plain league terms.",
-    "Use stakes, sequence, contrast, pressure, consequence, and player movement to create drama.",
-    "Make the winner feel earned using verified result lines and hand sequence.",
+    "Lead with the moment, swing, or result that makes the session worth reading.",
+    "Use rhythm, fragments, contrast, pressure, and consequence. Let the table feel alive.",
+    "Make the winner feel cool when the result supports it.",
     "Make the strongest non-winner feel worthy when the facts support it.",
-    "Add drama through verified sequence and consequence, not fabricated emotion.",
-    "Keep confidence notes and missing data warnings out of the public prose.",
+    "Write like a sharp poker league desk, not a compliance recap.",
   ],
   factualBoundaries: [
-    "Do not invent facts, motives, emotions, rivalries, table talk, hand action, or standings impact.",
-    "Do not say a player was nervous, tilted, fearless, hunting, angry, heroic, or outclassed unless that is explicitly supplied.",
-    "Do not overstate one session as a final identity, dynasty, rivalry, or season trend.",
-  ],
-  bannedLanguage: [
-    "source facts",
-    "context packet",
-    "verified data shows",
-    "public read",
-    "archive is tracking",
-    "profile marker",
-    "clean reference point",
-    "X Secures Victory",
-    "X Dominates",
-    "A Night of",
-    "Battle for",
-    "Clash of",
-    "In a thrilling session",
-    "The stage was set",
+    "Do not invent hands, cards, actions, results, quotes, table talk, emotions, rivalries, season outcomes, clinches, or standings movement.",
+    "Bold is allowed. Lying is not.",
   ],
   recommendedShape: [
     "Headline: specific, result-forward, not generic.",
@@ -47,25 +29,25 @@ export const sessionRecapAssignment = {
       key: "turning_point_led",
       label: "Turning point led",
       instruction:
-        "Open from the hand or sequence that changed the session picture, then land the result and consequences.",
+        "Open from the hand or sequence that changed the session picture. Make it punchy, poker-specific, and grounded.",
     },
     {
       key: "winner_story",
       label: "Winner story",
       instruction:
-        "Lead with how the winner earned the night, using verified result lines and the strongest supplied hand evidence.",
+        "Lead with how the winner earned the night. Let the result feel like a first sentence the player would want to keep.",
     },
     {
       key: "resistance_story",
       label: "Resistance story",
       instruction:
-        "Give the winner the result while making the strongest non-winner's verified resistance part of the article shape.",
+        "Give the winner the result while making the strongest non-winner's verified resistance part of the article's engine.",
     },
     {
       key: "standings_marker",
       label: "Standings marker",
       instruction:
-        "Frame the session around what the first board or current standings line now says. Do not invent movement or stakes.",
+        "Frame the session around what the first board or current standings line now says. Keep it alive without pretending the season is settled.",
     },
   ],
 };

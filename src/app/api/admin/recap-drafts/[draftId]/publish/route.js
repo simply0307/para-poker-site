@@ -20,7 +20,7 @@ export async function POST(request, { params }) {
       approvedBy: typeof body.approvedBy === "string" ? body.approvedBy : "admin",
     });
 
-    return NextResponse.json({ draft });
+    return NextResponse.json({ draft, warnings: draft._publish_warnings || [] });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Could not change publish state.";
     return NextResponse.json({ error: message }, { status: 500 });

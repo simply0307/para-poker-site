@@ -122,6 +122,33 @@ export async function loadSessionRecapMagicGuide() {
   }
 }
 
+export async function loadProseStyleExamples() {
+  const relativePath = "newsroom-library/docs/15-prose-style-examples.md";
+  const absolutePath = path.join(process.cwd(), "newsroom-library", "docs", "15-prose-style-examples.md");
+
+  try {
+    const content = await fs.readFile(absolutePath, "utf8");
+    return {
+      id: "prose-style-examples",
+      title: "Prose Style Examples",
+      path: relativePath,
+      included: true,
+      charCount: content.length,
+      content: clampContent(content, 14000),
+    };
+  } catch (error) {
+    return {
+      id: "prose-style-examples",
+      title: "Prose Style Examples",
+      path: relativePath,
+      included: false,
+      charCount: 0,
+      content: "",
+      error: error instanceof Error ? error.message : "Could not read prose style examples.",
+    };
+  }
+}
+
 export async function loadTaskGuide(filename, id, title) {
   const relativePath = `newsroom-library/docs/${filename}`;
   const absolutePath = path.join(process.cwd(), "newsroom-library", "docs", filename);

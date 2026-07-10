@@ -1,7 +1,7 @@
 export const waitingCopy =
-  "This page is waiting on an approved newsroom draft. Once reviewed, the published Para League coverage will appear here.";
+  "No published recap yet.";
 
-export function draftHeadline(row, fallback = "Para League newsroom") {
+export function draftHeadline(row, fallback = "Para League") {
   const draft = row?.draft || {};
   return draft.headline || draft.title || fallback;
 }

@@ -1,6 +1,6 @@
 import { NEWSROOM_PROMPT_VERSION, paraLeagueVoiceRules } from "./voiceRules";
 import { getContentAssignment, getSelectedVariation, getVariationOptions } from "./contentAssignments";
-import { loadNewsroomEditorialDocs, loadSessionRecapMagicGuide, loadTaskGuide } from "./editorialDocs";
+import { loadNewsroomEditorialDocs, loadProseStyleExamples, loadSessionRecapMagicGuide, loadTaskGuide } from "./editorialDocs";
 import {
   buildSessionStoryPlan,
   getSelectedSessionRecapVariation,
@@ -81,6 +81,7 @@ export async function buildSessionRecapInputPacket(sessionIdOrCode, options = {}
   if (!sessionData) throw new Error("Session not found.");
 
   const editorialDocs = await loadNewsroomEditorialDocs();
+  const proseStyleExamples = await loadProseStyleExamples();
   const sessionMagicGuide = await loadSessionRecapMagicGuide();
   const storyPlan = buildSessionStoryPlan({
     session: sessionData.session,
@@ -90,10 +91,8 @@ export async function buildSessionRecapInputPacket(sessionIdOrCode, options = {}
     hands: sessionData.hands,
   });
   const hardGuardrails = [
-    "Use only the supplied session/player/hand/standing data for factual claims.",
-    "Do not invent cards, stacks, winners, finishes, standings movement, rivalries, player intent, emotions, or table talk.",
-    "The recap_body must be public article prose, not an audit, source summary, product explanation, or database summary.",
-    "Use missing_data_warnings and confidence_notes only for admin notes.",
+    "Do not invent hands, cards, actions, results, quotes, table talk, emotions, rivalries, season outcomes, clinches, or standings movement.",
+    "Use missing_data_warnings and confidence_notes only for admin notes; keep public prose expressive and poker-first.",
   ];
 
   return {
@@ -107,15 +106,17 @@ export async function buildSessionRecapInputPacket(sessionIdOrCode, options = {}
       source_data_version: SOURCE_DATA_VERSION,
       prompt_hierarchy: [
         "A. session_recap_assignment",
-        "B. hard_factual_guardrails",
-        "C. selected_variation",
-        "D. session_recap_magic_guide",
-        "E. story_plan",
-        "F. session/player data",
-        "G. broad editorial docs/examples",
-        "H. output schema",
+        "B. prose_style_examples",
+        "C. hard_factual_guardrails",
+        "D. selected_variation",
+        "E. session_recap_magic_guide",
+        "F. story_plan",
+        "G. session/player data",
+        "H. broad editorial docs/examples",
+        "I. output schema",
       ],
       session_recap_assignment: sessionRecapAssignment,
+      prose_style_examples: proseStyleExamples,
       hard_factual_guardrails: hardGuardrails,
       variation_options: getSessionRecapVariationOptions().map(({ key, label, instruction }) => ({
         key,
@@ -152,7 +153,11 @@ export async function buildSessionRecapInputPacket(sessionIdOrCode, options = {}
         note: "Use these as source facts only, not as style examples.",
         ...publicHandMoment(moment),
       })),
-      biggest_pots: (sessionData.hands?.length ? sessionData.hands : sessionData.notableHands || []).slice(0, 8).map(publicHandMoment),
+      biggest_pots: (sessionData.hands?.length ? sessionData.hands : sessionData.notableHands || [])
+        .filter((hand) => hand?.pot_collected)
+        .sort((left, right) => Number(right.pot_collected || 0) - Number(left.pot_collected || 0))
+        .slice(0, 8)
+        .map(publicHandMoment),
       source_facts_summary: [
         `Session: ${sessionData.session.session_code || sessionData.session.id}`,
         `Hands: ${sessionData.session.hands_count || "-"}`,
@@ -170,6 +175,7 @@ export async function buildPlayerRecapInputPacket(playerIdOrSlug, options = {}) 
   if (!playerData) throw new Error("Player not found.");
   const { player } = playerData;
   const editorialDocs = await loadNewsroomEditorialDocs();
+  const proseStyleExamples = await loadProseStyleExamples();
   const taskContext = await buildTaskContext("player_profile", options.variation || options.variationKey);
 
   return {
@@ -183,14 +189,16 @@ export async function buildPlayerRecapInputPacket(playerIdOrSlug, options = {}) 
       source_data_version: SOURCE_DATA_VERSION,
       prompt_hierarchy: [
         "A. task_assignment",
-        "B. hard_factual_guardrails",
-        "C. selected_variation",
-        "D. task_guide",
-        "E. player/session/moment data",
-        "F. broad editorial docs/examples",
-        "G. output schema",
+        "B. prose_style_examples",
+        "C. hard_factual_guardrails",
+        "D. selected_variation",
+        "E. task_guide",
+        "F. player/session/moment data",
+        "G. broad editorial docs/examples",
+        "H. output schema",
       ],
       ...taskContext,
+      prose_style_examples: proseStyleExamples,
       voice_rules: paraLeagueVoiceRules,
       editorial_docs: editorialDocs,
       editorial_notes: options.editorialNotes || "",
@@ -211,8 +219,8 @@ export async function buildPlayerRecapInputPacket(playerIdOrSlug, options = {}) 
         winning_hand: text(moment.winning_hand),
       })),
       constraints: [
-        "Write a player-facing public profile draft from supplied data only.",
-        "Do not invent style, motive, rivalry, or private scouting claims.",
+        "Write an expressive player-facing profile draft from supplied data only.",
+        "Do not invent hands, results, actions, quotes, emotions, rivalries, or private scouting claims.",
       ],
     },
   };
@@ -220,6 +228,7 @@ export async function buildPlayerRecapInputPacket(playerIdOrSlug, options = {}) 
 
 export async function buildMomentBlurbInputPacket(momentId = "", editorialNotes = "", options = {}) {
   const editorialDocs = await loadNewsroomEditorialDocs();
+  const proseStyleExamples = await loadProseStyleExamples();
   const momentData = await getMomentNewsroomData(momentId);
   if (!momentData) throw new Error("Moment not found.");
   const taskContext = await buildTaskContext("moment_blurb", options.variation || options.variationKey);
@@ -235,14 +244,16 @@ export async function buildMomentBlurbInputPacket(momentId = "", editorialNotes 
       source_data_version: SOURCE_DATA_VERSION,
       prompt_hierarchy: [
         "A. task_assignment",
-        "B. hard_factual_guardrails",
-        "C. selected_variation",
-        "D. task_guide",
-        "E. moment/session data",
-        "F. broad editorial docs/examples",
-        "G. output schema",
+        "B. prose_style_examples",
+        "C. hard_factual_guardrails",
+        "D. selected_variation",
+        "E. task_guide",
+        "F. moment/session data",
+        "G. broad editorial docs/examples",
+        "H. output schema",
       ],
       ...taskContext,
+      prose_style_examples: proseStyleExamples,
       voice_rules: paraLeagueVoiceRules,
       editorial_docs: editorialDocs,
       editorial_notes: editorialNotes,
@@ -253,7 +264,7 @@ export async function buildMomentBlurbInputPacket(momentId = "", editorialNotes 
       },
       constraints: [
         "Write a short public moment blurb from supplied data only.",
-        "Explain why the moment matters without inventing motive, emotion, rivalry, or unsupported action.",
+        "Do not invent motive, emotion, rivalry, cards, or unsupported hand action.",
       ],
     },
   };
@@ -261,6 +272,7 @@ export async function buildMomentBlurbInputPacket(momentId = "", editorialNotes 
 
 export async function buildStandingsInputPacket(seasonCode = "S0", editorialNotes = "", options = {}) {
   const editorialDocs = await loadNewsroomEditorialDocs();
+  const proseStyleExamples = await loadProseStyleExamples();
   const standings = await getStandingsRows(seasonCode);
   const taskContext = await buildTaskContext("standings_summary", options.variation || options.variationKey);
 
@@ -275,21 +287,23 @@ export async function buildStandingsInputPacket(seasonCode = "S0", editorialNote
       source_data_version: SOURCE_DATA_VERSION,
       prompt_hierarchy: [
         "A. task_assignment",
-        "B. hard_factual_guardrails",
-        "C. selected_variation",
-        "D. task_guide",
-        "E. standings data",
-        "F. broad editorial docs/examples",
-        "G. output schema",
+        "B. prose_style_examples",
+        "C. hard_factual_guardrails",
+        "D. selected_variation",
+        "E. task_guide",
+        "F. standings data",
+        "G. broad editorial docs/examples",
+        "H. output schema",
       ],
       ...taskContext,
+      prose_style_examples: proseStyleExamples,
       voice_rules: paraLeagueVoiceRules,
       editorial_docs: editorialDocs,
       editorial_notes: editorialNotes,
       standings_snapshot: standings,
       constraints: [
         "Write a public standings summary from supplied standings only.",
-        "Do not invent standings movement unless before/after standings are supplied.",
+        "Do not invent standings movement, clinches, or season outcomes.",
       ],
     },
   };
@@ -297,6 +311,7 @@ export async function buildStandingsInputPacket(seasonCode = "S0", editorialNote
 
 export async function buildPlayerSessionRecapInputPacket({ playerId, sessionId, editorialNotes = "", variation = "", variationKey = "" }) {
   const editorialDocs = await loadNewsroomEditorialDocs();
+  const proseStyleExamples = await loadProseStyleExamples();
   const playerData = await getPlayerNewsroomData(playerId);
   const sessionData = await getSessionNewsroomData(sessionId);
   const taskContext = await buildTaskContext("player_session_recap", variation || variationKey);
@@ -320,14 +335,16 @@ export async function buildPlayerSessionRecapInputPacket({ playerId, sessionId, 
       source_data_version: SOURCE_DATA_VERSION,
       prompt_hierarchy: [
         "A. task_assignment",
-        "B. hard_factual_guardrails",
-        "C. selected_variation",
-        "D. task_guide",
-        "E. player/session/moment data",
-        "F. broad editorial docs/examples",
-        "G. output schema",
+        "B. prose_style_examples",
+        "C. hard_factual_guardrails",
+        "D. selected_variation",
+        "E. task_guide",
+        "F. player/session/moment data",
+        "G. broad editorial docs/examples",
+        "H. output schema",
       ],
       ...taskContext,
+      prose_style_examples: proseStyleExamples,
       voice_rules: paraLeagueVoiceRules,
       editorial_docs: editorialDocs,
       editorial_notes: editorialNotes,
@@ -350,7 +367,7 @@ export async function buildPlayerSessionRecapInputPacket({ playerId, sessionId, 
         .map(publicHandMoment),
       constraints: [
         "Write a player-facing recap of this player's session from supplied data only.",
-        "Do not invent private scouting, emotion, motive, rivalry, or unsupported hand action.",
+        "Do not invent private scouting, emotion, motive, rivalry, cards, or unsupported hand action.",
       ],
     },
   };
@@ -358,6 +375,7 @@ export async function buildPlayerSessionRecapInputPacket({ playerId, sessionId, 
 
 export async function buildArticleInputPacket(articleRequest = {}) {
   const editorialDocs = await loadNewsroomEditorialDocs();
+  const proseStyleExamples = await loadProseStyleExamples();
   const standings = await getStandingsRows(articleRequest.seasonCode || "S0");
   const taskContext = await buildTaskContext("league_article", articleRequest.variation || articleRequest.variationKey);
   const finalityRules = [
@@ -386,14 +404,16 @@ export async function buildArticleInputPacket(articleRequest = {}) {
       source_data_version: SOURCE_DATA_VERSION,
       prompt_hierarchy: [
         "A. task_assignment",
-        "B. hard_factual_guardrails",
-        "C. selected_variation",
-        "D. task_guide",
-        "E. article request/standings data",
-        "F. broad editorial docs/examples",
-        "G. output schema",
+        "B. prose_style_examples",
+        "C. hard_factual_guardrails",
+        "D. selected_variation",
+        "E. task_guide",
+        "F. article request/standings data",
+        "G. broad editorial docs/examples",
+        "H. output schema",
       ],
       ...taskContext,
+      prose_style_examples: proseStyleExamples,
       voice_rules: paraLeagueVoiceRules,
       editorial_docs: editorialDocs,
       article_request: articleRequest,

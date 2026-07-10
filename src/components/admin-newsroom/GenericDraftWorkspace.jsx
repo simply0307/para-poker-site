@@ -122,7 +122,8 @@ export function GenericDraftWorkspace({ title, endpoint, defaultPayload = {}, va
     }
 
     setDraftRow(result.draft);
-    setMessage(action === "publish" ? "Draft published." : "Draft unpublished.");
+    const warnings = Array.isArray(result.warnings) && result.warnings.length ? ` ${result.warnings.join(" ")}` : "";
+    setMessage(`${action === "publish" ? "Draft published." : "Draft unpublished."}${warnings}`);
     setBusy("");
   }
 
