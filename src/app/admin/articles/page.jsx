@@ -1,7 +1,12 @@
 import { GenericDraftWorkspace } from "@/components/admin-newsroom/GenericDraftWorkspace";
 import { getVariationOptions } from "@/lib/newsroom/contentAssignments";
+import { listArticleDrafts } from "@/lib/newsroom/drafts";
 
-export default function AdminArticlesPage() {
+export const dynamic = "force-dynamic";
+
+export default async function AdminArticlesPage() {
+  const articleDrafts = await listArticleDrafts();
+
   return (
     <GenericDraftWorkspace
       title="Article draft desk"
@@ -43,6 +48,10 @@ export default function AdminArticlesPage() {
         },
       }}
       variationOptions={getVariationOptions("league_article")}
+      defaultPromptPreset="official_session_recap"
+      existingDrafts={articleDrafts}
+      existingDraftsTitle="Live articles"
+      initialDraft={articleDrafts[0] || null}
     />
   );
 }

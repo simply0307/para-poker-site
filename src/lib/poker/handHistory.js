@@ -1,4 +1,4 @@
-import { stripPlayerHandle } from "@/lib/playerNames";
+import { stripPlayerHandle, stripPlayerHandlesFromText } from "@/lib/playerNames";
 
 function text(value, fallback = "") {
   if (value === null || value === undefined || value === "") return fallback;
@@ -22,7 +22,7 @@ function valueToLogText(value) {
   if (!present(value)) return "";
   if (Array.isArray(value)) return value.map(valueToLogText).filter(Boolean).join("\n");
   if (typeof value === "object") return JSON.stringify(value, null, 2);
-  return text(value);
+  return stripPlayerHandlesFromText(value);
 }
 
 function streetValue(hand, keys) {
@@ -40,7 +40,7 @@ function actionPlayerName(action) {
 }
 
 function actionText(action) {
-  if (present(action?.raw_entry)) return text(action.raw_entry);
+  if (present(action?.raw_entry)) return stripPlayerHandlesFromText(action.raw_entry);
   return [
     actionPlayerName(action),
     text(action?.action),
@@ -63,7 +63,7 @@ export function normalizeActionRow(action = {}) {
     amount: action.amount ?? null,
     amount_text: actionAmountText(action),
     all_in: Boolean(action.all_in),
-    raw_entry: text(action.raw_entry),
+    raw_entry: stripPlayerHandlesFromText(action.raw_entry),
     line: actionText(action),
   };
 }

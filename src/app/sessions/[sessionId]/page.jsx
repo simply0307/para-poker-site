@@ -18,7 +18,7 @@ import {
   text,
 } from "@/lib/newsroom/data";
 import { buildSessionViewModel } from "@/lib/newsroom/viewModels/session";
-import { draftHeadline, draftParagraphs, draftSubheadline, waitingCopy } from "@/lib/newsroom/rendering";
+import { draftHeadline, draftHtml, draftParagraphs, draftSubheadline, waitingCopy } from "@/lib/newsroom/rendering";
 import { HandHistoryBlock } from "@/components/poker/HandActionLog";
 
 export const revalidate = 60;
@@ -75,6 +75,7 @@ export default async function SessionPage({ params }) {
             title={draftHeadline(published, `${text(session.session_code, "Session")} recap`)}
             subheadline={draftSubheadline(published)}
             paragraphs={draftParagraphs(published)}
+            html={draftHtml(published)}
             placeholder={waitingCopy}
           />
         }

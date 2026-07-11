@@ -1,6 +1,6 @@
 import { CardGrid, LeagueHero, MomentCard, NewsroomShell, PublishedArticle, StatCard, StatStrip } from "@/components/newsroom/NewsroomShell";
 import { cleanName, formatNumber, getMomentsIndex, getPublishedDraft, text } from "@/lib/newsroom/data";
-import { draftHeadline, draftParagraphs, draftSubheadline, waitingCopy } from "@/lib/newsroom/rendering";
+import { draftHeadline, draftHtml, draftParagraphs, draftSubheadline, waitingCopy } from "@/lib/newsroom/rendering";
 
 export const revalidate = 60;
 
@@ -33,6 +33,7 @@ export default async function MomentsPage() {
           title={draftHeadline(published, "Moment wire")}
           subheadline={draftSubheadline(published)}
           paragraphs={draftParagraphs(published)}
+          html={draftHtml(published)}
           placeholder={waitingCopy}
         />
         <div className="rounded-xl border border-white/10 bg-white/[0.045] p-5">

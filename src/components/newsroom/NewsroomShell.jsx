@@ -205,14 +205,18 @@ export function NewsroomCard({ title, meta, href, children }) {
   );
 }
 
-export function PublishedArticle({ title, subheadline, paragraphs, placeholder, compact = false }) {
+export function PublishedArticle({ title, subheadline, paragraphs, html = "", placeholder, compact = false }) {
   return (
     <article className={`rounded-md border border-[#d8c087]/16 bg-[#061019]/82 p-5 shadow-lg shadow-black/25 md:p-7 ${compact ? "" : "max-w-4xl"}`}>
       <h1 className={`${compact ? "text-3xl md:text-4xl" : "text-4xl md:text-6xl"} font-black leading-tight text-white`}>{title}</h1>
       {subheadline ? <p className="mt-5 text-xl leading-8 text-stone-300">{subheadline}</p> : null}
-      <div className="mt-8 space-y-5 text-lg leading-9 text-stone-200">
-        {paragraphs.length ? paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>) : <p>{placeholder}</p>}
-      </div>
+      {html ? (
+        <div className="richTextBody mt-8 text-lg leading-9 text-stone-200" dangerouslySetInnerHTML={{ __html: html }} />
+      ) : (
+        <div className="mt-8 space-y-5 text-lg leading-9 text-stone-200">
+          {paragraphs.length ? paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>) : <p>{placeholder}</p>}
+        </div>
+      )}
     </article>
   );
 }

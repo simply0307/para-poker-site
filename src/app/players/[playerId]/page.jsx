@@ -19,7 +19,7 @@ import {
   text,
 } from "@/lib/newsroom/data";
 import { buildPlayerViewModel } from "@/lib/newsroom/viewModels/player";
-import { draftHeadline, draftParagraphs, draftSubheadline, waitingCopy } from "@/lib/newsroom/rendering";
+import { draftHeadline, draftHtml, draftParagraphs, draftSubheadline, waitingCopy } from "@/lib/newsroom/rendering";
 import { PokerStatGrid } from "@/components/poker/PokerStatGrid";
 
 export const revalidate = 60;
@@ -85,6 +85,7 @@ export default async function PlayerPage({ params }) {
             title={draftHeadline(published, `${displayName} profile`)}
             subheadline={draftSubheadline(published)}
             paragraphs={draftParagraphs(published)}
+            html={draftHtml(published)}
             placeholder={waitingCopy}
           />
         }

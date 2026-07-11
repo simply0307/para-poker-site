@@ -1,5 +1,6 @@
 import { present, text } from "@/lib/newsroom/data";
 import { normalizeHandActionLog } from "@/lib/poker/handHistory";
+import { stripPlayerHandlesFromText } from "@/lib/playerNames";
 
 export function HandActionLog({ actionLog }) {
   if (!actionLog?.hasAction) {
@@ -37,11 +38,11 @@ export function HandActionLog({ actionLog }) {
                     >
                       <span className="text-stone-500">{index + 1}.</span>
                       <span>
-                        {action.player_name ? <strong className="text-stone-100">{action.player_name}</strong> : null}
+                        {action.player_name ? <strong className="text-stone-100">{stripPlayerHandlesFromText(action.player_name)}</strong> : null}
                         {action.position ? <span className="ml-2 text-stone-500">({action.position})</span> : null}
                         <span className="ml-2 text-stone-300">{action.action || action.line}</span>
                         {action.all_in ? <span className="ml-2 font-bold text-rose-300">all in</span> : null}
-                        {action.raw_entry ? <span className="block text-xs text-stone-500">{action.raw_entry}</span> : null}
+                        {action.raw_entry ? <span className="block text-xs text-stone-500">{stripPlayerHandlesFromText(action.raw_entry)}</span> : null}
                       </span>
                       {action.amount_text ? <span className="font-bold text-amber-200">{action.amount_text}</span> : null}
                     </li>
@@ -71,11 +72,11 @@ export function HandHistoryBlock({ hand, compact = false }) {
         {present(hand.pot_collected) ? <strong className="text-amber-200">{Number(hand.pot_collected).toLocaleString("en-US")} chips</strong> : null}
       </div>
       <div className={compact ? "mt-3 grid gap-x-5 md:grid-cols-3" : "mt-3 grid gap-x-5 md:grid-cols-2"}>
-        <Fact label="Winner" value={hand.winner_name} />
+        <Fact label="Winner" value={hand.winner_name} playerText />
         <Fact label="Board" value={hand.board} />
         <Fact label="Winning hand" value={hand.winning_hand} />
-        <Fact label="Result" value={hand.raw_result || hand.summary} />
-        <Fact label="Players" value={hand.players_involved || hand.player_names || hand.involved_players} />
+        <Fact label="Result" value={hand.raw_result || hand.summary} playerText />
+        <Fact label="Players" value={hand.players_involved || hand.player_names || hand.involved_players} playerText />
       </div>
       <details className="mt-4 rounded-md border border-white/10 bg-stone-950/50 p-3">
         <summary className="cursor-pointer font-bold text-amber-200">{detailLabel}</summary>
@@ -85,11 +86,12 @@ export function HandHistoryBlock({ hand, compact = false }) {
   );
 }
 
-function Fact({ label, value }) {
+function Fact({ label, value, playerText = false }) {
   if (!present(value)) return null;
+  const displayValue = Array.isArray(value) ? value.map((item) => text(item)).join(", ") : text(value);
   return (
     <p className="mt-2 text-sm leading-6 text-stone-300">
-      <span className="font-bold text-stone-400">{label}:</span> {text(value)}
+      <span className="font-bold text-stone-400">{label}:</span> {playerText ? stripPlayerHandlesFromText(displayValue) : displayValue}
     </p>
   );
 }

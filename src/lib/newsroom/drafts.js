@@ -399,6 +399,90 @@ export async function updateRecapDraft(draftId, patch) {
   return updateDraft("recap_drafts", draftId, patch);
 }
 
+export async function listNewsroomDrafts({
+  table = "recap_drafts",
+  fallbackScope = "",
+  sourcePlayerId = "",
+  sourceSessionId = "",
+  seasonCode = "",
+  momentId = "",
+  visibility = "",
+  limit = 50,
+} = {}) {
+  const cleanTable = normalizeDraftTable(table);
+  const rows = [];
+
+  async function runList(tableName, tableConfig = DRAFT_TABLES[tableName] || {}, scope = "") {
+    let query = supabase.from(tableName).select("*").order("generated_at", { ascending: false }).limit(limit);
+    const sources = tableConfig.sourceColumns || {};
+
+    if (tableName === "recap_drafts" && scope) query = query.eq("scope", scope);
+    if (sourcePlayerId && sources.sourcePlayerId) query = query.eq(sources.sourcePlayerId, sourcePlayerId);
+    if (sourceSessionId && sources.sourceSessionId) query = query.eq(sources.sourceSessionId, sourceSessionId);
+    if (seasonCode && sources.seasonCode) query = query.eq(sources.seasonCode, seasonCode);
+    if (momentId && sources.momentId) query = query.eq(sources.momentId, momentId);
+    if (visibility) query = query.eq("visibility", visibility);
+
+    const { data, error } = await query;
+    if (error) throw error;
+    rows.push(...(data || []).map((row) => ({ ...row, _draft_table: tableName })));
+  }
+
+  try {
+    await runList(cleanTable, DRAFT_TABLES[cleanTable], fallbackScope);
+  } catch (error) {
+    if (!isMissingTable(error) && !isSchemaCacheColumnError(error)) {
+      console.warn("[newsroom] draft list failed", { table: cleanTable, message: error.message });
+    }
+  }
+
+  if (cleanTable !== "recap_drafts" && fallbackScope) {
+    try {
+      await runList("recap_drafts", DRAFT_TABLES.recap_drafts, fallbackScope);
+    } catch (error) {
+      if (!isMissingTable(error) && !isSchemaCacheColumnError(error)) {
+        console.warn("[newsroom] fallback draft list failed", { scope: fallbackScope, message: error.message });
+      }
+    }
+  }
+
+  const unique = new Map();
+  for (const row of rows) {
+    unique.set(`${row._draft_table}:${row.id}`, row);
+  }
+
+  return [...unique.values()]
+    .sort((left, right) => new Date(right.generated_at || right.created_at || 0) - new Date(left.generated_at || left.created_at || 0))
+    .slice(0, limit);
+}
+
+export async function getLatestNewsroomDraft(options = {}) {
+  const rows = await listNewsroomDrafts({ ...options, limit: 1 });
+  return rows[0] || null;
+}
+
+export async function listArticleDrafts(limit = 50) {
+  return listNewsroomDrafts({ table: "article_drafts", fallbackScope: "article", visibility: "published", limit });
+}
+
+export async function deleteDraft(table, draftId) {
+  const cleanTable = normalizeDraftTable(table);
+
+  if (cleanTable === "article_drafts") {
+    try {
+      await supabase.from("published_articles").delete().eq("draft_id", draftId);
+    } catch (error) {
+      if (!isMissingTable(error) && !isSchemaCacheColumnError(error)) {
+        console.warn("[newsroom] published article mirror delete failed", error.message);
+      }
+    }
+  }
+
+  const { data, error } = await supabase.from(cleanTable).delete().eq("id", draftId).select("*").maybeSingle();
+  if (error) throw new Error(error.message);
+  return data ? { ...data, _draft_table: cleanTable } : null;
+}
+
 function articleSlug(row) {
   const explicit = row?.article_request?.slug || row?.draft?.slug;
   if (explicit) return String(explicit).toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-|-$/g, "");

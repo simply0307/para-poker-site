@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { updateDraft } from "@/lib/newsroom/drafts";
+import { deleteDraft, updateDraft } from "@/lib/newsroom/drafts";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -27,6 +27,24 @@ export async function PATCH(request, { params }) {
     return NextResponse.json({ draft });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Could not update draft.";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
+
+export async function DELETE(request, { params }) {
+  try {
+    const { draftId } = await params;
+    const { searchParams } = new URL(request.url);
+    const table = searchParams.get("table") || "recap_drafts";
+
+    if (!draftId) {
+      return NextResponse.json({ error: "draftId is required." }, { status: 400 });
+    }
+
+    const draft = await deleteDraft(table, draftId);
+    return NextResponse.json({ draft });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Could not delete draft.";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

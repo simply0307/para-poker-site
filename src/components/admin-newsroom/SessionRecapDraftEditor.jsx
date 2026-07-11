@@ -1,6 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import { PromptConfigPicker } from "@/components/admin-newsroom/PromptConfigPicker";
+import { RichTextEditor } from "@/components/admin-newsroom/RichTextEditor";
+import { getPromptPreset } from "@/lib/newsroom/promptConfigs";
 import styles from "./SessionRecapDraftEditor.module.css";
 
 const emptyDraft = {
@@ -13,18 +16,7 @@ const emptyDraft = {
   missing_data_warnings: [],
 };
 
-const defaultPromptConfig = {
-  draftType: "session_recap",
-  voiceMode: "Official Recap",
-  intensity: "Punchy",
-  coverageFocus: ["winner", "biggest pot", "notable moments"],
-  mustMention: ["winner", "runner-up", "biggest pot"],
-  avoid: ["generic sports filler", "unsupported rivalries", "fake emotions"],
-  length: "medium",
-  format: "recap_article",
-  audience: "public_league",
-  customInstruction: "Lead with the competitive story and let verified hands support the article.",
-};
+const defaultPromptConfig = getPromptPreset("official_session_recap");
 
 function normalizeDraft(row) {
   return row?.draft && typeof row.draft === "object" ? row.draft : emptyDraft;
@@ -80,9 +72,13 @@ export function SessionRecapDraftEditor({ sessionKey, initialDraft, variationOpt
   const [selectedVariation, setSelectedVariation] = useState(
     initialDraft?.context_packet?.selected_variation?.key || variationOptions[0]?.key || "turning_point_led"
   );
+  const [promptConfig, setPromptConfig] = useState(initialDraft?.context_packet?.prompt_config || defaultPromptConfig);
   const [busy, setBusy] = useState("");
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
+  const handlePromptConfigChange = useCallback((nextConfig) => {
+    setPromptConfig(nextConfig);
+  }, []);
 
   const generatedMeta = useMemo(() => {
     if (!draftRow) return "No draft generated yet.";
@@ -106,7 +102,7 @@ export function SessionRecapDraftEditor({ sessionKey, initialDraft, variationOpt
     const response = await fetch("/api/recaps/generate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sessionId: sessionKey, variation: selectedVariation, promptConfig: defaultPromptConfig }),
+      body: JSON.stringify({ sessionId: sessionKey, variation: selectedVariation, editorialNotes: "", promptConfig }),
     });
     const payload = await response.json().catch(() => ({}));
 
@@ -229,6 +225,8 @@ export function SessionRecapDraftEditor({ sessionKey, initialDraft, variationOpt
         </section>
       ) : null}
 
+      <PromptConfigPicker defaultPreset="official_session_recap" onChange={handlePromptConfigChange} />
+
       <div className={styles.meta}>{generatedMeta}</div>
       {draftRow ? <AdminDebugPanel draftRow={draftRow} /> : null}
       {notice ? <p className={styles.notice}>{notice}</p> : null}
@@ -243,14 +241,9 @@ export function SessionRecapDraftEditor({ sessionKey, initialDraft, variationOpt
           <span>Subheadline</span>
           <input value={draft.subheadline || ""} onChange={(event) => updateField("subheadline", event.target.value)} />
         </label>
-        <label className={`${styles.field} ${styles.full}`}>
-          <span>Recap body</span>
-          <textarea
-            rows={12}
-            value={draft.recap_body || ""}
-            onChange={(event) => updateField("recap_body", event.target.value)}
-          />
-        </label>
+        <div className={styles.full}>
+          <RichTextEditor label="Recap body" value={draft.recap_body || ""} onChange={(nextValue) => updateField("recap_body", nextValue)} />
+        </div>
         <JsonTextarea
           key={`key-moments-${draftRow?.id || "new"}`}
           label="Key moments JSON"
@@ -301,6 +294,8 @@ function AdminDebugPanel({ draftRow }) {
   const docs = editorialDocs(draftRow);
   const guide = magicGuide(draftRow);
   const plan = storyPlan(draftRow);
+  const promptConfig = draftRow.context_packet?.prompt_config || null;
+  const promptInstructions = draftRow.context_packet?.prompt_config_instructions || null;
 
   return (
     <details className={styles.debugPanel}>
@@ -349,6 +344,14 @@ function AdminDebugPanel({ draftRow }) {
         </div>
       ) : (
         <p className={styles.debugMuted}>No story plan saved for this draft.</p>
+      )}
+      {promptConfig ? (
+        <div className={styles.storyPlan}>
+          <span>Prompt config</span>
+          <pre>{JSON.stringify({ prompt_config: promptConfig, prompt_config_instructions: promptInstructions }, null, 2)}</pre>
+        </div>
+      ) : (
+        <p className={styles.debugMuted}>No prompt config saved for this draft.</p>
       )}
       {rows.length ? (
         <ol className={styles.traceList}>

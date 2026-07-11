@@ -9,6 +9,8 @@ import {
   INTENSITY_LEVELS,
   LENGTH_OPTIONS,
   VOICE_MODES,
+  getPromptPreset,
+  getPromptPresetOptions,
   normalizePromptConfig,
 } from "@/lib/newsroom/promptConfigs";
 
@@ -22,6 +24,10 @@ const defaultSources = {
 
 function toggle(list, value) {
   return list.includes(value) ? list.filter((item) => item !== value) : [...list, value];
+}
+
+function listText(value) {
+  return Array.isArray(value) ? value.join(", ") : String(value || "");
 }
 
 function payloadFor(draftType, promptConfig, sources) {
@@ -56,6 +62,7 @@ function endpointFor(draftType) {
 }
 
 export function PromptStudioForm() {
+  const [presetKey, setPresetKey] = useState("official_session_recap");
   const [draftType, setDraftType] = useState("session_recap");
   const [voiceMode, setVoiceMode] = useState("Official Recap");
   const [intensity, setIntensity] = useState("Punchy");
@@ -67,6 +74,8 @@ export function PromptStudioForm() {
   const [avoid, setAvoid] = useState("generic sports filler, unsupported rivalries, fake emotions");
   const [customInstruction, setCustomInstruction] = useState("Make this feel like a shareable Para League object, not a database summary.");
   const [sources, setSources] = useState(defaultSources);
+  const [copied, setCopied] = useState("");
+  const presetOptions = useMemo(() => getPromptPresetOptions().map((preset) => ({ value: preset.key, label: preset.label })), []);
 
   const promptConfig = useMemo(
     () =>
@@ -92,9 +101,41 @@ export function PromptStudioForm() {
   const payload = payloadFor(draftType, promptConfig, sources);
   const payloadText = JSON.stringify(payload, null, 2);
 
+  function applyPreset(nextKey) {
+    const preset = getPromptPreset(nextKey);
+    setPresetKey(nextKey);
+    setDraftType(preset.draftType);
+    setVoiceMode(preset.voiceMode);
+    setIntensity(preset.intensity);
+    setCoverageFocus(preset.coverageFocus);
+    setMustMention(listText(preset.mustMention));
+    setAvoid(listText(preset.avoid));
+    setLength(preset.length);
+    setFormat(preset.format);
+    setAudience(preset.audience);
+    setCustomInstruction(preset.customInstruction);
+    setCopied("");
+  }
+
+  async function copyText(label, value) {
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopied(label);
+    } catch {
+      setCopied("");
+    }
+  }
+
   return (
     <section className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_430px]">
       <div className="space-y-5">
+        <Panel title="Preset">
+          <Field label="Prompt preset" value={presetKey} onChange={applyPreset} options={presetOptions} />
+          <p className="mt-3 text-sm leading-6 text-zinc-600">
+            Generation pages now use these controls directly. Copy JSON is only for advanced/manual workflows.
+          </p>
+        </Panel>
+
         <Panel title="Draft Type">
           <div className="grid gap-2 md:grid-cols-2">
             {DRAFT_TYPES.map((type) => (
@@ -172,15 +213,20 @@ export function PromptStudioForm() {
           <pre className="max-h-80 overflow-auto whitespace-pre-wrap rounded-md bg-zinc-950 p-4 text-xs text-zinc-100">
             {JSON.stringify(promptConfig, null, 2)}
           </pre>
+          <button type="button" onClick={() => copyText("config", JSON.stringify(promptConfig, null, 2))} className="mt-3 rounded-md bg-zinc-900 px-3 py-2 text-sm font-black text-white">
+            {copied === "config" ? "Copied Config" : "Copy Config JSON"}
+          </button>
         </Panel>
         <Panel title="Generation Payload">
           <pre className="max-h-[520px] overflow-auto whitespace-pre-wrap rounded-md bg-zinc-950 p-4 text-xs text-zinc-100">
             {payloadText}
           </pre>
           <p className="mt-3 text-sm leading-6 text-zinc-600">
-            Copy this payload into the matching draft desk or use it as the request body for the endpoint. In the next pass, this form can
-            send directly to generation and save reusable configs.
+            Generation pages now send promptConfig directly from embedded controls. Use this payload only for endpoint tests or advanced manual workflows.
           </p>
+          <button type="button" onClick={() => copyText("payload", payloadText)} className="mt-3 rounded-md bg-zinc-900 px-3 py-2 text-sm font-black text-white">
+            {copied === "payload" ? "Copied Payload" : "Copy Payload JSON"}
+          </button>
         </Panel>
       </aside>
     </section>
@@ -197,13 +243,14 @@ function Panel({ title, children }) {
 }
 
 function Field({ label, value, onChange, options }) {
+  const normalizedOptions = options.map((option) => (typeof option === "string" ? { value: option, label: option } : option));
   return (
     <label className="grid gap-2 text-sm font-bold">
       {label}
       <select className="rounded-md border border-zinc-300 bg-white p-3" value={value} onChange={(event) => onChange(event.target.value)}>
-        {options.map((option) => (
-          <option key={option} value={option}>
-            {option}
+        {normalizedOptions.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
           </option>
         ))}
       </select>

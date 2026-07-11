@@ -1,7 +1,12 @@
 import { GenericDraftWorkspace } from "@/components/admin-newsroom/GenericDraftWorkspace";
 import { getVariationOptions } from "@/lib/newsroom/contentAssignments";
+import { listNewsroomDrafts } from "@/lib/newsroom/drafts";
 
-export default function AdminStandingsPage() {
+export const dynamic = "force-dynamic";
+
+export default async function AdminStandingsPage() {
+  const standingsDrafts = await listNewsroomDrafts({ table: "standings_drafts", fallbackScope: "season", seasonCode: "S0" });
+
   return (
     <GenericDraftWorkspace
       title="Standings draft desk"
@@ -24,6 +29,10 @@ export default function AdminStandingsPage() {
         },
       }}
       variationOptions={getVariationOptions("standings_summary")}
+      defaultPromptPreset="standings_pulse"
+      existingDrafts={standingsDrafts}
+      existingDraftsTitle="Standings drafts"
+      initialDraft={standingsDrafts[0] || null}
     />
   );
 }

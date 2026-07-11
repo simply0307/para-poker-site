@@ -24,3 +24,50 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+.richTextBody {
+  overflow-wrap: anywhere;
+}
+
+.richTextBody > * + * {
+  margin-top: 1.15rem;
+}
+
+.richTextBody h2 {
+  color: #fff7d6;
+  font-size: 1.75rem;
+  font-weight: 900;
+  line-height: 1.15;
+}
+
+.richTextBody h3 {
+  color: #fff1bf;
+  font-size: 1.35rem;
+  font-weight: 900;
+  line-height: 1.25;
+}
+
+.richTextBody blockquote {
+  border-left: 3px solid #d8c087;
+  color: #f5e7bd;
+  padding-left: 1rem;
+}
+
+.richTextBody ul,
+.richTextBody ol {
+  padding-left: 1.4rem;
+}
+
+.richTextBody ul {
+  list-style: disc;
+}
+
+.richTextBody ol {
+  list-style: decimal;
+}
+
+.richTextBody a {
+  color: #fff1bf;
+  font-weight: 800;
+  text-decoration: underline;
+}

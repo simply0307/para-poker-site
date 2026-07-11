@@ -1,6 +1,7 @@
 import { NEWSROOM_PROMPT_VERSION, paraLeagueVoiceRules } from "./voiceRules";
 import { getContentAssignment, getSelectedVariation, getVariationOptions } from "./contentAssignments";
 import { buildPromptConfigContext } from "./promptConfigs";
+import { stripPlayerHandlesFromText } from "@/lib/playerNames";
 import { loadNewsroomEditorialDocs, loadProseStyleExamples, loadSessionRecapMagicGuide, loadTaskGuide } from "./editorialDocs";
 import {
   buildSessionStoryPlan,
@@ -20,6 +21,36 @@ import {
 } from "./data";
 
 const SOURCE_DATA_VERSION = "v2-newsroom";
+
+const DOCS_ARE_NOT_A_CAGE =
+  "The docs are not a cage. Use them to find the voice, then write the strongest draft the verified data supports.";
+
+const DOCS_USAGE_POLICY = {
+  summary:
+    "Use supplied docs to understand Para-Poker voice, product context, examples of taste, vocabulary, and creative direction. Do not mechanically follow every line.",
+  treat_docs_as: ["inspiration", "background", "examples of taste", "product context", "vocabulary pool", "creative direction"],
+  do_not_treat_docs_as: [
+    "a rigid checklist",
+    "a legal contract",
+    "a sentence template",
+    "a ban list",
+    "a reason to avoid expressive writing",
+    "a requirement to mention every supplied concept",
+  ],
+  examples_policy:
+    "Prose examples show the level of energy and flavor. Imitate the attitude, not the structure or exact wording. You may be more expressive when the facts support it.",
+  task_guide_policy:
+    "Task guides describe what the draft type is trying to accomplish. They do not require every section every time.",
+  voice_rules_policy:
+    "Voice rules describe taste boundaries. Do not reduce risk until the copy becomes bland.",
+  prompt_config_authority:
+    "PromptConfig is the current creative direction and has more authority than broad docs for tone, intensity, format, audience, and emphasis.",
+};
+
+const HARD_FACTUAL_GUARDRAILS = [
+  "Do not invent hands, cards, actions, winners, results, points, quotes, table talk, player emotions, rivalries, season outcomes, or standings movement.",
+  "Use missing_data_warnings and confidence_notes only for admin notes; keep public prose expressive and poker-first.",
+];
 
 const TASK_GUIDES = {
   player_profile: {
@@ -81,6 +112,22 @@ function publicHandMoment(moment) {
   };
 }
 
+function cleanPlayerReferences(value) {
+  if (Array.isArray(value)) return value.map(cleanPlayerReferences);
+  if (!value || typeof value !== "object") return typeof value === "string" ? stripPlayerHandlesFromText(value) : value;
+  return Object.fromEntries(
+    Object.entries(value).map(([key, entry]) => {
+      if (["player_name", "winner_name", "display_name", "pokernow_name", "screen_name"].includes(key)) {
+        return [key, stripPlayerHandlesFromText(entry)];
+      }
+      if (key === "player_names" || key === "players_involved" || key === "involved_players") {
+        return [key, cleanPlayerReferences(entry)];
+      }
+      return [key, entry];
+    })
+  );
+}
+
 export async function buildSessionRecapInputPacket(sessionIdOrCode, options = {}) {
   const sessionData = await getSessionNewsroomData(sessionIdOrCode);
   if (!sessionData) throw new Error("Session not found.");
@@ -95,10 +142,7 @@ export async function buildSessionRecapInputPacket(sessionIdOrCode, options = {}
     notableHands: sessionData.notableHands,
     hands: sessionData.hands,
   });
-  const hardGuardrails = [
-    "Do not invent hands, cards, actions, results, quotes, table talk, emotions, rivalries, season outcomes, clinches, or standings movement.",
-    "Use missing_data_warnings and confidence_notes only for admin notes; keep public prose expressive and poker-first.",
-  ];
+  const hardGuardrails = HARD_FACTUAL_GUARDRAILS;
   const promptConfig = promptConfigContext("session_recap", options);
 
   return {
@@ -111,17 +155,18 @@ export async function buildSessionRecapInputPacket(sessionIdOrCode, options = {}
       prompt_version: NEWSROOM_PROMPT_VERSION,
       source_data_version: SOURCE_DATA_VERSION,
       prompt_hierarchy: [
-        "A. session_recap_assignment",
-        "B. prose_style_examples",
-        "C. hard_factual_guardrails",
-        "D. selected_variation",
-        "E. prompt_config",
-        "F. session_recap_magic_guide",
-        "G. story_plan",
-        "H. session/player data",
-        "I. broad editorial docs/examples",
-        "J. output schema",
+        "A. source facts/session data - hard factual boundary",
+        "B. hard_factual_guardrails",
+        "C. prompt_config - current creative direction",
+        "D. session_recap_assignment and selected_variation - draft type and angle",
+        "E. prose_style_examples - energy and taste, not templates",
+        "F. story_plan - suggested angle, not a cage",
+        "G. session_recap_magic_guide and task docs - background guidance",
+        "H. broad editorial docs - context only",
+        "I. output schema",
       ],
+      creative_freedom_instruction: DOCS_ARE_NOT_A_CAGE,
+      docs_usage_policy: DOCS_USAGE_POLICY,
       session_recap_assignment: sessionRecapAssignment,
       prose_style_examples: proseStyleExamples,
       hard_factual_guardrails: hardGuardrails,
@@ -156,7 +201,7 @@ export async function buildSessionRecapInputPacket(sessionIdOrCode, options = {}
         league_points: player.result?.league_points || null,
         approved_result: Boolean(player.result?.approved),
       })),
-      standings_snapshot: sessionData.standings,
+      standings_snapshot: cleanPlayerReferences(sessionData.standings),
       moment_source_facts: (sessionData.notableHands || []).slice(0, 8).map((moment) => ({
         note: "Use these as source facts only, not as style examples.",
         ...publicHandMoment(moment),
@@ -197,18 +242,20 @@ export async function buildPlayerRecapInputPacket(playerIdOrSlug, options = {}) 
       prompt_version: NEWSROOM_PROMPT_VERSION,
       source_data_version: SOURCE_DATA_VERSION,
       prompt_hierarchy: [
-        "A. task_assignment",
-        "B. prose_style_examples",
-        "C. hard_factual_guardrails",
-        "D. selected_variation",
-        "E. prompt_config",
-        "F. task_guide",
-        "G. player/session/moment data",
-        "H. broad editorial docs/examples",
-        "I. output schema",
+        "A. source facts/player data - hard factual boundary",
+        "B. hard_factual_guardrails",
+        "C. prompt_config - current creative direction",
+        "D. task_assignment and selected_variation - draft type and angle",
+        "E. prose_style_examples - energy and taste, not templates",
+        "F. task_guide - background guidance",
+        "G. broad editorial docs - context only",
+        "H. output schema",
       ],
+      creative_freedom_instruction: DOCS_ARE_NOT_A_CAGE,
+      docs_usage_policy: DOCS_USAGE_POLICY,
       ...taskContext,
       ...promptConfig,
+      hard_factual_guardrails: HARD_FACTUAL_GUARDRAILS,
       prose_style_examples: proseStyleExamples,
       voice_rules: paraLeagueVoiceRules,
       editorial_docs: editorialDocs,
@@ -218,9 +265,9 @@ export async function buildPlayerRecapInputPacket(playerIdOrSlug, options = {}) 
         slug: player.slug,
         name: cleanName(player.display_name || player.pokernow_name),
       },
-      standings: playerData.standings,
-      recent_session_stats: playerData.sessionStats,
-      recent_results: playerData.sessionResults,
+      standings: cleanPlayerReferences(playerData.standings),
+      recent_session_stats: cleanPlayerReferences(playerData.sessionStats),
+      recent_results: cleanPlayerReferences(playerData.sessionResults),
       moment_source_facts: playerData.moments.map((moment) => ({
         note: "Use these as source facts only, not style examples.",
         hand_no: text(moment.hand_no),
@@ -231,7 +278,7 @@ export async function buildPlayerRecapInputPacket(playerIdOrSlug, options = {}) 
       })),
       constraints: [
         "Write an expressive player-facing profile draft from supplied data only.",
-        "Do not invent hands, results, actions, quotes, emotions, rivalries, or private scouting claims.",
+        ...HARD_FACTUAL_GUARDRAILS,
       ],
     },
   };
@@ -255,18 +302,20 @@ export async function buildMomentBlurbInputPacket(momentId = "", editorialNotes 
       prompt_version: NEWSROOM_PROMPT_VERSION,
       source_data_version: SOURCE_DATA_VERSION,
       prompt_hierarchy: [
-        "A. task_assignment",
-        "B. prose_style_examples",
-        "C. hard_factual_guardrails",
-        "D. selected_variation",
-        "E. prompt_config",
-        "F. task_guide",
-        "G. moment/session data",
-        "H. broad editorial docs/examples",
-        "I. output schema",
+        "A. source facts/moment data - hard factual boundary",
+        "B. hard_factual_guardrails",
+        "C. prompt_config - current creative direction",
+        "D. task_assignment and selected_variation - draft type and angle",
+        "E. prose_style_examples - energy and taste, not templates",
+        "F. task_guide - background guidance",
+        "G. broad editorial docs - context only",
+        "H. output schema",
       ],
+      creative_freedom_instruction: DOCS_ARE_NOT_A_CAGE,
+      docs_usage_policy: DOCS_USAGE_POLICY,
       ...taskContext,
       ...promptConfig,
+      hard_factual_guardrails: HARD_FACTUAL_GUARDRAILS,
       prose_style_examples: proseStyleExamples,
       voice_rules: paraLeagueVoiceRules,
       editorial_docs: editorialDocs,
@@ -278,7 +327,7 @@ export async function buildMomentBlurbInputPacket(momentId = "", editorialNotes 
       },
       constraints: [
         "Write a short public moment blurb from supplied data only.",
-        "Do not invent motive, emotion, rivalry, cards, or unsupported hand action.",
+        ...HARD_FACTUAL_GUARDRAILS,
       ],
     },
   };
@@ -301,26 +350,28 @@ export async function buildStandingsInputPacket(seasonCode = "S0", editorialNote
       prompt_version: NEWSROOM_PROMPT_VERSION,
       source_data_version: SOURCE_DATA_VERSION,
       prompt_hierarchy: [
-        "A. task_assignment",
-        "B. prose_style_examples",
-        "C. hard_factual_guardrails",
-        "D. selected_variation",
-        "E. prompt_config",
-        "F. task_guide",
-        "G. standings data",
-        "H. broad editorial docs/examples",
-        "I. output schema",
+        "A. source facts/standings data - hard factual boundary",
+        "B. hard_factual_guardrails",
+        "C. prompt_config - current creative direction",
+        "D. task_assignment and selected_variation - draft type and angle",
+        "E. prose_style_examples - energy and taste, not templates",
+        "F. task_guide - background guidance",
+        "G. broad editorial docs - context only",
+        "H. output schema",
       ],
+      creative_freedom_instruction: DOCS_ARE_NOT_A_CAGE,
+      docs_usage_policy: DOCS_USAGE_POLICY,
       ...taskContext,
       ...promptConfig,
+      hard_factual_guardrails: HARD_FACTUAL_GUARDRAILS,
       prose_style_examples: proseStyleExamples,
       voice_rules: paraLeagueVoiceRules,
       editorial_docs: editorialDocs,
       editorial_notes: editorialNotes,
-      standings_snapshot: standings,
+      standings_snapshot: cleanPlayerReferences(standings),
       constraints: [
         "Write a public standings summary from supplied standings only.",
-        "Do not invent standings movement, clinches, or season outcomes.",
+        ...HARD_FACTUAL_GUARDRAILS,
       ],
     },
   };
@@ -352,18 +403,20 @@ export async function buildPlayerSessionRecapInputPacket({ playerId, sessionId, 
       prompt_version: NEWSROOM_PROMPT_VERSION,
       source_data_version: SOURCE_DATA_VERSION,
       prompt_hierarchy: [
-        "A. task_assignment",
-        "B. prose_style_examples",
-        "C. hard_factual_guardrails",
-        "D. selected_variation",
-        "E. prompt_config",
-        "F. task_guide",
-        "G. player/session/moment data",
-        "H. broad editorial docs/examples",
-        "I. output schema",
+        "A. source facts/player-session data - hard factual boundary",
+        "B. hard_factual_guardrails",
+        "C. prompt_config - current creative direction",
+        "D. task_assignment and selected_variation - draft type and angle",
+        "E. prose_style_examples - energy and taste, not templates",
+        "F. task_guide - background guidance",
+        "G. broad editorial docs - context only",
+        "H. output schema",
       ],
+      creative_freedom_instruction: DOCS_ARE_NOT_A_CAGE,
+      docs_usage_policy: DOCS_USAGE_POLICY,
       ...taskContext,
       ...promptConfigBlock,
+      hard_factual_guardrails: HARD_FACTUAL_GUARDRAILS,
       prose_style_examples: proseStyleExamples,
       voice_rules: paraLeagueVoiceRules,
       editorial_docs: editorialDocs,
@@ -379,15 +432,15 @@ export async function buildPlayerSessionRecapInputPacket({ playerId, sessionId, 
         hands_count: sessionData.session.hands_count,
         played_at: sessionData.session.played_at,
       },
-      player_session_stats: playerSessionStats,
-      session_result: result,
+      player_session_stats: cleanPlayerReferences(playerSessionStats),
+      session_result: cleanPlayerReferences(result),
       moment_source_facts: sessionData.notableHands
         .filter((moment) => cleanName(moment.winner_name, "").toLowerCase() === playerName.toLowerCase())
         .slice(0, 8)
         .map(publicHandMoment),
       constraints: [
         "Write a player-facing recap of this player's session from supplied data only.",
-        "Do not invent private scouting, emotion, motive, rivalry, cards, or unsupported hand action.",
+        ...HARD_FACTUAL_GUARDRAILS,
       ],
     },
   };
@@ -424,27 +477,29 @@ export async function buildArticleInputPacket(articleRequest = {}) {
       prompt_version: NEWSROOM_PROMPT_VERSION,
       source_data_version: SOURCE_DATA_VERSION,
       prompt_hierarchy: [
-        "A. task_assignment",
-        "B. prose_style_examples",
-        "C. hard_factual_guardrails",
-        "D. selected_variation",
-        "E. prompt_config",
-        "F. task_guide",
-        "G. article request/standings data",
-        "H. broad editorial docs/examples",
-        "I. output schema",
+        "A. source facts/article request and standings data - hard factual boundary",
+        "B. hard_factual_guardrails",
+        "C. prompt_config - current creative direction",
+        "D. task_assignment and selected_variation - draft type and angle",
+        "E. prose_style_examples - energy and taste, not templates",
+        "F. task_guide - background guidance",
+        "G. broad editorial docs - context only",
+        "H. output schema",
       ],
+      creative_freedom_instruction: DOCS_ARE_NOT_A_CAGE,
+      docs_usage_policy: DOCS_USAGE_POLICY,
       ...taskContext,
       ...promptConfig,
+      hard_factual_guardrails: HARD_FACTUAL_GUARDRAILS,
       prose_style_examples: proseStyleExamples,
       voice_rules: paraLeagueVoiceRules,
       editorial_docs: editorialDocs,
       article_request: articleRequest,
       season_context: seasonContext,
-      standings_snapshot: standings,
+      standings_snapshot: cleanPlayerReferences(standings),
       constraints: [
         "Request additional structured data if the article cannot be grounded.",
-        "Do not invent standings, sessions, moments, rivalries, or player intent.",
+        ...HARD_FACTUAL_GUARDRAILS,
         ...finalityRules,
       ],
     },

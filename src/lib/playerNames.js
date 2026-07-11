@@ -4,8 +4,13 @@ export function text(value, fallback = "") {
 }
 
 export function stripPlayerHandle(value, fallback = "Unknown Player") {
+  return stripPlayerHandlesFromText(value, fallback);
+}
+
+export function stripPlayerHandlesFromText(value, fallback = "") {
   return text(value, fallback)
-    .replace(/\s*@\s*[a-z0-9_-]{3,}\s*$/iu, "")
+    .replace(/\s*@\s*[a-z0-9_-]{3,}\b/giu, "")
+    .replace(/\s{2,}/gu, " ")
     .trim();
 }
 

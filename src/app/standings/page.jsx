@@ -1,6 +1,6 @@
 import { DataTableShell, LeagueHero, NewsroomShell, PublishedArticle, StatCard, StatStrip } from "@/components/newsroom/NewsroomShell";
-import { formatNumber, getPublishedDraft, getStandingsRows, text } from "@/lib/newsroom/data";
-import { draftHeadline, draftParagraphs, draftSubheadline, waitingCopy } from "@/lib/newsroom/rendering";
+import { cleanName, formatNumber, getPublishedDraft, getStandingsRows, text } from "@/lib/newsroom/data";
+import { draftHeadline, draftHtml, draftParagraphs, draftSubheadline, waitingCopy } from "@/lib/newsroom/rendering";
 
 export const revalidate = 60;
 
@@ -17,7 +17,7 @@ export default async function StandingsPage() {
         aside={
           <div>
             <p className="text-xs font-black uppercase tracking-[0.16em] text-amber-300">Current leader</p>
-            <p className="mt-2 text-2xl font-black text-white">{text(leader.player_name || leader.display_name, "Pending")}</p>
+            <p className="mt-2 text-2xl font-black text-white">{cleanName(leader.player_name || leader.display_name, "Pending")}</p>
           </div>
         }
       />
@@ -34,7 +34,7 @@ export default async function StandingsPage() {
           renderRow={(row, index) => (
             <tr key={`${row.player_id || row.player_name || "standing"}-${index}`} className="border-b border-white/10">
               <td className="border-b border-white/10 px-3 py-3 font-black text-amber-200">{text(row.rank || row.current_rank, "-")}</td>
-              <td className="border-b border-white/10 px-3 py-3 text-white">{text(row.player_name || row.display_name, "Player")}</td>
+              <td className="border-b border-white/10 px-3 py-3 text-white">{cleanName(row.player_name || row.display_name, "Player")}</td>
               <td className="border-b border-white/10 px-3 py-3 text-stone-300">{formatNumber(row.points || row.league_points || row.total_points, "-")}</td>
             </tr>
           )}
@@ -46,6 +46,7 @@ export default async function StandingsPage() {
           title={draftHeadline(published, "Current board")}
           subheadline={draftSubheadline(published)}
           paragraphs={draftParagraphs(published)}
+          html={draftHtml(published)}
           placeholder={waitingCopy}
         />
         <div className="rounded-xl border border-white/10 bg-white/[0.045] p-5">

@@ -1,13 +1,15 @@
 import { GenericDraftWorkspace } from "@/components/admin-newsroom/GenericDraftWorkspace";
 import { getVariationOptions } from "@/lib/newsroom/contentAssignments";
 import { getPlayersIndex, getSessionsIndex, text } from "@/lib/newsroom/data";
+import { listNewsroomDrafts } from "@/lib/newsroom/drafts";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 export default async function AdminPlayerSessionRecapsPage() {
   const [players, sessions] = await Promise.all([getPlayersIndex(), getSessionsIndex()]);
   const player = players[0] || {};
   const session = sessions[0] || {};
+  const playerSessionDrafts = await listNewsroomDrafts({ table: "player_session_recap_drafts", fallbackScope: "player_session" });
 
   return (
     <GenericDraftWorkspace
@@ -32,6 +34,10 @@ export default async function AdminPlayerSessionRecapsPage() {
         },
       }}
       variationOptions={getVariationOptions("player_session_recap")}
+      defaultPromptPreset="player_dossier"
+      existingDrafts={playerSessionDrafts}
+      existingDraftsTitle="Player-session drafts"
+      initialDraft={playerSessionDrafts[0] || null}
     />
   );
 }

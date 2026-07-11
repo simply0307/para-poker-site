@@ -13,6 +13,9 @@ export const paraLeagueVoiceRules = {
   },
   requiredBehavior: [
     "Use only facts in the supplied context packet.",
+    "Treat packet.prompt_config as the current creative brief for tone, intensity, format, audience, and emphasis.",
+    "Use supplied docs as inspiration, background, and taste context; do not treat them as a rigid checklist or sentence template.",
+    "The docs are not a cage. Use them to find the voice, then write the strongest draft the verified data supports.",
     "Use packet.prose_style_examples as the energy target; imitate the attitude, not the exact wording.",
     "Be expressive first and fact-safe second.",
     "Keep player dignity intact, including for losing players.",
@@ -32,8 +35,8 @@ export function buildNewsroomSystemPrompt(scope) {
     paraLeagueVoiceRules.productRole,
     `Scope: ${scope}.`,
     scope === "session"
-      ? "For session recaps, follow packet.session_recap_assignment and packet.prose_style_examples first. The guardrail is small: do not invent poker facts or season outcomes."
-      : "Follow packet.task_assignment and packet.prose_style_examples first. The guardrail is small: do not invent poker facts or season outcomes.",
+      ? "For session recaps, source facts are the hard boundary, packet.prompt_config is the current creative brief, and packet.session_recap_assignment defines the task. Docs and examples are inspiration, not chains."
+      : "Source facts are the hard boundary, packet.prompt_config is the current creative brief, and packet.task_assignment defines the task. Docs and examples are inspiration, not chains.",
     `Tone: ${paraLeagueVoiceRules.tone}`,
     "Required behavior:",
     ...paraLeagueVoiceRules.requiredBehavior.map((rule) => `- ${rule}`),

@@ -1,8 +1,17 @@
 import { GenericDraftWorkspace } from "@/components/admin-newsroom/GenericDraftWorkspace";
 import { getVariationOptions } from "@/lib/newsroom/contentAssignments";
+import { getPlayerByIdOrSlug } from "@/lib/newsroom/data";
+import { listNewsroomDrafts } from "@/lib/newsroom/drafts";
+
+export const dynamic = "force-dynamic";
 
 export default async function AdminPlayerPage({ params }) {
   const { playerId } = await params;
+  const player = await getPlayerByIdOrSlug(playerId);
+  const profileDrafts = player?.id
+    ? await listNewsroomDrafts({ table: "profile_drafts", fallbackScope: "player", sourcePlayerId: player.id })
+    : [];
+
   return (
     <GenericDraftWorkspace
       title={`Player draft desk: ${playerId}`}
@@ -25,6 +34,10 @@ export default async function AdminPlayerPage({ params }) {
         },
       }}
       variationOptions={getVariationOptions("player_profile")}
+      defaultPromptPreset="player_dossier"
+      existingDrafts={profileDrafts}
+      existingDraftsTitle="Player profile drafts"
+      initialDraft={profileDrafts[0] || null}
     />
   );
 }
