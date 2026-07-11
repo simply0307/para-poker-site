@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import { attachActionsToHands, normalizeHandRow } from "@/lib/poker/handHistory";
+import { stripPlayerHandle } from "@/lib/playerNames";
 
 function text(value, fallback = "") {
   if (value === null || value === undefined || value === "") return fallback;
@@ -7,7 +8,7 @@ function text(value, fallback = "") {
 }
 
 function cleanName(value, fallback = "Unknown Player") {
-  return text(value, fallback).replace(/\s+@\s+\S+\s*$/u, "").trim();
+  return stripPlayerHandle(value, fallback);
 }
 
 export async function safeQuery(query, fallback = null) {

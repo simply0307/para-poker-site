@@ -12,7 +12,23 @@ export default async function AdminMomentsPage() {
     <GenericDraftWorkspace
       title="Moment blurb draft desk"
       endpoint="/api/moments/generate"
-      defaultPayload={{ momentId: text(firstMoment.id), variation: "impact_blurb", editorialNotes: "" }}
+      defaultPayload={{
+        momentId: text(firstMoment.id),
+        variation: "impact_blurb",
+        editorialNotes: "",
+        promptConfig: {
+          draftType: "moment_blurb",
+          voiceMode: "Moment Archive",
+          intensity: "Punchy",
+          coverageFocus: ["biggest pot", "notable moments", "specific hand numbers"],
+          mustMention: ["hand number", "winner", "pot"],
+          avoid: ["unsupported hand action", "fake emotion"],
+          length: "short",
+          format: "archive_blurb",
+          audience: "public_player",
+          customInstruction: "Make the moment feel memorable without inflating unsupported facts.",
+        },
+      }}
       variationOptions={getVariationOptions("moment_blurb")}
     />
   );

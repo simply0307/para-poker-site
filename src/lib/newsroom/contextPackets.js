@@ -1,5 +1,6 @@
 import { NEWSROOM_PROMPT_VERSION, paraLeagueVoiceRules } from "./voiceRules";
 import { getContentAssignment, getSelectedVariation, getVariationOptions } from "./contentAssignments";
+import { buildPromptConfigContext } from "./promptConfigs";
 import { loadNewsroomEditorialDocs, loadProseStyleExamples, loadSessionRecapMagicGuide, loadTaskGuide } from "./editorialDocs";
 import {
   buildSessionStoryPlan,
@@ -64,6 +65,10 @@ async function buildTaskContext(type, requestedVariation = "") {
   };
 }
 
+function promptConfigContext(type, options = {}) {
+  return buildPromptConfigContext(options.promptConfig || {}, type);
+}
+
 function publicHandMoment(moment) {
   return {
     hand_no: text(moment.hand_no),
@@ -94,6 +99,7 @@ export async function buildSessionRecapInputPacket(sessionIdOrCode, options = {}
     "Do not invent hands, cards, actions, results, quotes, table talk, emotions, rivalries, season outcomes, clinches, or standings movement.",
     "Use missing_data_warnings and confidence_notes only for admin notes; keep public prose expressive and poker-first.",
   ];
+  const promptConfig = promptConfigContext("session_recap", options);
 
   return {
     scope: "session",
@@ -109,11 +115,12 @@ export async function buildSessionRecapInputPacket(sessionIdOrCode, options = {}
         "B. prose_style_examples",
         "C. hard_factual_guardrails",
         "D. selected_variation",
-        "E. session_recap_magic_guide",
-        "F. story_plan",
-        "G. session/player data",
-        "H. broad editorial docs/examples",
-        "I. output schema",
+        "E. prompt_config",
+        "F. session_recap_magic_guide",
+        "G. story_plan",
+        "H. session/player data",
+        "I. broad editorial docs/examples",
+        "J. output schema",
       ],
       session_recap_assignment: sessionRecapAssignment,
       prose_style_examples: proseStyleExamples,
@@ -124,6 +131,7 @@ export async function buildSessionRecapInputPacket(sessionIdOrCode, options = {}
         instruction,
       })),
       selected_variation: getSelectedSessionRecapVariation(options.variation || options.variationKey),
+      ...promptConfig,
       session_recap_magic_guide: sessionMagicGuide,
       story_plan: storyPlan,
       voice_rules: paraLeagueVoiceRules,
@@ -177,6 +185,7 @@ export async function buildPlayerRecapInputPacket(playerIdOrSlug, options = {}) 
   const editorialDocs = await loadNewsroomEditorialDocs();
   const proseStyleExamples = await loadProseStyleExamples();
   const taskContext = await buildTaskContext("player_profile", options.variation || options.variationKey);
+  const promptConfig = promptConfigContext("player_profile", options);
 
   return {
     scope: "player",
@@ -192,12 +201,14 @@ export async function buildPlayerRecapInputPacket(playerIdOrSlug, options = {}) 
         "B. prose_style_examples",
         "C. hard_factual_guardrails",
         "D. selected_variation",
-        "E. task_guide",
-        "F. player/session/moment data",
-        "G. broad editorial docs/examples",
-        "H. output schema",
+        "E. prompt_config",
+        "F. task_guide",
+        "G. player/session/moment data",
+        "H. broad editorial docs/examples",
+        "I. output schema",
       ],
       ...taskContext,
+      ...promptConfig,
       prose_style_examples: proseStyleExamples,
       voice_rules: paraLeagueVoiceRules,
       editorial_docs: editorialDocs,
@@ -232,6 +243,7 @@ export async function buildMomentBlurbInputPacket(momentId = "", editorialNotes 
   const momentData = await getMomentNewsroomData(momentId);
   if (!momentData) throw new Error("Moment not found.");
   const taskContext = await buildTaskContext("moment_blurb", options.variation || options.variationKey);
+  const promptConfig = promptConfigContext("moment_blurb", options);
 
   return {
     scope: "moment",
@@ -247,12 +259,14 @@ export async function buildMomentBlurbInputPacket(momentId = "", editorialNotes 
         "B. prose_style_examples",
         "C. hard_factual_guardrails",
         "D. selected_variation",
-        "E. task_guide",
-        "F. moment/session data",
-        "G. broad editorial docs/examples",
-        "H. output schema",
+        "E. prompt_config",
+        "F. task_guide",
+        "G. moment/session data",
+        "H. broad editorial docs/examples",
+        "I. output schema",
       ],
       ...taskContext,
+      ...promptConfig,
       prose_style_examples: proseStyleExamples,
       voice_rules: paraLeagueVoiceRules,
       editorial_docs: editorialDocs,
@@ -275,6 +289,7 @@ export async function buildStandingsInputPacket(seasonCode = "S0", editorialNote
   const proseStyleExamples = await loadProseStyleExamples();
   const standings = await getStandingsRows(seasonCode);
   const taskContext = await buildTaskContext("standings_summary", options.variation || options.variationKey);
+  const promptConfig = promptConfigContext("standings_summary", options);
 
   return {
     scope: "season",
@@ -290,12 +305,14 @@ export async function buildStandingsInputPacket(seasonCode = "S0", editorialNote
         "B. prose_style_examples",
         "C. hard_factual_guardrails",
         "D. selected_variation",
-        "E. task_guide",
-        "F. standings data",
-        "G. broad editorial docs/examples",
-        "H. output schema",
+        "E. prompt_config",
+        "F. task_guide",
+        "G. standings data",
+        "H. broad editorial docs/examples",
+        "I. output schema",
       ],
       ...taskContext,
+      ...promptConfig,
       prose_style_examples: proseStyleExamples,
       voice_rules: paraLeagueVoiceRules,
       editorial_docs: editorialDocs,
@@ -309,12 +326,13 @@ export async function buildStandingsInputPacket(seasonCode = "S0", editorialNote
   };
 }
 
-export async function buildPlayerSessionRecapInputPacket({ playerId, sessionId, editorialNotes = "", variation = "", variationKey = "" }) {
+export async function buildPlayerSessionRecapInputPacket({ playerId, sessionId, editorialNotes = "", variation = "", variationKey = "", promptConfig = {} }) {
   const editorialDocs = await loadNewsroomEditorialDocs();
   const proseStyleExamples = await loadProseStyleExamples();
   const playerData = await getPlayerNewsroomData(playerId);
   const sessionData = await getSessionNewsroomData(sessionId);
   const taskContext = await buildTaskContext("player_session_recap", variation || variationKey);
+  const promptConfigBlock = promptConfigContext("player_session_recap", { promptConfig });
 
   if (!playerData) throw new Error("Player not found.");
   if (!sessionData) throw new Error("Session not found.");
@@ -338,12 +356,14 @@ export async function buildPlayerSessionRecapInputPacket({ playerId, sessionId, 
         "B. prose_style_examples",
         "C. hard_factual_guardrails",
         "D. selected_variation",
-        "E. task_guide",
-        "F. player/session/moment data",
-        "G. broad editorial docs/examples",
-        "H. output schema",
+        "E. prompt_config",
+        "F. task_guide",
+        "G. player/session/moment data",
+        "H. broad editorial docs/examples",
+        "I. output schema",
       ],
       ...taskContext,
+      ...promptConfigBlock,
       prose_style_examples: proseStyleExamples,
       voice_rules: paraLeagueVoiceRules,
       editorial_docs: editorialDocs,
@@ -378,6 +398,7 @@ export async function buildArticleInputPacket(articleRequest = {}) {
   const proseStyleExamples = await loadProseStyleExamples();
   const standings = await getStandingsRows(articleRequest.seasonCode || "S0");
   const taskContext = await buildTaskContext("league_article", articleRequest.variation || articleRequest.variationKey);
+  const promptConfig = promptConfigContext("league_article", { promptConfig: articleRequest.promptConfig });
   const finalityRules = [
     "Do not say the season is over unless articleRequest.seasonStatus is complete.",
     "Do not say a player has clinched, secured, finished the season, closed the campaign, or ended the race unless supplied data explicitly says so.",
@@ -407,12 +428,14 @@ export async function buildArticleInputPacket(articleRequest = {}) {
         "B. prose_style_examples",
         "C. hard_factual_guardrails",
         "D. selected_variation",
-        "E. task_guide",
-        "F. article request/standings data",
-        "G. broad editorial docs/examples",
-        "H. output schema",
+        "E. prompt_config",
+        "F. task_guide",
+        "G. article request/standings data",
+        "H. broad editorial docs/examples",
+        "I. output schema",
       ],
       ...taskContext,
+      ...promptConfig,
       prose_style_examples: proseStyleExamples,
       voice_rules: paraLeagueVoiceRules,
       editorial_docs: editorialDocs,

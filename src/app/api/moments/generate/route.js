@@ -12,6 +12,7 @@ export async function POST(request) {
     const body = await request.json().catch(() => ({}));
     const input = await buildMomentBlurbInputPacket(body.momentId || "", body.editorialNotes || "", {
       variation: body.variation || body.variationKey || "",
+      promptConfig: body.promptConfig || {},
     });
     const aiResult = await callNewsroomAiJson({ scope: "moment", schema: articleDraftSchema, packet: input.packet });
     const shapeErrors = validateDraftShape(aiResult.draft, ["headline", "subheadline", "article_body", "key_takeaways", "confidence_notes", "missing_data_warnings"]);
@@ -21,7 +22,7 @@ export async function POST(request) {
       table: "moment_blurb_drafts",
       scope: "moment",
       momentId: input.momentId || null,
-      articleRequest: { momentId: body.momentId || "", editorialNotes: body.editorialNotes || "", variation: body.variation || body.variationKey || "" },
+      articleRequest: { momentId: body.momentId || "", editorialNotes: body.editorialNotes || "", variation: body.variation || body.variationKey || "", promptConfig: body.promptConfig || {} },
       contextPacket: input.packet,
       draft: aiResult.draft,
       provider: aiResult.provider,

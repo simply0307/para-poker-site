@@ -1,3 +1,5 @@
+import { stripPlayerHandle } from "@/lib/playerNames";
+
 export const sessionRecapAssignment = {
   id: "para-session-recap-assignment-v1",
   title: "Official Public Session Recap Assignment",
@@ -71,7 +73,7 @@ function text(value, fallback = "") {
 }
 
 function cleanName(value, fallback = "Unknown Player") {
-  return text(value, fallback).replace(/\s+@\s+\S+\s*$/u, "").trim();
+  return stripPlayerHandle(value, fallback);
 }
 
 function numberValue(value, fallback = 0) {

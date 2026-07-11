@@ -15,6 +15,7 @@ export async function POST(request) {
       sessionId: body.sessionId || "",
       editorialNotes: body.editorialNotes || "",
       variation: body.variation || body.variationKey || "",
+      promptConfig: body.promptConfig || {},
     });
     const aiResult = await callNewsroomAiJson({ scope: "player", schema: articleDraftSchema, packet: input.packet });
     const shapeErrors = validateDraftShape(aiResult.draft, ["headline", "subheadline", "article_body", "key_takeaways", "confidence_notes", "missing_data_warnings"]);
@@ -25,7 +26,7 @@ export async function POST(request) {
       scope: "player_session",
       sourcePlayerId: input.sourcePlayerId,
       sourceSessionId: input.sourceSessionId,
-      articleRequest: { playerId: body.playerId || "", sessionId: body.sessionId || "", editorialNotes: body.editorialNotes || "", variation: body.variation || body.variationKey || "" },
+      articleRequest: { playerId: body.playerId || "", sessionId: body.sessionId || "", editorialNotes: body.editorialNotes || "", variation: body.variation || body.variationKey || "", promptConfig: body.promptConfig || {} },
       contextPacket: input.packet,
       draft: aiResult.draft,
       provider: aiResult.provider,

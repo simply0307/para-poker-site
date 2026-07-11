@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { AdminShell } from "@/components/admin-newsroom/AdminShell";
 
 function pretty(value) {
   return JSON.stringify(value || {}, null, 2);
@@ -128,12 +129,10 @@ export function GenericDraftWorkspace({ title, endpoint, defaultPayload = {}, va
   }
 
   return (
-    <main className="min-h-screen bg-zinc-100 px-5 py-10 text-zinc-950 md:px-8">
-      <p className="text-xs font-black uppercase tracking-[0.2em] text-amber-700">Admin newsroom</p>
-      <h1 className="mt-3 text-5xl font-black">{title}</h1>
-      <p className="mt-4 max-w-3xl leading-7 text-zinc-600">
-        Generate a draft, inspect context and docs, edit JSON, save, publish, or unpublish.
-      </p>
+    <AdminShell
+      title={title}
+      description="Generate a draft, inspect context and docs, edit JSON, save, publish, or unpublish."
+    >
 
       {variationOptions.length ? (
         <section className="mt-8 rounded-lg border border-zinc-300 bg-white p-4">
@@ -198,6 +197,8 @@ export function GenericDraftWorkspace({ title, endpoint, defaultPayload = {}, va
             provider: draftRow.provider_used || draftRow.provider,
             model: draftRow.model_used,
             variation: draftRow.context_packet?.selected_variation?.label || draftRow.context_packet?.selected_variation?.key,
+            prompt_config: draftRow.context_packet?.prompt_config,
+            prompt_config_instructions: draftRow.context_packet?.prompt_config_instructions,
             article_type: draftRow.context_packet?.article_request?.articleType,
             season_context: draftRow.context_packet?.season_context,
             fallback_trace: draftRow.fallback_trace || draftRow.context_packet?.generation_debug?.fallback_trace,
@@ -206,6 +207,6 @@ export function GenericDraftWorkspace({ title, endpoint, defaultPayload = {}, va
           })}</pre>
         </details>
       ) : null}
-    </main>
+    </AdminShell>
   );
 }

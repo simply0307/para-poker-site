@@ -22,6 +22,7 @@ export async function POST(request) {
 
     const input = await buildSessionRecapInputPacket(sessionId, {
       variation: body.variation || body.variationKey || "",
+      promptConfig: body.promptConfig || {},
     });
     console.info("[api/recaps/generate] editorial docs included", {
       ids: editorialDocIds(input.packet.editorial_docs),

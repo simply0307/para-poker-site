@@ -12,7 +12,7 @@ export async function POST(request) {
     const body = await request.json().catch(() => ({}));
     const articleRequest = body.articleRequest && typeof body.articleRequest === "object" ? body.articleRequest : {};
     const variation = body.variation || body.variationKey || articleRequest.variation || articleRequest.variationKey || "";
-    const articleRequestWithVariation = { ...articleRequest, variation };
+    const articleRequestWithVariation = { ...articleRequest, variation, promptConfig: body.promptConfig || articleRequest.promptConfig || {} };
     const input = await buildArticleInputPacket(articleRequestWithVariation);
     const aiResult = await callNewsroomAiJson({
       scope: "article",

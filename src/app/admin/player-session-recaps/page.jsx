@@ -18,6 +18,18 @@ export default async function AdminPlayerSessionRecapsPage() {
         sessionId: text(session.session_code || session.id, "S0-001"),
         variation: "moment_led",
         editorialNotes: "",
+        promptConfig: {
+          draftType: "player_session_recap",
+          voiceMode: "Player Dossier",
+          intensity: "Punchy",
+          coverageFocus: ["specific player", "late hands", "notable moments"],
+          mustMention: ["finish", "points", "biggest pot"],
+          avoid: ["private coaching", "unsupported mistakes", "fake emotion"],
+          length: "medium",
+          format: "recap_article",
+          audience: "public_player",
+          customInstruction: "Make the player's session lane feel public, dignified, and specific.",
+        },
       }}
       variationOptions={getVariationOptions("player_session_recap")}
     />

@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import { normalizeHandRow } from "@/lib/poker/handHistory";
+import { normalizePlayerNameForMatch, stripPlayerHandle } from "@/lib/playerNames";
 import { getSessionsIndex, safeQuery } from "./sessionRepository";
 
 function text(value, fallback = "") {
@@ -8,16 +9,11 @@ function text(value, fallback = "") {
 }
 
 export function cleanName(value, fallback = "Unknown Player") {
-  return text(value, fallback).replace(/\s+@\s+\S+\s*$/u, "").trim();
+  return stripPlayerHandle(value, fallback);
 }
 
 export function normalizePlayerName(name) {
-  return cleanName(name, "")
-    .toLowerCase()
-    .replace(/\s+@\s+\S+\s*$/u, "")
-    .replace(/[^a-z0-9]+/g, " ")
-    .trim()
-    .replace(/\s+/g, " ");
+  return normalizePlayerNameForMatch(name);
 }
 
 function playerNameCandidates(player = {}) {

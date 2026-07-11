@@ -1,3 +1,5 @@
+import { stripPlayerHandle } from "@/lib/playerNames";
+
 function text(value, fallback = "") {
   if (value === null || value === undefined || value === "") return fallback;
   return String(value);
@@ -8,7 +10,7 @@ function present(value) {
 }
 
 function cleanName(value, fallback = "Unknown Player") {
-  return text(value, fallback).replace(/\s+@\s+\S+\s*$/u, "").trim();
+  return stripPlayerHandle(value, fallback);
 }
 
 function formatNumber(value, fallback = "-") {

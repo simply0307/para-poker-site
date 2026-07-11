@@ -13,6 +13,19 @@ const emptyDraft = {
   missing_data_warnings: [],
 };
 
+const defaultPromptConfig = {
+  draftType: "session_recap",
+  voiceMode: "Official Recap",
+  intensity: "Punchy",
+  coverageFocus: ["winner", "biggest pot", "notable moments"],
+  mustMention: ["winner", "runner-up", "biggest pot"],
+  avoid: ["generic sports filler", "unsupported rivalries", "fake emotions"],
+  length: "medium",
+  format: "recap_article",
+  audience: "public_league",
+  customInstruction: "Lead with the competitive story and let verified hands support the article.",
+};
+
 function normalizeDraft(row) {
   return row?.draft && typeof row.draft === "object" ? row.draft : emptyDraft;
 }
@@ -93,7 +106,7 @@ export function SessionRecapDraftEditor({ sessionKey, initialDraft, variationOpt
     const response = await fetch("/api/recaps/generate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sessionId: sessionKey, variation: selectedVariation }),
+      body: JSON.stringify({ sessionId: sessionKey, variation: selectedVariation, promptConfig: defaultPromptConfig }),
     });
     const payload = await response.json().catch(() => ({}));
 
@@ -297,6 +310,8 @@ function AdminDebugPanel({ draftRow }) {
         <DebugItem label="Model used" value={draftRow.model_used || draftRow.context_packet?.generation_debug?.model_used || "-"} />
         <DebugItem label="Status" value={draftRow.status || "-"} />
         <DebugItem label="Variation" value={draftRow.context_packet?.selected_variation?.label || draftRow.context_packet?.selected_variation?.key || "-"} />
+        <DebugItem label="Voice mode" value={draftRow.context_packet?.prompt_config?.voiceMode || "-"} />
+        <DebugItem label="Intensity" value={draftRow.context_packet?.prompt_config?.intensity || "-"} />
       </div>
       {draftRow.generation_error ? <p className={styles.debugError}>{draftRow.generation_error}</p> : null}
       {docs.length ? (
