@@ -23,12 +23,14 @@ const navGroups = [
       ["/admin/prompt-studio", "Prompt Studio"],
       ["/admin/newsroom", "Prompt Library"],
       ["/admin/player-session-recaps", "Player Sessions"],
+      ["/admin/social-captions", "Social Captions"],
     ],
   },
   {
     label: "Pipeline",
     links: [
       ["/admin/imports", "Imports"],
+      ["/admin/overrides", "Overrides"],
       ["/admin/settings", "Settings"],
       ["/", "Public Site"],
     ],

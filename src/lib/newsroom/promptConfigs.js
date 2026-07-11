@@ -5,7 +5,8 @@ export const DRAFT_TYPES = [
   { key: "standings_summary", label: "Standings Summary", endpoint: "/api/standings/generate", requiredSource: "seasonCode" },
   { key: "moment_blurb", label: "Moment Blurb", endpoint: "/api/moments/generate", requiredSource: "momentId" },
   { key: "league_article", label: "League Article", endpoint: "/api/articles/generate", requiredSource: "articleRequest" },
-  { key: "social_caption", label: "Social Caption", endpoint: "", requiredSource: "future" },
+  { key: "social_caption", label: "Social Caption", endpoint: "/api/social-captions/generate", requiredSource: "sessionId/playerId/momentId" },
+  { key: "private_note", label: "Private/Admin Note", endpoint: "/api/private-notes/generate", requiredSource: "sessionId/playerId/momentId" },
 ];
 
 export const VOICE_MODES = [
@@ -34,9 +35,11 @@ export const FORMAT_OPTIONS = [
   "social_card",
   "social_caption",
   "technical_note",
+  "private_note",
+  "sporting_roast",
 ];
 
-export const AUDIENCE_OPTIONS = ["public", "public_player", "public_league", "admin_editor", "coach_private", "social"];
+export const AUDIENCE_OPTIONS = ["public", "public_player", "public_league", "admin_editor", "coach_private", "social", "private_admin"];
 
 export const COVERAGE_FOCUS_OPTIONS = [
   "winner",
@@ -142,19 +145,19 @@ export const PROMPT_PRESETS = {
     customInstruction: "Make it hit fast.",
   },
   sporting_roast: {
-    draftType: "league_article",
+    draftType: "private_note",
     voiceMode: "Sporting Roast",
     intensity: "Roast",
     coverageFocus: ["winner", "runner-up", "biggest pot", "notable moments"],
     mustMention: [],
     avoid: ["personal insults", "fake rivalry", "invented emotion"],
     length: "short",
-    format: "social_caption",
-    audience: "admin_editor",
+    format: "sporting_roast",
+    audience: "private_admin",
     customInstruction: "Use playful sports edge without making personal or unsupported claims.",
   },
   technical_poker_note: {
-    draftType: "player_session_recap",
+    draftType: "private_note",
     voiceMode: "Technical Poker Note",
     intensity: "Restrained",
     coverageFocus: ["specific hand numbers", "late hands", "notable hands"],
@@ -164,6 +167,18 @@ export const PROMPT_PRESETS = {
     format: "technical_note",
     audience: "coach_private",
     customInstruction: "Stay close to verified hand/action data and separate technical notes from public prose.",
+  },
+  coach_private_note: {
+    draftType: "private_note",
+    voiceMode: "Coach/Private Note",
+    intensity: "Balanced",
+    coverageFocus: ["specific hand numbers", "player form", "notable hands"],
+    mustMention: [],
+    avoid: ["public-facing hype", "invented intent", "unsupported weakness claims"],
+    length: "medium",
+    format: "private_note",
+    audience: "coach_private",
+    customInstruction: "Write an admin-only review note grounded in available hand/action data. Keep it reviewable, not publish-ready.",
   },
 };
 

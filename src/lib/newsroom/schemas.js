@@ -145,6 +145,56 @@ export const articleDraftSchema = {
   strict: true,
 };
 
+export const socialCaptionDraftSchema = {
+  name: "para_social_caption_draft",
+  schema: {
+    type: "object",
+    additionalProperties: false,
+    required: ["headline", "subheadline", "caption", "alt_caption", "card_text", "platform_variants", "confidence_notes", "missing_data_warnings"],
+    properties: {
+      headline: { type: "string" },
+      subheadline: { type: "string" },
+      caption: { type: "string" },
+      alt_caption: { type: "string" },
+      card_text: { type: "string" },
+      platform_variants: {
+        type: "array",
+        items: {
+          type: "object",
+          additionalProperties: false,
+          required: ["platform", "text"],
+          properties: {
+            platform: { type: "string" },
+            text: { type: "string" },
+          },
+        },
+      },
+      confidence_notes: { type: "array", items: { type: "string" } },
+      missing_data_warnings: { type: "array", items: { type: "string" } },
+    },
+  },
+  strict: true,
+};
+
+export const privateNoteDraftSchema = {
+  name: "para_private_note_draft",
+  schema: {
+    type: "object",
+    additionalProperties: false,
+    required: ["headline", "subheadline", "private_body", "review_points", "public_safe_summary", "confidence_notes", "missing_data_warnings"],
+    properties: {
+      headline: { type: "string" },
+      subheadline: { type: "string" },
+      private_body: { type: "string" },
+      review_points: { type: "array", items: { type: "string" } },
+      public_safe_summary: { type: "string" },
+      confidence_notes: { type: "array", items: { type: "string" } },
+      missing_data_warnings: { type: "array", items: { type: "string" } },
+    },
+  },
+  strict: true,
+};
+
 export function validateDraftShape(value, requiredKeys) {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     return ["AI response was not a JSON object."];

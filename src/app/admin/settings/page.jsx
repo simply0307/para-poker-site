@@ -1,17 +1,18 @@
-import { AdminPlaceholder, AdminShell } from "@/components/admin-newsroom/AdminShell";
+import { AdminShell } from "@/components/admin-newsroom/AdminShell";
+import { HomepageSettingsForm } from "@/components/admin-newsroom/HomepageSettingsForm";
+import { readHomepageSettings } from "@/lib/newsroom/homepageSettings";
 
-export default function AdminSettingsPage() {
+export const dynamic = "force-dynamic";
+
+export default async function AdminSettingsPage() {
+  const homepageSettings = await readHomepageSettings();
+
   return (
     <AdminShell
       title="Settings"
-      description="League-wide settings for season status, homepage modules, default prompt configs, and provider diagnostics."
+      description="League-wide controls for the public homepage, season status, default prompt configs, and provider diagnostics."
     >
-      <AdminPlaceholder title="Settings workspace pending">
-        <p>
-          Official login, durable admin preferences, default prompt config storage, and homepage module ordering can be added here when the
-          foundation is ready. Environment files and provider secrets remain server-side only.
-        </p>
-      </AdminPlaceholder>
+      <HomepageSettingsForm initialSettings={homepageSettings} />
     </AdminShell>
   );
 }

@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { getLatestDraft } from "@/lib/newsroom/data";
 import { getSessionNewsroomData, formatDate, text } from "@/lib/newsroom/data";
 import { getSessionRecapVariationOptions } from "@/lib/newsroom/sessionRecapAssignment";
+import { buildSessionViewModel } from "@/lib/newsroom/viewModels/session";
+import { AppliedOverridesPanel } from "@/components/admin-newsroom/AppliedOverridesPanel";
 import { AdminShell, AdminStat } from "@/components/admin-newsroom/AdminShell";
 import { SessionRecapDraftEditor } from "@/components/admin-newsroom/SessionRecapDraftEditor";
 
@@ -13,7 +15,10 @@ export default async function AdminSessionNewsroomPage({ params }) {
   const sessionData = await getSessionNewsroomData(sessionId);
   if (!sessionData) notFound();
 
-  const latestDraft = await getLatestDraft({ scope: "session", sourceSessionId: sessionData.session.id });
+  const [latestDraft, viewModel] = await Promise.all([
+    getLatestDraft({ scope: "session", sourceSessionId: sessionData.session.id }),
+    buildSessionViewModel(sessionData.session.id),
+  ]);
 
   return (
     <AdminShell
@@ -34,6 +39,8 @@ export default async function AdminSessionNewsroomPage({ params }) {
         <AdminStat label="Hands" value={text(sessionData.session.hands_count, "-")} />
         <AdminStat label="Moments" value={String(sessionData.notableHands.length || 0)} />
       </section>
+
+      <AppliedOverridesPanel overrides={viewModel?.appliedOverrides || []} />
 
       <SessionRecapDraftEditor
         sessionKey={text(sessionData.session.session_code || sessionId)}

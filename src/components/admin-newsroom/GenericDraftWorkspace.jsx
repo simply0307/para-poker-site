@@ -19,7 +19,7 @@ function parseJson(value) {
 }
 
 function bodyFieldFor(draft = {}) {
-  return ["recap_body", "profile_body", "article_body", "long_body", "body"].find((field) => typeof draft?.[field] === "string") || "";
+  return ["recap_body", "profile_body", "article_body", "caption", "long_body", "body"].find((field) => typeof draft?.[field] === "string") || "";
 }
 
 export function GenericDraftWorkspace({

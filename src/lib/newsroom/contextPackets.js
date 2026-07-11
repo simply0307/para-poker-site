@@ -1,4 +1,5 @@
 import { NEWSROOM_PROMPT_VERSION, paraLeagueVoiceRules } from "./voiceRules";
+import { applyOverridesToEntity, applyOverridesToList, readActiveDataOverrides } from "@/lib/newsroom/applyDataOverrides";
 import { getContentAssignment, getSelectedVariation, getVariationOptions } from "./contentAssignments";
 import { buildPromptConfigContext } from "./promptConfigs";
 import { stripPlayerHandlesFromText } from "@/lib/playerNames";
@@ -132,22 +133,46 @@ export async function buildSessionRecapInputPacket(sessionIdOrCode, options = {}
   const sessionData = await getSessionNewsroomData(sessionIdOrCode);
   if (!sessionData) throw new Error("Session not found.");
 
+  const overrides = await readActiveDataOverrides();
+  const sessionOverride = applyOverridesToEntity(sessionData.session, "session", overrides);
+  const participantsOverride = applyOverridesToList(sessionData.participants || [], "player", overrides);
+  const resultsOverride = applyOverridesToList(sessionData.sessionResults || [], "player", overrides);
+  const statsOverride = applyOverridesToList(sessionData.playerSessionStats || [], "player", overrides);
+  const standingsOverride = applyOverridesToList(sessionData.standings || [], "standings", overrides);
+  const handsOverride = applyOverridesToList(sessionData.hands || [], "hand", overrides);
+  const momentsOverride = applyOverridesToList(sessionData.notableHands || [], "moment", overrides);
+  const appliedOverrides = [
+    ...sessionOverride.appliedOverrides,
+    ...participantsOverride.appliedOverrides,
+    ...resultsOverride.appliedOverrides,
+    ...statsOverride.appliedOverrides,
+    ...standingsOverride.appliedOverrides,
+    ...handsOverride.appliedOverrides,
+    ...momentsOverride.appliedOverrides,
+  ];
+  const session = sessionOverride.value;
+  const participants = participantsOverride.value;
+  const sessionResults = resultsOverride.value;
+  const playerSessionStats = statsOverride.value;
+  const standings = standingsOverride.value;
+  const hands = handsOverride.value;
+  const notableHands = momentsOverride.value;
   const editorialDocs = await loadNewsroomEditorialDocs();
   const proseStyleExamples = await loadProseStyleExamples();
   const sessionMagicGuide = await loadSessionRecapMagicGuide();
   const storyPlan = buildSessionStoryPlan({
-    session: sessionData.session,
-    sessionResults: sessionData.sessionResults,
-    playerSessionStats: sessionData.playerSessionStats,
-    notableHands: sessionData.notableHands,
-    hands: sessionData.hands,
+    session,
+    sessionResults,
+    playerSessionStats,
+    notableHands,
+    hands,
   });
   const hardGuardrails = HARD_FACTUAL_GUARDRAILS;
   const promptConfig = promptConfigContext("session_recap", options);
 
   return {
     scope: "session",
-    sourceSessionId: sessionData.session.id,
+    sourceSessionId: session.id,
     sourceDataVersion: SOURCE_DATA_VERSION,
     promptVersion: NEWSROOM_PROMPT_VERSION,
     packet: {
@@ -182,16 +207,17 @@ export async function buildSessionRecapInputPacket(sessionIdOrCode, options = {}
       voice_rules: paraLeagueVoiceRules,
       editorial_docs: editorialDocs,
       session: {
-        id: sessionData.session.id,
-        session_code: sessionData.session.session_code,
-        season_code: sessionData.session.season_code,
-        played_at: sessionData.session.played_at,
-        table_name: sessionData.session.table_name,
-        format: sessionData.session.format,
-        hands_count: sessionData.session.hands_count,
-        status: sessionData.session.status,
+        id: session.id,
+        session_code: session.session_code,
+        season_code: session.season_code,
+        played_at: session.played_at,
+        table_name: session.table_name,
+        format: session.format,
+        hands_count: session.hands_count,
+        status: session.status,
       },
-      participants: sessionData.participants.map((player) => ({
+      applied_overrides: appliedOverrides,
+      participants: participants.map((player) => ({
         player_id: player.id,
         name: player.name,
         slug: player.slug,
@@ -201,21 +227,21 @@ export async function buildSessionRecapInputPacket(sessionIdOrCode, options = {}
         league_points: player.result?.league_points || null,
         approved_result: Boolean(player.result?.approved),
       })),
-      standings_snapshot: cleanPlayerReferences(sessionData.standings),
-      moment_source_facts: (sessionData.notableHands || []).slice(0, 8).map((moment) => ({
+      standings_snapshot: cleanPlayerReferences(standings),
+      moment_source_facts: (notableHands || []).slice(0, 8).map((moment) => ({
         note: "Use these as source facts only, not as style examples.",
         ...publicHandMoment(moment),
       })),
-      biggest_pots: (sessionData.hands?.length ? sessionData.hands : sessionData.notableHands || [])
+      biggest_pots: (hands?.length ? hands : notableHands || [])
         .filter((hand) => hand?.pot_collected)
         .sort((left, right) => Number(right.pot_collected || 0) - Number(left.pot_collected || 0))
         .slice(0, 8)
         .map(publicHandMoment),
       source_facts_summary: [
-        `Session: ${sessionData.session.session_code || sessionData.session.id}`,
-        `Hands: ${sessionData.session.hands_count || "-"}`,
-        `Approved results: ${sessionData.sessionResults.filter((result) => result.approved).length}`,
-        `Notable hands: ${sessionData.notableHands.length}`,
+        `Session: ${session.session_code || session.id}`,
+        `Hands: ${session.hands_count || "-"}`,
+        `Approved results: ${sessionResults.filter((result) => result.approved).length}`,
+        `Notable hands: ${notableHands.length}`,
       ].join("; "),
       constraints: hardGuardrails,
       warnings: ["Standings changes before/after this session are not present unless supplied in standings_snapshot."],
@@ -226,7 +252,24 @@ export async function buildSessionRecapInputPacket(sessionIdOrCode, options = {}
 export async function buildPlayerRecapInputPacket(playerIdOrSlug, options = {}) {
   const playerData = await getPlayerNewsroomData(playerIdOrSlug);
   if (!playerData) throw new Error("Player not found.");
-  const { player } = playerData;
+  const overrides = await readActiveDataOverrides();
+  const playerOverride = applyOverridesToEntity(playerData.player, "player", overrides);
+  const standingsOverride = applyOverridesToList(playerData.standings || [], "standings", overrides);
+  const statsOverride = applyOverridesToList(playerData.sessionStats || [], "player", overrides);
+  const resultsOverride = applyOverridesToList(playerData.sessionResults || [], "player", overrides);
+  const momentsOverride = applyOverridesToList(playerData.moments || [], "moment", overrides);
+  const appliedOverrides = [
+    ...playerOverride.appliedOverrides,
+    ...standingsOverride.appliedOverrides,
+    ...statsOverride.appliedOverrides,
+    ...resultsOverride.appliedOverrides,
+    ...momentsOverride.appliedOverrides,
+  ];
+  const player = playerOverride.value;
+  const standings = standingsOverride.value;
+  const sessionStats = statsOverride.value;
+  const sessionResults = resultsOverride.value;
+  const moments = momentsOverride.value;
   const editorialDocs = await loadNewsroomEditorialDocs();
   const proseStyleExamples = await loadProseStyleExamples();
   const taskContext = await buildTaskContext("player_profile", options.variation || options.variationKey);
@@ -265,10 +308,11 @@ export async function buildPlayerRecapInputPacket(playerIdOrSlug, options = {}) 
         slug: player.slug,
         name: cleanName(player.display_name || player.pokernow_name),
       },
-      standings: cleanPlayerReferences(playerData.standings),
-      recent_session_stats: cleanPlayerReferences(playerData.sessionStats),
-      recent_results: cleanPlayerReferences(playerData.sessionResults),
-      moment_source_facts: playerData.moments.map((moment) => ({
+      applied_overrides: appliedOverrides,
+      standings: cleanPlayerReferences(standings),
+      recent_session_stats: cleanPlayerReferences(sessionStats),
+      recent_results: cleanPlayerReferences(sessionResults),
+      moment_source_facts: moments.map((moment) => ({
         note: "Use these as source facts only, not style examples.",
         hand_no: text(moment.hand_no),
         winner_name: cleanName(moment.winner_name, ""),
@@ -289,12 +333,15 @@ export async function buildMomentBlurbInputPacket(momentId = "", editorialNotes 
   const proseStyleExamples = await loadProseStyleExamples();
   const momentData = await getMomentNewsroomData(momentId);
   if (!momentData) throw new Error("Moment not found.");
+  const overrides = await readActiveDataOverrides();
+  const momentOverride = applyOverridesToEntity(momentData.moment, "moment", overrides);
+  const sessionOverride = applyOverridesToEntity(momentData.session || {}, "session", overrides);
   const taskContext = await buildTaskContext("moment_blurb", options.variation || options.variationKey);
   const promptConfig = promptConfigContext("moment_blurb", options);
 
   return {
     scope: "moment",
-    momentId: momentData.moment.id || null,
+    momentId: momentOverride.value.id || null,
     sourceDataVersion: SOURCE_DATA_VERSION,
     promptVersion: NEWSROOM_PROMPT_VERSION,
     packet: {
@@ -320,10 +367,11 @@ export async function buildMomentBlurbInputPacket(momentId = "", editorialNotes 
       voice_rules: paraLeagueVoiceRules,
       editorial_docs: editorialDocs,
       editorial_notes: editorialNotes,
+      applied_overrides: [...momentOverride.appliedOverrides, ...sessionOverride.appliedOverrides],
       moment_source_facts: {
         note: "Use this as grounded hand/moment data only. Do not invent action or emotion.",
-        ...publicHandMoment(momentData.moment),
-        session_code: momentData.session?.session_code || "",
+        ...publicHandMoment(momentOverride.value),
+        session_code: sessionOverride.value?.session_code || "",
       },
       constraints: [
         "Write a short public moment blurb from supplied data only.",
@@ -336,7 +384,10 @@ export async function buildMomentBlurbInputPacket(momentId = "", editorialNotes 
 export async function buildStandingsInputPacket(seasonCode = "S0", editorialNotes = "", options = {}) {
   const editorialDocs = await loadNewsroomEditorialDocs();
   const proseStyleExamples = await loadProseStyleExamples();
-  const standings = await getStandingsRows(seasonCode);
+  const standingsRows = await getStandingsRows(seasonCode);
+  const overrides = await readActiveDataOverrides();
+  const standingsOverride = applyOverridesToList(standingsRows || [], "standings", overrides);
+  const standings = standingsOverride.value;
   const taskContext = await buildTaskContext("standings_summary", options.variation || options.variationKey);
   const promptConfig = promptConfigContext("standings_summary", options);
 
@@ -368,6 +419,7 @@ export async function buildStandingsInputPacket(seasonCode = "S0", editorialNote
       voice_rules: paraLeagueVoiceRules,
       editorial_docs: editorialDocs,
       editorial_notes: editorialNotes,
+      applied_overrides: standingsOverride.appliedOverrides,
       standings_snapshot: cleanPlayerReferences(standings),
       constraints: [
         "Write a public standings summary from supplied standings only.",
@@ -388,14 +440,32 @@ export async function buildPlayerSessionRecapInputPacket({ playerId, sessionId, 
   if (!playerData) throw new Error("Player not found.");
   if (!sessionData) throw new Error("Session not found.");
 
-  const playerName = cleanName(playerData.player.display_name || playerData.player.pokernow_name);
-  const playerSessionStats = sessionData.playerSessionStats.find((row) => String(row.player_id) === String(playerData.player.id)) || null;
-  const result = sessionData.sessionResults.find((row) => String(row.player_id) === String(playerData.player.id)) || null;
+  const overrides = await readActiveDataOverrides();
+  const playerOverride = applyOverridesToEntity(playerData.player, "player", overrides);
+  const sessionOverride = applyOverridesToEntity(sessionData.session, "session", overrides);
+  const statsOverride = applyOverridesToList(sessionData.playerSessionStats || [], "player", overrides);
+  const resultsOverride = applyOverridesToList(sessionData.sessionResults || [], "player", overrides);
+  const momentsOverride = applyOverridesToList(sessionData.notableHands || [], "moment", overrides);
+  const player = playerOverride.value;
+  const session = sessionOverride.value;
+  const sessionStats = statsOverride.value;
+  const sessionResults = resultsOverride.value;
+  const notableHands = momentsOverride.value;
+  const playerName = cleanName(player.display_name || player.pokernow_name);
+  const playerSessionStats = sessionStats.find((row) => String(row.player_id) === String(player.id)) || null;
+  const result = sessionResults.find((row) => String(row.player_id) === String(player.id)) || null;
+  const appliedOverrides = [
+    ...playerOverride.appliedOverrides,
+    ...sessionOverride.appliedOverrides,
+    ...statsOverride.appliedOverrides,
+    ...resultsOverride.appliedOverrides,
+    ...momentsOverride.appliedOverrides,
+  ];
 
   return {
     scope: "player_session",
-    sourcePlayerId: playerData.player.id,
-    sourceSessionId: sessionData.session.id,
+    sourcePlayerId: player.id,
+    sourceSessionId: session.id,
     sourceDataVersion: SOURCE_DATA_VERSION,
     promptVersion: NEWSROOM_PROMPT_VERSION,
     packet: {
@@ -421,20 +491,21 @@ export async function buildPlayerSessionRecapInputPacket({ playerId, sessionId, 
       voice_rules: paraLeagueVoiceRules,
       editorial_docs: editorialDocs,
       editorial_notes: editorialNotes,
+      applied_overrides: appliedOverrides,
       player: {
-        id: playerData.player.id,
-        slug: playerData.player.slug,
+        id: player.id,
+        slug: player.slug,
         name: playerName,
       },
       session: {
-        id: sessionData.session.id,
-        session_code: sessionData.session.session_code,
-        hands_count: sessionData.session.hands_count,
-        played_at: sessionData.session.played_at,
+        id: session.id,
+        session_code: session.session_code,
+        hands_count: session.hands_count,
+        played_at: session.played_at,
       },
       player_session_stats: cleanPlayerReferences(playerSessionStats),
       session_result: cleanPlayerReferences(result),
-      moment_source_facts: sessionData.notableHands
+      moment_source_facts: notableHands
         .filter((moment) => cleanName(moment.winner_name, "").toLowerCase() === playerName.toLowerCase())
         .slice(0, 8)
         .map(publicHandMoment),
@@ -449,7 +520,10 @@ export async function buildPlayerSessionRecapInputPacket({ playerId, sessionId, 
 export async function buildArticleInputPacket(articleRequest = {}) {
   const editorialDocs = await loadNewsroomEditorialDocs();
   const proseStyleExamples = await loadProseStyleExamples();
-  const standings = await getStandingsRows(articleRequest.seasonCode || "S0");
+  const standingsRows = await getStandingsRows(articleRequest.seasonCode || "S0");
+  const overrides = await readActiveDataOverrides();
+  const standingsOverride = applyOverridesToList(standingsRows || [], "standings", overrides);
+  const standings = standingsOverride.value;
   const taskContext = await buildTaskContext("league_article", articleRequest.variation || articleRequest.variationKey);
   const promptConfig = promptConfigContext("league_article", { promptConfig: articleRequest.promptConfig });
   const finalityRules = [
@@ -496,11 +570,156 @@ export async function buildArticleInputPacket(articleRequest = {}) {
       editorial_docs: editorialDocs,
       article_request: articleRequest,
       season_context: seasonContext,
+      applied_overrides: standingsOverride.appliedOverrides,
       standings_snapshot: cleanPlayerReferences(standings),
       constraints: [
         "Request additional structured data if the article cannot be grounded.",
         ...HARD_FACTUAL_GUARDRAILS,
         ...finalityRules,
+      ],
+    },
+  };
+}
+
+export async function buildSocialCaptionInputPacket(captionRequest = {}) {
+  const editorialDocs = await loadNewsroomEditorialDocs();
+  const proseStyleExamples = await loadProseStyleExamples();
+  const taskContext = await buildTaskContext("social_caption", captionRequest.variation || captionRequest.variationKey);
+  const promptConfig = promptConfigContext("social_caption", { promptConfig: captionRequest.promptConfig });
+  const overrides = await readActiveDataOverrides();
+  const sourceType = text(captionRequest.sourceType, captionRequest.sessionId ? "session" : captionRequest.playerId ? "player" : captionRequest.momentId ? "moment" : "standings");
+
+  let sourceFacts = {};
+  let appliedOverrides = [];
+  let sourceSessionId = null;
+  let sourcePlayerId = null;
+  let momentId = null;
+  let seasonCode = captionRequest.seasonCode || "S0";
+
+  if (sourceType === "player") {
+    const playerData = await getPlayerNewsroomData(captionRequest.playerId || "");
+    if (!playerData) throw new Error("Player not found.");
+    const playerOverride = applyOverridesToEntity(playerData.player, "player", overrides);
+    const standingsOverride = applyOverridesToList(playerData.standings || [], "standings", overrides);
+    const statsOverride = applyOverridesToList(playerData.sessionStats || [], "player", overrides);
+    const resultsOverride = applyOverridesToList(playerData.sessionResults || [], "player", overrides);
+    const momentsOverride = applyOverridesToList(playerData.moments || [], "moment", overrides);
+    const player = playerOverride.value;
+    sourcePlayerId = player.id;
+    appliedOverrides = [
+      ...playerOverride.appliedOverrides,
+      ...standingsOverride.appliedOverrides,
+      ...statsOverride.appliedOverrides,
+      ...resultsOverride.appliedOverrides,
+      ...momentsOverride.appliedOverrides,
+    ];
+    sourceFacts = {
+      source_type: "player",
+      player: { id: player.id, slug: player.slug, name: cleanName(player.display_name || player.pokernow_name) },
+      standings: cleanPlayerReferences(standingsOverride.value),
+      recent_session_stats: cleanPlayerReferences(statsOverride.value),
+      recent_results: cleanPlayerReferences(resultsOverride.value),
+      moment_source_facts: momentsOverride.value.slice(0, 6).map(publicHandMoment),
+    };
+  } else if (sourceType === "moment") {
+    const momentData = await getMomentNewsroomData(captionRequest.momentId || "");
+    if (!momentData) throw new Error("Moment not found.");
+    const momentOverride = applyOverridesToEntity(momentData.moment, "moment", overrides);
+    const sessionOverride = applyOverridesToEntity(momentData.session || {}, "session", overrides);
+    momentId = momentOverride.value.id || null;
+    sourceSessionId = sessionOverride.value?.id || null;
+    appliedOverrides = [...momentOverride.appliedOverrides, ...sessionOverride.appliedOverrides];
+    sourceFacts = {
+      source_type: "moment",
+      moment_source_facts: publicHandMoment(momentOverride.value),
+      session: {
+        id: sessionOverride.value?.id || "",
+        session_code: sessionOverride.value?.session_code || "",
+        played_at: sessionOverride.value?.played_at || "",
+      },
+    };
+  } else if (sourceType === "standings") {
+    const standingsRows = await getStandingsRows(seasonCode);
+    const standingsOverride = applyOverridesToList(standingsRows || [], "standings", overrides);
+    appliedOverrides = standingsOverride.appliedOverrides;
+    sourceFacts = {
+      source_type: "standings",
+      season_code: seasonCode,
+      standings_snapshot: cleanPlayerReferences(standingsOverride.value),
+    };
+  } else {
+    const sessionData = await getSessionNewsroomData(captionRequest.sessionId || "S0-001");
+    if (!sessionData) throw new Error("Session not found.");
+    const sessionOverride = applyOverridesToEntity(sessionData.session, "session", overrides);
+    const participantsOverride = applyOverridesToList(sessionData.participants || [], "player", overrides);
+    const resultsOverride = applyOverridesToList(sessionData.sessionResults || [], "player", overrides);
+    const handsOverride = applyOverridesToList(sessionData.hands || [], "hand", overrides);
+    const momentsOverride = applyOverridesToList(sessionData.notableHands || [], "moment", overrides);
+    const session = sessionOverride.value;
+    sourceSessionId = session.id;
+    seasonCode = session.season_code || seasonCode;
+    appliedOverrides = [
+      ...sessionOverride.appliedOverrides,
+      ...participantsOverride.appliedOverrides,
+      ...resultsOverride.appliedOverrides,
+      ...handsOverride.appliedOverrides,
+      ...momentsOverride.appliedOverrides,
+    ];
+    sourceFacts = {
+      source_type: "session",
+      session: {
+        id: session.id,
+        session_code: session.session_code,
+        season_code: session.season_code,
+        played_at: session.played_at,
+        hands_count: session.hands_count,
+      },
+      participants: cleanPlayerReferences(participantsOverride.value),
+      session_results: cleanPlayerReferences(resultsOverride.value),
+      biggest_pots: (handsOverride.value?.length ? handsOverride.value : momentsOverride.value || [])
+        .filter((hand) => hand?.pot_collected)
+        .sort((left, right) => Number(right.pot_collected || 0) - Number(left.pot_collected || 0))
+        .slice(0, 5)
+        .map(publicHandMoment),
+      moment_source_facts: momentsOverride.value.slice(0, 5).map(publicHandMoment),
+    };
+  }
+
+  return {
+    scope: "social_caption",
+    sourceSessionId,
+    sourcePlayerId,
+    seasonCode,
+    momentId,
+    sourceDataVersion: SOURCE_DATA_VERSION,
+    promptVersion: NEWSROOM_PROMPT_VERSION,
+    packet: {
+      packet_type: "social_caption",
+      prompt_version: NEWSROOM_PROMPT_VERSION,
+      source_data_version: SOURCE_DATA_VERSION,
+      prompt_hierarchy: [
+        "A. source facts - hard factual boundary",
+        "B. prompt_config - current creative direction",
+        "C. social_caption assignment and selected variation",
+        "D. prose_style_examples - energy and taste, not templates",
+        "E. broad editorial docs - context only",
+        "F. output schema",
+      ],
+      creative_freedom_instruction: DOCS_ARE_NOT_A_CAGE,
+      docs_usage_policy: DOCS_USAGE_POLICY,
+      ...taskContext,
+      ...promptConfig,
+      hard_factual_guardrails: HARD_FACTUAL_GUARDRAILS,
+      prose_style_examples: proseStyleExamples,
+      voice_rules: paraLeagueVoiceRules,
+      editorial_docs: editorialDocs,
+      caption_request: captionRequest,
+      applied_overrides: appliedOverrides,
+      source_facts: sourceFacts,
+      constraints: [
+        "Write social/card copy from supplied data only.",
+        "Keep roast, coach, and private-note outputs admin-only unless the editor later publishes them intentionally.",
+        ...HARD_FACTUAL_GUARDRAILS,
       ],
     },
   };

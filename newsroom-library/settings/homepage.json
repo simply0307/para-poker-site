@@ -1,0 +1,38 @@
+{
+  "hero": {
+    "eyebrow": "Season 0 / Preseason / Current Board",
+    "title": "Para Poker League",
+    "dek": "The first sessions are setting the board."
+  },
+  "modules": [
+    {
+      "type": "hero_board",
+      "enabled": true
+    },
+    {
+      "type": "stat_strip",
+      "enabled": true
+    },
+    {
+      "type": "latest_session",
+      "enabled": true
+    },
+    {
+      "type": "current_standings",
+      "enabled": true
+    },
+    {
+      "type": "featured_players",
+      "enabled": true
+    },
+    {
+      "type": "featured_moments",
+      "enabled": true
+    },
+    {
+      "type": "latest_articles",
+      "enabled": true
+    }
+  ],
+  "updatedAt": "2026-07-11T20:46:46.292Z"
+}

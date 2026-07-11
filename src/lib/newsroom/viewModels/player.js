@@ -1,4 +1,5 @@
 import { getPublishedDraft } from "@/lib/newsroom/repositories/draftRepository";
+import { applyOverridesToEntity, applyOverridesToList, readActiveDataOverrides } from "@/lib/newsroom/applyDataOverrides";
 import { cleanName, getPlayerNewsroomData, getPlayerSessionMap } from "@/lib/newsroom/repositories/playerRepository";
 
 function present(value) {
@@ -66,7 +67,24 @@ export async function buildPlayerViewModel(playerIdOrSlug) {
   const playerData = await getPlayerNewsroomData(playerIdOrSlug);
   if (!playerData?.player) return null;
 
-  const { player, standings, sessionStats, sessionResults, moments } = playerData;
+  const overrides = await readActiveDataOverrides();
+  const playerOverride = applyOverridesToEntity(playerData.player, "player", overrides);
+  const standingsOverride = applyOverridesToList(playerData.standings || [], "standings", overrides);
+  const statsOverride = applyOverridesToList(playerData.sessionStats || [], "player", overrides);
+  const resultsOverride = applyOverridesToList(playerData.sessionResults || [], "player", overrides);
+  const momentsOverride = applyOverridesToList(playerData.moments || [], "moment", overrides);
+  const player = playerOverride.value;
+  const standings = standingsOverride.value;
+  const sessionStats = statsOverride.value;
+  const sessionResults = resultsOverride.value;
+  const moments = momentsOverride.value;
+  const appliedOverrides = [
+    ...playerOverride.appliedOverrides,
+    ...standingsOverride.appliedOverrides,
+    ...statsOverride.appliedOverrides,
+    ...resultsOverride.appliedOverrides,
+    ...momentsOverride.appliedOverrides,
+  ];
   const [publishedDraft, sessionMap] = await Promise.all([
     getPublishedDraft({ scope: "player", sourcePlayerId: player.id }),
     getPlayerSessionMap(),
@@ -92,6 +110,7 @@ export async function buildPlayerViewModel(playerIdOrSlug) {
 
   return {
     player,
+    rawPlayer: playerData.player,
     displayName,
     image: playerImage(player),
     publishedDraft,
@@ -108,5 +127,6 @@ export async function buildPlayerViewModel(playerIdOrSlug) {
     pokerStats,
     statCards,
     statCardMap: new Map(statCards.map(([label, value]) => [label, value])),
+    appliedOverrides,
   };
 }

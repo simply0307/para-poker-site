@@ -5,19 +5,13 @@ import {
   getSessionsIndex,
   getStandingsRows,
 } from "@/lib/newsroom/data";
+import { DEFAULT_HOME_SETTINGS, readHomepageSettings } from "@/lib/newsroom/homepageSettings";
 import { getPublishedArticlesIndex } from "@/lib/newsroom/repositories/draftRepository";
 
-export const DEFAULT_HOME_MODULES = [
-  { type: "hero_board", enabled: true },
-  { type: "stat_strip", enabled: true },
-  { type: "latest_session", enabled: true },
-  { type: "current_standings", enabled: true },
-  { type: "featured_players", enabled: true },
-  { type: "featured_moments", enabled: true },
-  { type: "latest_articles", enabled: true },
-];
+export const DEFAULT_HOME_MODULES = DEFAULT_HOME_SETTINGS.modules;
 
-export async function buildHomeViewModel(moduleConfig = DEFAULT_HOME_MODULES) {
+export async function buildHomeViewModel(moduleConfig = null) {
+  const settings = moduleConfig ? { hero: DEFAULT_HOME_SETTINGS.hero, modules: moduleConfig } : await readHomepageSettings();
   const [sessions, standings, moments, players, articles] = await Promise.all([
     getSessionsIndex(),
     getStandingsRows("S0"),
@@ -33,7 +27,8 @@ export async function buildHomeViewModel(moduleConfig = DEFAULT_HOME_MODULES) {
     .sort((left, right) => Number(right.pot_collected || 0) - Number(left.pot_collected || 0))[0] || null;
 
   return {
-    modules: moduleConfig.filter((module) => module.enabled !== false),
+    hero: settings.hero,
+    modules: settings.modules.filter((module) => module.enabled !== false),
     sessions,
     standings,
     moments,

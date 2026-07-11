@@ -25,16 +25,51 @@ export function PromptConfigPicker({ defaultPreset = "official_session_recap", o
   const [presetKey, setPresetKey] = useState(defaultPreset);
   const [config, setConfig] = useState(() => normalizePromptConfig(getPromptPreset(defaultPreset)));
   const [copied, setCopied] = useState(false);
-  const presets = useMemo(() => getPromptPresetOptions(), []);
+  const [savedSettings, setSavedSettings] = useState({ presets: [], defaults: {} });
+  const presets = useMemo(() => {
+    const builtIns = getPromptPresetOptions().map((preset) => ({ ...preset, value: preset.key, label: preset.label }));
+    const saved = (savedSettings.presets || []).map((preset) => ({
+      key: `saved:${preset.id}`,
+      value: `saved:${preset.id}`,
+      label: `${preset.name}${savedSettings.defaults?.[preset.draftType] === preset.id ? " (Default)" : ""}`,
+      draftType: preset.draftType,
+      voiceMode: preset.config?.voiceMode,
+    }));
+    return [...builtIns, ...saved];
+  }, [savedSettings]);
   const preview = JSON.stringify(config, null, 2);
+
+  useEffect(() => {
+    let active = true;
+    async function loadSavedPresets() {
+      const response = await fetch("/api/admin/prompt-presets");
+      if (!response.ok) return;
+      const payload = await response.json();
+      if (!active) return;
+      setSavedSettings(payload);
+      const defaultDraftType = normalizePromptConfig(getPromptPreset(defaultPreset)).draftType;
+      const savedDefaultId = payload.defaults?.[defaultDraftType];
+      const savedDefault = payload.presets?.find((preset) => preset.id === savedDefaultId);
+      if (savedDefault) {
+        setPresetKey(`saved:${savedDefault.id}`);
+        setConfig(normalizePromptConfig(savedDefault.config, savedDefault.draftType));
+      }
+    }
+    loadSavedPresets();
+    return () => {
+      active = false;
+    };
+  }, [defaultPreset]);
 
   useEffect(() => {
     onChange?.(config);
   }, [config, onChange]);
 
   function applyPreset(nextKey) {
+    const savedId = nextKey.startsWith("saved:") ? nextKey.slice(6) : "";
+    const savedPreset = savedId ? savedSettings.presets.find((preset) => preset.id === savedId) : null;
     setPresetKey(nextKey);
-    setConfig(normalizePromptConfig(getPromptPreset(nextKey)));
+    setConfig(normalizePromptConfig(savedPreset?.config || getPromptPreset(nextKey), savedPreset?.draftType));
     setCopied(false);
   }
 

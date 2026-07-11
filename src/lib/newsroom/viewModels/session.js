@@ -1,4 +1,5 @@
 import { normalizeHandRow } from "@/lib/poker/handHistory";
+import { applyOverridesToEntity, applyOverridesToList, readActiveDataOverrides } from "@/lib/newsroom/applyDataOverrides";
 import { getPublishedDraft } from "@/lib/newsroom/repositories/draftRepository";
 import { getSessionNewsroomData } from "@/lib/newsroom/repositories/sessionRepository";
 
@@ -11,8 +12,28 @@ export async function buildSessionViewModel(sessionIdOrCode) {
   const data = await getSessionNewsroomData(sessionIdOrCode);
   if (!data) return null;
 
-  const handHistory = (data.hands || []).map(normalizeHandRow);
-  const notableHands = (data.notableHands || []).map(normalizeHandRow);
+  const overrides = await readActiveDataOverrides();
+  const sessionOverride = applyOverridesToEntity(data.session, "session", overrides);
+  const participantsOverride = applyOverridesToList(data.participants || [], "player", overrides);
+  const resultsOverride = applyOverridesToList(data.sessionResults || [], "player", overrides);
+  const statsOverride = applyOverridesToList(data.playerSessionStats || [], "player", overrides);
+  const handOverride = applyOverridesToList(data.hands || [], "hand", overrides);
+  const momentOverride = applyOverridesToList(data.notableHands || [], "moment", overrides);
+
+  const session = sessionOverride.value;
+  const participants = participantsOverride.value;
+  const sessionResults = resultsOverride.value;
+  const playerSessionStats = statsOverride.value;
+  const handHistory = (handOverride.value || []).map(normalizeHandRow);
+  const notableHands = (momentOverride.value || []).map(normalizeHandRow);
+  const appliedOverrides = [
+    ...sessionOverride.appliedOverrides,
+    ...participantsOverride.appliedOverrides,
+    ...resultsOverride.appliedOverrides,
+    ...statsOverride.appliedOverrides,
+    ...handOverride.appliedOverrides,
+    ...momentOverride.appliedOverrides,
+  ];
   const biggestPot = [...handHistory, ...notableHands]
     .filter((hand) => hand?.pot_collected)
     .sort((left, right) => numberValue(right.pot_collected) - numberValue(left.pot_collected))[0] || null;
@@ -21,23 +42,25 @@ export async function buildSessionViewModel(sessionIdOrCode) {
   const hasFullActionLogs = handHistory.some((hand) => hand?.actionLog?.kind === "action_log" || hand?.hasChronologicalAction);
 
   return {
-    session: data.session,
+    session,
+    rawSession: data.session,
     publishedDraft,
     keyMoments,
-    participants: data.participants,
-    results: data.sessionResults,
-    sessionResults: data.sessionResults,
-    participantStats: data.playerSessionStats,
-    playerSessionStats: data.playerSessionStats,
+    participants,
+    results: sessionResults,
+    sessionResults,
+    participantStats: playerSessionStats,
+    playerSessionStats,
     notableHands,
     handHistory,
     hands: handHistory,
     standings: data.standings,
     biggestPot,
     hasFullActionLogs,
+    appliedOverrides,
     keyNumbers: {
-      players: data.participants.length || data.playerSessionStats.length || data.sessionResults.length,
-      hands: data.session.hands_count || handHistory.length,
+      players: participants.length || playerSessionStats.length || sessionResults.length,
+      hands: session.hands_count || handHistory.length,
       moments: notableHands.length,
       biggestPot: biggestPot?.pot_collected || null,
     },

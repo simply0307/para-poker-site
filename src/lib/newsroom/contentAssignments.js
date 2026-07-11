@@ -226,6 +226,102 @@ export const contentAssignments = {
       },
     ],
   },
+  social_caption: {
+    id: "social-caption-assignment-v1",
+    title: "Social Caption Assignment",
+    role: "Write short Para League social/card copy from verified league data.",
+    outputShape: [
+      "headline: internal card label",
+      "subheadline: concise context line",
+      "caption: primary social caption",
+      "alt_caption: alternate caption with different rhythm",
+      "card_text: short on-image/card copy",
+      "platform_variants: short variants for social surfaces",
+      "confidence_notes: admin review notes",
+      "missing_data_warnings: missing context warnings",
+    ],
+    rules: [
+      "Make it fast, player-facing, and shareable.",
+      "Punch, humor, and attitude are allowed when grounded by facts.",
+      "Do not invent hands, quotes, emotions, rivalries, or season outcomes.",
+      "Roast or coach/private tones are admin-only unless explicitly published later.",
+    ],
+    defaultVariation: "recap_card",
+    variations: [
+      {
+        key: "recap_card",
+        label: "Recap card",
+        instruction:
+          "Write a compact public card caption around the strongest supplied result, pot, player, or moment. Make it hit quickly.",
+      },
+      {
+        key: "winner_post",
+        label: "Winner post",
+        instruction:
+          "Center the winner and the cleanest verified reason the win matters. Cool, clipped, and shareable.",
+      },
+      {
+        key: "moment_post",
+        label: "Moment post",
+        instruction:
+          "Center one supplied hand or moment. Include hand number, pot, winner, or consequence when supplied.",
+      },
+      {
+        key: "standings_post",
+        label: "Standings post",
+        instruction:
+          "Write a current-board caption. Treat standings as live and provisional unless the supplied data says otherwise.",
+      },
+      {
+        key: "sporting_roast_admin",
+        label: "Sporting roast admin",
+        instruction:
+          "Use playful sports edge for admin review only. No personal insults, no private information, no unsupported weakness claims.",
+      },
+    ],
+  },
+  private_note: {
+    id: "private-note-assignment-v1",
+    title: "Private/Admin Note Assignment",
+    role: "Write an admin-only Para League note from verified data. This is not public copy.",
+    outputShape: [
+      "headline: internal note label",
+      "subheadline: concise scope/context",
+      "private_body: admin-only note body",
+      "review_points: specific review bullets",
+      "public_safe_summary: optional public-safe one-liner",
+      "confidence_notes: admin review notes",
+      "missing_data_warnings: missing context warnings",
+    ],
+    rules: [
+      "Keep this admin-only by default.",
+      "Technical notes must stay close to verified hand/action data.",
+      "Coach notes may identify review questions but must not invent player intent.",
+      "Roast notes may be playful, but not personal, cruel, or unsupported.",
+      "Do not invent hands, actions, quotes, emotions, rivalries, or season outcomes.",
+    ],
+    defaultVariation: "coach_private",
+    variations: [
+      {
+        key: "coach_private",
+        label: "Coach private",
+        instruction:
+          "Write a private review note for editors/coaches. Use verified hands, actions, and results. Separate what is known from what needs review.",
+      },
+      {
+        key: "technical_poker",
+        label: "Technical poker",
+        instruction:
+          "Write a technical note grounded in chronological hand/action data. Avoid unsupported strategy conclusions; frame uncertain points as review questions.",
+      },
+      {
+        key: "sporting_roast",
+        label: "Sporting roast",
+        instruction:
+          "Write an admin-only playful roast. Keep it league-safe: no personal insults, no private info, no invented emotions, no unsupported weakness claims.",
+      },
+    ],
+  },
 };
 
 export function getContentAssignment(type) {

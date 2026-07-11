@@ -20,6 +20,7 @@ const defaultSources = {
   seasonCode: "S0",
   momentId: "",
   articleTopic: "",
+  socialSourceType: "session",
 };
 
 function toggle(list, value) {
@@ -39,6 +40,18 @@ function payloadFor(draftType, promptConfig, sources) {
   }
   if (draftType === "standings_summary") return { seasonCode: sources.seasonCode, variation, editorialNotes: "", promptConfig };
   if (draftType === "moment_blurb") return { momentId: sources.momentId, variation, editorialNotes: "", promptConfig };
+  if (draftType === "social_caption") {
+    return {
+      sourceType: sources.socialSourceType || "session",
+      sessionId: sources.sessionId,
+      playerId: sources.playerId,
+      momentId: sources.momentId,
+      seasonCode: sources.seasonCode,
+      variation: "recap_card",
+      editorialNotes: "",
+      promptConfig,
+    };
+  }
   if (draftType === "league_article") {
     return {
       variation: "beat_report",
@@ -61,8 +74,11 @@ function endpointFor(draftType) {
   return DRAFT_TYPES.find((type) => type.key === draftType)?.endpoint || "Future endpoint";
 }
 
-export function PromptStudioForm() {
+export function PromptStudioForm({ initialPresetSettings = { presets: [], defaults: {} } }) {
   const [presetKey, setPresetKey] = useState("official_session_recap");
+  const [presetSettings, setPresetSettings] = useState(initialPresetSettings);
+  const [presetName, setPresetName] = useState("");
+  const [makeDefault, setMakeDefault] = useState(false);
   const [draftType, setDraftType] = useState("session_recap");
   const [voiceMode, setVoiceMode] = useState("Official Recap");
   const [intensity, setIntensity] = useState("Punchy");
@@ -75,7 +91,16 @@ export function PromptStudioForm() {
   const [customInstruction, setCustomInstruction] = useState("Make this feel like a shareable Para League object, not a database summary.");
   const [sources, setSources] = useState(defaultSources);
   const [copied, setCopied] = useState("");
-  const presetOptions = useMemo(() => getPromptPresetOptions().map((preset) => ({ value: preset.key, label: preset.label })), []);
+  const [saveMessage, setSaveMessage] = useState("");
+  const presetOptions = useMemo(() => {
+    const builtIns = getPromptPresetOptions().map((preset) => ({ value: preset.key, label: preset.label, group: "Built-in" }));
+    const saved = (presetSettings.presets || []).map((preset) => ({
+      value: `saved:${preset.id}`,
+      label: preset.name,
+      group: presetSettings.defaults?.[preset.draftType] === preset.id ? "Saved default" : "Saved",
+    }));
+    return [...builtIns, ...saved];
+  }, [presetSettings]);
 
   const promptConfig = useMemo(
     () =>
@@ -102,7 +127,10 @@ export function PromptStudioForm() {
   const payloadText = JSON.stringify(payload, null, 2);
 
   function applyPreset(nextKey) {
-    const preset = getPromptPreset(nextKey);
+    const savedId = nextKey.startsWith("saved:") ? nextKey.slice(6) : "";
+    const preset = savedId
+      ? presetSettings.presets.find((row) => row.id === savedId)?.config || getPromptPreset("official_session_recap")
+      : getPromptPreset(nextKey);
     setPresetKey(nextKey);
     setDraftType(preset.draftType);
     setVoiceMode(preset.voiceMode);
@@ -114,7 +142,42 @@ export function PromptStudioForm() {
     setFormat(preset.format);
     setAudience(preset.audience);
     setCustomInstruction(preset.customInstruction);
+    setPresetName(savedId ? presetSettings.presets.find((row) => row.id === savedId)?.name || "" : "");
     setCopied("");
+    setSaveMessage("");
+  }
+
+  async function savePreset() {
+    setSaveMessage("");
+    const response = await fetch("/api/admin/prompt-presets", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: presetName || `${voiceMode} ${draftType}`,
+        config: promptConfig,
+        makeDefault,
+      }),
+    });
+    const payload = await response.json();
+    if (!response.ok) {
+      setSaveMessage(payload.error || "Could not save preset.");
+      return;
+    }
+    setPresetSettings(payload);
+    setPresetKey(`saved:${payload.presets[0]?.id}`);
+    setSaveMessage(makeDefault ? "Preset saved and set as default." : "Preset saved.");
+  }
+
+  async function deletePreset(presetId) {
+    const response = await fetch(`/api/admin/prompt-presets/${encodeURIComponent(presetId)}`, { method: "DELETE" });
+    const payload = await response.json();
+    if (!response.ok) {
+      setSaveMessage(payload.error || "Could not delete preset.");
+      return;
+    }
+    setPresetSettings(payload);
+    setPresetKey("official_session_recap");
+    setSaveMessage("Preset deleted.");
   }
 
   async function copyText(label, value) {
@@ -134,6 +197,28 @@ export function PromptStudioForm() {
           <p className="mt-3 text-sm leading-6 text-zinc-600">
             Generation pages now use these controls directly. Copy JSON is only for advanced/manual workflows.
           </p>
+        </Panel>
+
+        <Panel title="Save Preset">
+          <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto]">
+            <label className="grid gap-2 text-sm font-bold">
+              Preset name
+              <input
+                className="rounded-md border border-zinc-300 p-3 text-sm"
+                value={presetName}
+                onChange={(event) => setPresetName(event.target.value)}
+                placeholder="Punchy winner recap"
+              />
+            </label>
+            <label className="flex items-end gap-2 pb-3 text-sm font-bold">
+              <input type="checkbox" checked={makeDefault} onChange={(event) => setMakeDefault(event.target.checked)} />
+              Default for this draft type
+            </label>
+          </div>
+          <button type="button" onClick={savePreset} className="mt-3 rounded-md bg-zinc-900 px-3 py-2 text-sm font-black text-white">
+            Save Current Config
+          </button>
+          {saveMessage ? <p className="mt-3 rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm font-bold text-emerald-700">{saveMessage}</p> : null}
         </Panel>
 
         <Panel title="Draft Type">
@@ -208,6 +293,25 @@ export function PromptStudioForm() {
       <aside className="space-y-5">
         <Panel title="Endpoint">
           <p className="font-mono text-sm text-zinc-700">{endpoint}</p>
+        </Panel>
+        <Panel title="Saved Presets">
+          <div className="space-y-3">
+            {presetSettings.presets?.length ? presetSettings.presets.map((preset) => (
+              <article key={preset.id} className="rounded-md border border-zinc-200 bg-zinc-50 p-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="font-black">{preset.name}</p>
+                    <p className="mt-1 text-xs uppercase tracking-[0.12em] text-zinc-500">
+                      {preset.draftType}{presetSettings.defaults?.[preset.draftType] === preset.id ? " / default" : ""}
+                    </p>
+                  </div>
+                  <button type="button" onClick={() => deletePreset(preset.id)} className="rounded-sm border border-rose-200 px-2 py-1 text-xs font-black text-rose-700">
+                    Delete
+                  </button>
+                </div>
+              </article>
+            )) : <p className="text-sm text-zinc-600">No saved presets yet.</p>}
+          </div>
         </Panel>
         <Panel title="Prompt Config">
           <pre className="max-h-80 overflow-auto whitespace-pre-wrap rounded-md bg-zinc-950 p-4 text-xs text-zinc-100">

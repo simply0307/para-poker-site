@@ -28,9 +28,9 @@ function HeroBoard({ viewModel }) {
 
   return (
     <LeagueHero
-      eyebrow="Season 0 / Preseason / Current Board"
-      title="Para League"
-      dek="The first sessions are setting the board."
+      eyebrow={text(viewModel.hero?.eyebrow, "Season 0 / Preseason / Current Board")}
+      title={text(viewModel.hero?.title, "Para League")}
+      dek={text(viewModel.hero?.dek, "The first sessions are setting the board.")}
       aside={
         latest ? (
           <SessionCard

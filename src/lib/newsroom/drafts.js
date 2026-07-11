@@ -37,6 +37,16 @@ export const DRAFT_TABLES = {
     fallbackScope: "article",
     sourceColumns: { articleRequest: "article_request" },
   },
+  social_caption_drafts: {
+    table: "social_caption_drafts",
+    fallbackScope: "social_caption",
+    sourceColumns: { sourceSessionId: "session_id", sourcePlayerId: "player_id", seasonCode: "season_code", momentId: "moment_id", articleRequest: "article_request" },
+  },
+  private_note_drafts: {
+    table: "private_note_drafts",
+    fallbackScope: "private_note",
+    sourceColumns: { sourceSessionId: "session_id", sourcePlayerId: "player_id", seasonCode: "season_code", momentId: "moment_id", articleRequest: "article_request" },
+  },
 };
 
 function arrayValue(value) {
