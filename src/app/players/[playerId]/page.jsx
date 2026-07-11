@@ -15,13 +15,10 @@ import {
   formatDate,
   formatNumber,
   formatPokerPercent,
-  getPlayerNewsroomData,
-  getPlayerPokerStats,
-  getPublishedDraft,
-  getSessionsIndex,
   present,
   text,
 } from "@/lib/newsroom/data";
+import { buildPlayerViewModel } from "@/lib/newsroom/viewModels/player";
 import { draftHeadline, draftParagraphs, draftSubheadline, waitingCopy } from "@/lib/newsroom/rendering";
 import { PokerStatGrid } from "@/components/poker/PokerStatGrid";
 
@@ -31,65 +28,25 @@ function firstPresent(...values) {
   return values.find((value) => present(value));
 }
 
-function playerImage(player) {
-  return firstPresent(player.avatar_url, player.image_url, player.photo_url, player.profile_image_url, player.headshot_url);
-}
-
-function numberValue(value) {
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : null;
-}
-
-function maxNumber(rows, keys) {
-  const values = rows.flatMap((row) => keys.map((key) => numberValue(row?.[key]))).filter((value) => value !== null);
-  return values.length ? Math.max(...values) : null;
-}
-
-function sumNumber(rows, keys) {
-  const values = rows.flatMap((row) => keys.map((key) => numberValue(row?.[key]))).filter((value) => value !== null);
-  return values.length ? values.reduce((sum, value) => sum + value, 0) : null;
-}
-
-function bestFinish(results) {
-  const finishes = results.map((row) => numberValue(row.finish)).filter((value) => value !== null);
-  return finishes.length ? Math.min(...finishes) : null;
-}
-
-function playerStatCards({ standings, sessionStats, sessionResults }) {
-  const standing = standings[0] || {};
-  return [
-    ["Rank", firstPresent(standing.rank, standing.current_rank)],
-    ["Points", firstPresent(standing.points, standing.league_points, standing.total_points)],
-    ["Tracked hands", sumNumber(sessionStats, ["hands", "hands_played", "hand_count"])],
-    ["Biggest pot", maxNumber(sessionStats, ["biggest_pot_won", "biggest_pot", "largest_pot"])],
-    ["Best result", bestFinish(sessionResults) ? `#${bestFinish(sessionResults)}` : ""],
-    ["Sessions", sessionResults.length || sessionStats.length || ""],
-  ].filter(([, value]) => present(value));
-}
-
-function sessionLabel(sessionMap, sessionId) {
-  const session = sessionMap.get(String(sessionId)) || {};
+function sessionLabel(session, sessionId) {
   return text(session.session_code || session.session_number || sessionId, "Session");
 }
 
 export default async function PlayerPage({ params }) {
   const { playerId } = await params;
-  const playerData = await getPlayerNewsroomData(playerId);
-  if (!playerData?.player) notFound();
+  const viewModel = await buildPlayerViewModel(playerId);
+  if (!viewModel?.player) notFound();
 
-  const { player, standings, sessionStats, sessionResults, moments } = playerData;
-  const [published, sessions, pokerStats] = await Promise.all([
-    getPublishedDraft({ scope: "player", sourcePlayerId: player.id }),
-    getSessionsIndex(),
-    getPlayerPokerStats(player.id),
-  ]);
-
-  const displayName = cleanName(player.display_name || player.pokernow_name || player.slug);
-  const image = playerImage(player);
-  const cards = playerStatCards({ standings, sessionStats, sessionResults });
-  const sessionMap = new Map((sessions || []).map((session) => [String(session.id), session]));
-  const recentRows = (sessionStats.length ? sessionStats : sessionResults).slice(0, 8);
-  const cardMap = new Map(cards.map(([label, value]) => [label, value]));
+  const {
+    displayName,
+    image,
+    publishedDraft: published,
+    pokerStats,
+    recentSessions,
+    notableHands,
+    statCards,
+  } = viewModel;
+  const cardMap = new Map(statCards);
 
   return (
     <NewsroomShell eyebrow="Player Dossier">
@@ -149,19 +106,21 @@ export default async function PlayerPage({ params }) {
 
       <section className="grid gap-6 pb-12 lg:grid-cols-2">
         <EvidencePanel title="Recent Sessions" empty="No recent session rows are available for this player yet.">
-          {recentRows.map((row, index) => {
-            const result = sessionResults.find((item) => String(item.session_id) === String(row.session_id)) || row;
-            const session = sessionMap.get(String(row.session_id)) || {};
-            const href = session.session_code || row.session_id ? `/sessions/${encodeURIComponent(text(session.session_code || row.session_id))}` : "";
+          {recentSessions.map((row, index) => {
+            const result = row.result || row;
+            const session = row.session || {};
+            const sessionId = row.session_id || result.session_id || session.id;
+            const sessionCode = session.session_code || sessionId;
+            const href = sessionCode ? `/sessions/${encodeURIComponent(text(sessionCode))}` : "";
             return (
-              <article key={`${row.session_id || "session"}-${index}`} className="rounded-md border border-white/10 bg-white/[0.03] p-4">
+              <article key={`${sessionId || "session"}-${index}`} className="rounded-md border border-white/10 bg-white/[0.03] p-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   {href ? (
                     <Link href={href} className="text-lg font-black text-white hover:text-amber-200">
-                      {sessionLabel(sessionMap, row.session_id)}
+                      {sessionLabel(session, sessionId)}
                     </Link>
                   ) : (
-                    <h3 className="text-lg font-black text-white">{sessionLabel(sessionMap, row.session_id)}</h3>
+                    <h3 className="text-lg font-black text-white">{sessionLabel(session, sessionId)}</h3>
                   )}
                   <span className="text-sm text-stone-400">{formatDate(session.played_at)}</span>
                 </div>
@@ -175,7 +134,7 @@ export default async function PlayerPage({ params }) {
         </EvidencePanel>
 
         <EvidencePanel title="Notable Hands" empty="No notable hands are attached to this player yet.">
-          {moments.slice(0, 8).map((moment, index) => (
+          {notableHands.slice(0, 8).map((moment, index) => (
             <MomentCard
               key={`${moment.id || moment.hand_no || "moment"}-${index}`}
               title={moment.hand_no ? `Hand #${moment.hand_no}` : "Notable hand"}

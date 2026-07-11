@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
-import { buildSessionViewModel, getSessionByIdOrCode, normalizeHandActionLog, safeQuery, supabase } from "@/lib/newsroom/data";
+import { buildSessionViewModel, getSessionByIdOrCode, safeQuery, supabase } from "@/lib/newsroom/data";
+import { normalizeHandActionLog } from "@/lib/poker/handHistory";
 
 export const dynamic = "force-dynamic";
 

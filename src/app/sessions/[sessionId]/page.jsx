@@ -14,12 +14,10 @@ import {
   cleanName,
   formatDate,
   formatNumber,
-  getPublishedDraft,
-  getSessionHandHistory,
-  getSessionNewsroomData,
   present,
   text,
 } from "@/lib/newsroom/data";
+import { buildSessionViewModel } from "@/lib/newsroom/viewModels/session";
 import { draftHeadline, draftParagraphs, draftSubheadline, waitingCopy } from "@/lib/newsroom/rendering";
 import { HandHistoryBlock } from "@/components/poker/HandActionLog";
 
@@ -31,20 +29,23 @@ function chipValue(value) {
 
 export default async function SessionPage({ params }) {
   const { sessionId } = await params;
-  const sessionData = await getSessionNewsroomData(sessionId);
-  if (!sessionData?.session) notFound();
+  const viewModel = await buildSessionViewModel(sessionId);
+  if (!viewModel?.session) notFound();
 
-  const { session, sessionResults, playerSessionStats, notableHands, hands, participants } = sessionData;
-  const [published, handHistory] = await Promise.all([
-    getPublishedDraft({ scope: "session", sourceSessionId: session.id }),
-    getSessionHandHistory(session.id),
-  ]);
-  const keyMoments = Array.isArray(published?.draft?.key_moments) ? published.draft.key_moments.slice(0, 4) : [];
+  const {
+    session,
+    publishedDraft: published,
+    keyMoments,
+    sessionResults,
+    playerSessionStats,
+    notableHands,
+    handHistory,
+    hands,
+    participants,
+    hasFullActionLogs,
+    biggestPot,
+  } = viewModel;
   const displayHands = handHistory.length ? handHistory : hands;
-  const hasFullActionLogs = displayHands.some((hand) => hand?.actionLog?.kind === "action_log" || hand?.hasChronologicalAction);
-  const biggestPot = [...displayHands, ...notableHands]
-    .filter((hand) => hand?.pot_collected)
-    .sort((left, right) => Number(right.pot_collected || 0) - Number(left.pot_collected || 0))[0];
 
   return (
     <NewsroomShell eyebrow="Session Recap">

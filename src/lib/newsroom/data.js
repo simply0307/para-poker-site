@@ -1,4 +1,12 @@
 import { supabase } from "@/lib/supabase";
+import {
+  attachActionsToHands as attachPokerActionsToHands,
+  extractHandActionLog as extractPokerHandActionLog,
+  normalizeHandActionLog as normalizePokerHandActionLog,
+  normalizeHandRow as normalizePokerHandRow,
+} from "@/lib/poker/handHistory";
+import { buildPlayerViewModel as buildCanonicalPlayerViewModel } from "@/lib/newsroom/viewModels/player";
+import { buildSessionViewModel as buildCanonicalSessionViewModel } from "@/lib/newsroom/viewModels/session";
 
 export { supabase };
 
@@ -326,86 +334,17 @@ function actionKeyCandidates(action = {}) {
 }
 
 function attachActionsToHands(hands = [], actions = []) {
-  const actionsByKey = new Map();
-  for (const action of actions || []) {
-    for (const key of actionKeyCandidates(action)) {
-      if (!actionsByKey.has(key)) actionsByKey.set(key, []);
-      actionsByKey.get(key).push(action);
-    }
-  }
-
-  return (hands || []).map((hand) => {
-    const actionRows = handKeyCandidates(hand).flatMap((key) => actionsByKey.get(key) || []);
-    const deduped = [...new Map(actionRows.map((action) => [String(action.id || action.log_order || JSON.stringify(action)), action])).values()];
-    return {
-      ...hand,
-      actionRows: deduped.sort((left, right) => Number(left.log_order || left.id || 0) - Number(right.log_order || right.id || 0)),
-    };
-  });
+  return attachPokerActionsToHands(hands, actions);
 }
 
 export function normalizeHandActionLog(hand = {}) {
-  const actionStreets = groupActionRowsByStreet(hand.actionRows || hand.action_rows || hand.actions_log || []);
-  const explicitRawAction = [
-    hand.raw_hand_history,
-    hand.raw_text,
-    hand.hand_text,
-    hand.hand_history,
-    hand.hand_history_raw,
-    hand.action_text,
-    hand.action_log,
-    hand.raw,
-  ].map(valueToLogText).find(Boolean);
-
-  const parsed = actionStreets.length ? "" : valueToLogText(hand.parsed_actions || hand.actions || hand.streets || hand.street_actions);
-  const streets = [
-    ["Blinds/Antes", streetValue(hand, ["blinds", "antes"])],
-    ["Preflop", streetValue(hand, ["preflop", "preflop_actions"])],
-    ["Flop", streetValue(hand, ["flop", "flop_actions"])],
-    ["Turn", streetValue(hand, ["turn", "turn_actions"])],
-    ["River", streetValue(hand, ["river", "river_actions"])],
-    ["Showdown", streetValue(hand, ["showdown", "showdown_actions"])],
-    ["Result", streetValue(hand, ["summary", "result", "details", "metadata"])],
-  ]
-    .filter(([, body]) => present(body))
-    .map(([street, body]) => ({ street, body }));
-
-  const displayStreets = actionStreets.length ? actionStreets : streets;
-  const streetActionCount = displayStreets.filter((street) => !["Showdown", "Result"].includes(street.street)).length;
-  const hasChronologicalAction = Boolean(actionStreets.length || explicitRawAction || parsed || streetActionCount);
-  const summaryFacts = [
-    ["Result", valueToLogText(hand.raw_result || hand.summary || hand.result)],
-    ["Board", valueToLogText(hand.board)],
-    ["Showdown", present(hand.showdown) ? (hand.showdown ? "Showdown reached" : "No showdown recorded") : ""],
-    ["Winning hand", valueToLogText(hand.winning_hand)],
-  ]
-    .filter(([, body]) => present(body))
-    .map(([label, body]) => ({ label, body }));
-
-  return {
-    raw: explicitRawAction,
-    parsed,
-    streets: displayStreets,
-    actions: actionStreets.flatMap((street) => street.actions || []),
-    summaryFacts,
-    resultLine: valueToLogText(hand.raw_result),
-    hasAction: hasChronologicalAction,
-    hasSummary: Boolean(summaryFacts.length),
-    kind: hasChronologicalAction ? "action_log" : "summary",
-    unavailableReason: hasChronologicalAction ? "" : "Action log not available for this hand.",
-  };
+  return normalizePokerHandActionLog(hand);
 }
 
-export const extractHandActionLog = normalizeHandActionLog;
+export const extractHandActionLog = extractPokerHandActionLog;
 
 export function normalizeHandRow(hand = {}) {
-  const actionLog = normalizeHandActionLog(hand);
-  return {
-    ...hand,
-    actionLog,
-    displayLabel: actionLog.kind === "action_log" ? "Hand History" : "Hand Summary",
-    hasChronologicalAction: actionLog.kind === "action_log",
-  };
+  return normalizePokerHandRow(hand);
 }
 
 export async function getSessionHandHistory(sessionIdOrCode) {
@@ -472,66 +411,11 @@ export async function getPlayerPokerStats(playerIdOrSlug) {
 }
 
 export async function buildSessionViewModel(sessionIdOrCode) {
-  const data = await getSessionNewsroomData(sessionIdOrCode);
-  if (!data) return null;
-  const handHistory = (data.hands || []).map(normalizeHandRow);
-  const notableHands = (data.notableHands || []).map(normalizeHandRow);
-  const biggestPot = [...handHistory, ...notableHands]
-    .filter((hand) => hand?.pot_collected)
-    .sort((left, right) => Number(right.pot_collected || 0) - Number(left.pot_collected || 0))[0] || null;
-
-  return {
-    session: data.session,
-    participants: data.participants,
-    results: data.sessionResults,
-    participantStats: data.playerSessionStats,
-    notableHands,
-    handHistory,
-    standings: data.standings,
-    biggestPot,
-    keyNumbers: {
-      players: data.participants.length || data.playerSessionStats.length || data.sessionResults.length,
-      hands: data.session.hands_count || handHistory.length,
-      moments: notableHands.length,
-      biggestPot: biggestPot?.pot_collected || null,
-    },
-  };
+  return buildCanonicalSessionViewModel(sessionIdOrCode);
 }
 
 export async function buildPlayerViewModel(playerIdOrSlug) {
-  const playerData = await getPlayerNewsroomData(playerIdOrSlug);
-  if (!playerData?.player) return null;
-  const sessions = await getSessionsIndex();
-  const sessionMap = new Map((sessions || []).map((session) => [String(session.id), session]));
-  const standings = playerData.standings[0] || null;
-  const pokerStats = buildPlayerPokerStats(
-    playerData.player,
-    playerData.sessionStats,
-    playerData.sessionResults,
-    [],
-    playerData.moments,
-    standings
-  );
-  const recentSessionRows = (playerData.sessionStats.length ? playerData.sessionStats : playerData.sessionResults)
-    .map((row) => ({
-      ...row,
-      session: sessionMap.get(String(row.session_id)) || null,
-      result: playerData.sessionResults.find((result) => String(result.session_id) === String(row.session_id)) || null,
-    }))
-    .slice(0, 8);
-
-  return {
-    player: playerData.player,
-    displayName: cleanName(playerData.player.display_name || playerData.player.pokernow_name || playerData.player.slug),
-    rank: standings?.rank || standings?.current_rank || null,
-    points: standings?.total_points || standings?.points || standings?.league_points || pokerStats.points || null,
-    sessionsPlayed: pokerStats.sessions,
-    recentSessions: recentSessionRows,
-    notableHands: playerData.moments.map(normalizeHandRow),
-    pokerStats,
-    biggestPot: pokerStats.biggestPot,
-    bestFinish: pokerStats.bestFinish,
-  };
+  return buildCanonicalPlayerViewModel(playerIdOrSlug);
 }
 
 export async function getMomentNewsroomData(momentId = "") {

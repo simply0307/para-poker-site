@@ -1,4 +1,5 @@
-import { normalizeHandActionLog, present, text } from "@/lib/newsroom/data";
+import { present, text } from "@/lib/newsroom/data";
+import { normalizeHandActionLog } from "@/lib/poker/handHistory";
 
 export function HandActionLog({ actionLog }) {
   if (!actionLog?.hasAction) {
