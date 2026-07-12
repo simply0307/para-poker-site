@@ -1,5 +1,4 @@
 import { GenericDraftWorkspace } from "@/components/admin-newsroom/GenericDraftWorkspace";
-import { MomentCandidateList } from "@/components/admin-newsroom/MomentCandidateList";
 import { MomentVideoManager } from "@/components/admin-newsroom/MomentVideoManager";
 import { getVariationOptions } from "@/lib/newsroom/contentAssignments";
 import { text } from "@/lib/newsroom/data";
@@ -65,12 +64,7 @@ export default async function AdminMomentsPage() {
       existingDrafts={momentDrafts}
       existingDraftsTitle="Moment drafts"
       initialDraft={momentDrafts[0] || null}
-      preface={
-        <div className="grid gap-8">
-          <MomentCandidateList moments={detectedMoments} />
-          <MomentVideoManager moments={videoMomentOptions} />
-        </div>
-      }
+      preface={<MomentVideoManager moments={videoMomentOptions} />}
       payloadOptions={payloadOptions}
       payloadOptionsTitle="Select a detected moment to draft"
     />

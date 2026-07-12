@@ -13,6 +13,7 @@ export default async function ArticlePage({ params }) {
   const textBody = stripPlayerHandlesFromText(body.article_body || body.recap_body || body.profile_body || "");
   const html = hasRichTextMarkup(textBody) ? sanitizeRichText(textBody) : "";
   const paragraphs = html ? [] : textBody.split(/\n{2,}/u).map((item) => item.trim()).filter(Boolean);
+  const articleDate = article?.display_date || article?.published_at || "";
 
   return (
     <NewsroomShell eyebrow="Article">
@@ -22,8 +23,8 @@ export default async function ArticlePage({ params }) {
         dek={stripPlayerHandlesFromText(body.subheadline || "No published recap yet.")}
       />
       <StatStrip>
-        <StatCard label="Type" value={article?.scope || "Article"} />
-        <StatCard label="Published" value={article?.published_at ? new Date(article.published_at).toLocaleDateString("en-US") : "Pending"} />
+        <StatCard label="Author" value={stripPlayerHandlesFromText(article?.author || "Para League Desk")} />
+        <StatCard label="Published" value={articleDate ? new Date(articleDate).toLocaleDateString("en-US") : "Pending"} />
       </StatStrip>
       <ContentRail
         main={

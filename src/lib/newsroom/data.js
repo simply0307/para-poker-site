@@ -572,6 +572,7 @@ function normalizedArticleDraft(row, source = "article_drafts") {
   if (!row) return null;
   const body = row.body || row.draft || {};
   const request = row.article_request || {};
+  const publishedAt = row.published_at || request.displayDate || request.display_date || row.generated_at || row.created_at || null;
   return {
     ...row,
     _published_source: source,
@@ -579,7 +580,9 @@ function normalizedArticleDraft(row, source = "article_drafts") {
     title: row.title || body.headline || body.title || "Published Para League article",
     slug: row.slug || request.slug || row.id,
     scope: row.scope || "article",
-    published_at: row.published_at || row.generated_at || row.created_at || null,
+    author: body.author || body.byline || request.authorName || request.author_name || "Para League Desk",
+    display_date: request.displayDate || request.display_date || publishedAt,
+    published_at: publishedAt,
   };
 }
 

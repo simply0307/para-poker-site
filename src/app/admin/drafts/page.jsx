@@ -3,7 +3,6 @@ import { AdminCard, AdminPlaceholder, AdminShell } from "@/components/admin-news
 const draftDesks = [
   ["/admin/sessions", "Session recaps", "Generate and publish public session recap drafts."],
   ["/admin/players", "Player profiles", "Generate player dossier/profile drafts."],
-  ["/admin/player-session-recaps", "Player-session recaps", "Generate player-specific session coverage."],
   ["/admin/standings", "Standings summaries", "Generate current board and standings pulse drafts."],
   ["/admin/moments", "Moment blurbs", "Generate selected moment archive copy."],
   ["/admin/articles", "League articles", "Generate broader newsroom article drafts."],

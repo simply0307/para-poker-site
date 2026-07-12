@@ -39,6 +39,8 @@ export function ArticleContextSelector({ options = {}, initialValue = {}, onChan
     [initialValue]
   );
   const [topic, setTopic] = useState(initialValue.topic || "");
+  const [authorName, setAuthorName] = useState(initialValue.authorName || initialValue.author_name || "Para League Desk");
+  const [displayDate, setDisplayDate] = useState(initialValue.displayDate || initialValue.display_date || new Date().toISOString().slice(0, 10));
   const [selection, setSelection] = useState(initialSelection);
   const [handRefsText, setHandRefsText] = useState(initialSelection.handRefs.join("\n"));
   const sessions = options.sessions || [];
@@ -46,8 +48,8 @@ export function ArticleContextSelector({ options = {}, initialValue = {}, onChan
   const moments = options.moments || [];
 
   useEffect(() => {
-    onChange?.({ topic, contextSelection: selection });
-  }, [topic, selection, onChange]);
+    onChange?.({ topic, authorName, displayDate, contextSelection: selection });
+  }, [topic, authorName, displayDate, selection, onChange]);
 
   function patchSelection(patch) {
     setSelection((current) => normalizeArticleContextSelection({ ...current, ...patch }));
@@ -91,6 +93,27 @@ export function ArticleContextSelector({ options = {}, initialValue = {}, onChan
             value={selection.angle}
             onChange={(event) => patchSelection({ angle: event.target.value })}
             placeholder="Example: the first chase line is forming"
+          />
+        </label>
+      </div>
+
+      <div className="mt-4 grid gap-4 lg:grid-cols-2">
+        <label className="grid gap-2">
+          <span className="text-sm font-black">Author</span>
+          <input
+            className="rounded-md border border-zinc-300 px-3 py-2"
+            value={authorName}
+            onChange={(event) => setAuthorName(event.target.value)}
+            placeholder="Para League Desk"
+          />
+        </label>
+        <label className="grid gap-2">
+          <span className="text-sm font-black">Article date</span>
+          <input
+            type="date"
+            className="rounded-md border border-zinc-300 px-3 py-2"
+            value={displayDate}
+            onChange={(event) => setDisplayDate(event.target.value)}
           />
         </label>
       </div>

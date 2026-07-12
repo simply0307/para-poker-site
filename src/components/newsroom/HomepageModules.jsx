@@ -145,6 +145,17 @@ function FeaturedMomentsModule({ viewModel }) {
           meta={moment.typeLabel || cleanName(moment.winner_name, "Winner pending")}
           pot={moment.potText || (moment.pot_collected ? `${formatNumber(moment.pot_collected)} chips` : "")}
         >
+          {moment.video?.signed_url ? (
+            <span className="mb-3 block overflow-hidden rounded-sm border border-amber-300/25 bg-black">
+              <video
+                className="aspect-video w-full object-cover"
+                src={moment.video.signed_url}
+                muted
+                playsInline
+                preload="metadata"
+              />
+            </span>
+          ) : null}
           <p>{text(moment.displaySummary || moment.summary || moment.winning_hand || moment.board, "Moments pending.")}</p>
         </MomentCard>
       ))}
@@ -164,7 +175,9 @@ function LatestArticlesModule({ viewModel }) {
       <div className="mt-4 grid gap-3 md:grid-cols-3">
         {viewModel.articles.slice(0, 3).map((article) => (
           <Link key={article.id || article.slug} href={`/articles/${encodeURIComponent(text(article.slug || article.id))}`} className="rounded-md border border-white/10 bg-black/25 p-4 hover:border-amber-300/50">
-            <p className="text-xs font-black uppercase tracking-[0.16em] text-amber-300">League coverage</p>
+            <p className="text-xs font-black uppercase tracking-[0.16em] text-amber-300">
+              {[article.author || "Para League Desk", article.display_date ? new Date(article.display_date).toLocaleDateString("en-US") : ""].filter(Boolean).join(" / ")}
+            </p>
             <h3 className="mt-2 text-xl font-black text-white">{article.title}</h3>
           </Link>
         ))}

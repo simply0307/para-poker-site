@@ -1,17 +1,18 @@
 import { CardGrid, LeagueHero, NewsroomShell, SessionCard, StatCard, StatStrip } from "@/components/newsroom/NewsroomShell";
 import { formatDate, getSessionsIndex, text } from "@/lib/newsroom/data";
+import { getPageHero } from "@/lib/newsroom/pageHeroSettings";
 
 export const revalidate = 60;
 
 export default async function SessionsPage() {
-  const sessions = await getSessionsIndex();
+  const [sessions, hero] = await Promise.all([getSessionsIndex(), getPageHero("sessions")]);
 
   return (
     <NewsroomShell eyebrow="Sessions">
       <LeagueHero
-        eyebrow="Preseason tables"
-        title="Session recaps"
-        dek="Results, moments, and hand histories."
+        eyebrow={hero.eyebrow}
+        title={hero.title}
+        dek={hero.dek}
       />
       <StatStrip>
         <StatCard label="Sessions" value={sessions.length} />

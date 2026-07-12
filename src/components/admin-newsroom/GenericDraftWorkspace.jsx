@@ -119,13 +119,15 @@ export function GenericDraftWorkspace({
     setPayloadText((currentText) => pretty(mergePayload(parseJson(currentText) || {}, patch)));
   }
 
-  const handleArticleContextChange = useCallback(({ topic, contextSelection }) => {
+  const handleArticleContextChange = useCallback(({ topic, authorName, displayDate, contextSelection }) => {
     setPayloadText((currentText) => {
       const payload = parseJson(currentText) || {};
       const next = mergePayload(payload, {
         articleRequest: {
           ...(payload.articleRequest || {}),
           topic,
+          authorName,
+          displayDate,
           contextSelection,
         },
       });
@@ -258,6 +260,33 @@ export function GenericDraftWorkspace({
     setBusy("");
   }
 
+  async function setRowPublishState(row, action) {
+    if (!row?.id) return;
+
+    setBusy(`${action}-${row.id}`);
+    setError("");
+    setMessage("");
+
+    const response = await fetch(`/api/admin/recap-drafts/${row.id}/publish`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action, table: row._draft_table || "recap_drafts" }),
+    });
+    const result = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      setError(result.error || "Publish state failed.");
+      setBusy("");
+      return;
+    }
+
+    setDrafts((current) => current.map((item) => (item.id === result.draft?.id ? result.draft : item)));
+    if (draftRow?.id === result.draft?.id) setDraftRow(result.draft);
+    const warnings = Array.isArray(result.warnings) && result.warnings.length ? ` ${result.warnings.join(" ")}` : "";
+    setMessage(`${action === "publish" ? "Draft published." : "Draft unpublished."}${warnings}`);
+    setBusy("");
+  }
+
   async function handleDelete() {
     if (!draftRow?.id) {
       setError("Load or generate a draft before deleting.");
@@ -285,6 +314,36 @@ export function GenericDraftWorkspace({
     setDrafts((current) => current.filter((row) => row.id !== draftRow.id));
     setDraftRow(null);
     setDraftText("{}");
+    setMessage("Draft deleted.");
+    setBusy("");
+  }
+
+  async function deleteRow(row) {
+    if (!row?.id) return;
+    const confirmed = window.confirm("Delete this draft? This cannot be undone.");
+    if (!confirmed) return;
+
+    setBusy(`delete-${row.id}`);
+    setError("");
+    setMessage("");
+
+    const table = row._draft_table || "recap_drafts";
+    const response = await fetch(`/api/admin/recap-drafts/${row.id}?table=${encodeURIComponent(table)}`, {
+      method: "DELETE",
+    });
+    const result = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      setError(result.error || "Delete failed.");
+      setBusy("");
+      return;
+    }
+
+    setDrafts((current) => current.filter((item) => item.id !== row.id));
+    if (draftRow?.id === row.id) {
+      setDraftRow(null);
+      setDraftText("{}");
+    }
     setMessage("Draft deleted.");
     setBusy("");
   }
@@ -332,9 +391,27 @@ export function GenericDraftWorkspace({
                       </p>
                       <p className="mt-1 text-sm text-zinc-600">{row.generated_at ? new Date(row.generated_at).toLocaleString() : "Date pending"}</p>
                     </div>
-                    <button type="button" onClick={() => loadDraft(row)} className="rounded-md bg-zinc-950 px-3 py-2 text-sm font-black text-white">
-                      {active ? "Loaded" : "Edit"}
-                    </button>
+                    <div className="flex flex-wrap gap-2">
+                      <button type="button" onClick={() => loadDraft(row)} className="rounded-md bg-zinc-950 px-3 py-2 text-sm font-black text-white">
+                        {active ? "Loaded" : "Edit"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setRowPublishState(row, row.visibility === "published" ? "unpublish" : "publish")}
+                        disabled={Boolean(busy)}
+                        className="rounded-md bg-amber-600 px-3 py-2 text-sm font-black text-white disabled:opacity-50"
+                      >
+                        {row.visibility === "published" ? "Unpublish" : "Publish"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => deleteRow(row)}
+                        disabled={Boolean(busy)}
+                        className="rounded-md border border-red-300 px-3 py-2 text-sm font-black text-red-700 disabled:opacity-50"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </div>
                 </article>
               );

@@ -11,6 +11,7 @@ import {
   StatStrip,
 } from "@/components/newsroom/NewsroomShell";
 import { cleanName, formatNumber, text } from "@/lib/newsroom/data";
+import { getPageHero } from "@/lib/newsroom/pageHeroSettings";
 import { buildMomentsViewModel } from "@/lib/newsroom/viewModels/moments";
 
 export const revalidate = 60;
@@ -60,16 +61,16 @@ function MomentArchiveCard({ moment, featured = false }) {
 }
 
 export default async function MomentsPage() {
-  const viewModel = await buildMomentsViewModel();
+  const [viewModel, hero] = await Promise.all([buildMomentsViewModel(), getPageHero("moments")]);
   const featured = viewModel.featuredMoment;
   const publicMoments = viewModel.publicMoments || [];
 
   return (
     <NewsroomShell eyebrow="Moment Archive">
       <LeagueHero
-        eyebrow="Table memory"
-        title={viewModel.hero.title}
-        dek={viewModel.hero.dek}
+        eyebrow={hero.eyebrow}
+        title={hero.title}
+        dek={hero.dek}
         aside={featured ? (
           <div>
             <p className="text-xs font-black uppercase tracking-[0.18em] text-amber-300">Featured moment</p>
@@ -97,19 +98,6 @@ export default async function MomentsPage() {
         <StatCard label="Players represented" value={viewModel.stats.playersRepresented} />
         <StatCard label="Sessions represented" value={viewModel.stats.sessionsRepresented} />
       </StatStrip>
-
-      <section className="mt-8">
-        <SectionHeader eyebrow="Status language" title="Moment Types">
-          <p>Detected markers are for admin review. The public page only shows moments that have been published, featured, or marked major.</p>
-        </SectionHeader>
-        <div className="flex flex-wrap gap-2">
-          {viewModel.momentTypes.map((type) => (
-            <span key={type.type} className="rounded-full border border-white/10 bg-white/[0.05] px-3 py-2 text-sm font-bold text-stone-200">
-              {type.label} <span className="text-stone-500">{type.count}</span>
-            </span>
-          ))}
-        </div>
-      </section>
 
       {featured ? (
         <section className="mt-8">

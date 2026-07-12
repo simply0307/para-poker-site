@@ -1,19 +1,20 @@
 import { DataTableShell, LeagueHero, NewsroomShell, PublishedArticle, StatCard, StatStrip } from "@/components/newsroom/NewsroomShell";
 import { cleanName, formatNumber, getPublishedDraft, getStandingsRows, text } from "@/lib/newsroom/data";
+import { getPageHero } from "@/lib/newsroom/pageHeroSettings";
 import { draftHeadline, draftHtml, draftParagraphs, draftSubheadline, waitingCopy } from "@/lib/newsroom/rendering";
 
 export const revalidate = 60;
 
 export default async function StandingsPage() {
-  const [published, standings] = await Promise.all([getPublishedDraft({ scope: "season" }), getStandingsRows("S0")]);
+  const [published, standings, hero] = await Promise.all([getPublishedDraft({ scope: "season" }), getStandingsRows("S0"), getPageHero("standings")]);
   const leader = standings[0] || {};
 
   return (
     <NewsroomShell eyebrow="Standings Summary">
       <LeagueHero
-        eyebrow="Season 0"
-        title="Current Board"
-        dek="The table has started to take shape."
+        eyebrow={hero.eyebrow}
+        title={hero.title}
+        dek={hero.dek}
         aside={
           <div>
             <p className="text-xs font-black uppercase tracking-[0.16em] text-amber-300">Current leader</p>

@@ -73,6 +73,8 @@ export default async function AdminArticlesPage() {
           lifecycleNote:
             "Season 0 is ongoing. Do not write as if the season, preseason, standings race, or player stories are complete.",
           articleType: "beat_report",
+          authorName: "Para League Desk",
+          displayDate: new Date().toISOString().slice(0, 10),
           contextSelection: DEFAULT_ARTICLE_CONTEXT_SELECTION,
           promptConfig: {
             draftType: "league_article",

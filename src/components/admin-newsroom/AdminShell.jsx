@@ -22,7 +22,6 @@ const navGroups = [
       ["/admin/drafts", "Drafts"],
       ["/admin/prompt-studio", "Prompt Studio"],
       ["/admin/newsroom", "Prompt Library"],
-      ["/admin/player-session-recaps", "Player Sessions"],
       ["/admin/social-captions", "Social Captions"],
     ],
   },
@@ -30,7 +29,6 @@ const navGroups = [
     label: "Pipeline",
     links: [
       ["/admin/imports", "Imports"],
-      ["/admin/overrides", "Overrides"],
       ["/admin/settings", "Settings"],
       ["/", "Public Site"],
     ],
