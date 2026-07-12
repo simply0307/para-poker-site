@@ -13,6 +13,7 @@ const navGroups = [
       ["/admin/players", "Players"],
       ["/admin/standings", "Standings"],
       ["/admin/moments", "Moments"],
+      ["/admin/rules", "Rules"],
     ],
   },
   {

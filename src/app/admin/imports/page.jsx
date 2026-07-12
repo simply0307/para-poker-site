@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AdminShell, AdminStat } from "@/components/admin-newsroom/AdminShell";
+import { RawHandImportPanel } from "@/components/admin-newsroom/RawHandImportPanel";
 import { buildImportHealthViewModel } from "@/lib/newsroom/importHealth";
 import { formatNumber } from "@/lib/newsroom/data";
 
@@ -17,9 +18,11 @@ export default async function AdminImportsPage() {
   return (
     <AdminShell
       title="Import control room"
-      description="Read-only pipeline health for sessions, hands, action rows, notable hands, results, and player stats. Use this before generating or publishing coverage."
+      description="Import raw hand history into Supabase, then audit session, hand, action, moment, result, and player-stat coverage before generating or publishing coverage."
     >
-      <section className="grid gap-4 md:grid-cols-3 lg:grid-cols-6">
+      <RawHandImportPanel />
+
+      <section className="mt-8 grid gap-4 md:grid-cols-3 lg:grid-cols-6">
         <AdminStat label="Sessions" value={formatNumber(health.totals.sessions)} />
         <AdminStat label="Hands" value={formatNumber(health.totals.hands)} />
         <AdminStat label="Actions" value={formatNumber(health.totals.actions)} />
