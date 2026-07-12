@@ -72,7 +72,7 @@ export function LeagueRulesForm({ initialRules, initialStorage, initialWarning, 
           <div>
             <p className="text-xs font-black uppercase tracking-[0.16em] text-amber-700">League rules</p>
             <h2 className="mt-1 text-2xl font-black">Active ruleset</h2>
-            <p className="mt-2 text-sm leading-6 text-zinc-600">Rules update approved session result points, then rebuild the public standings table from those results.</p>
+            <p className="mt-2 text-sm leading-6 text-zinc-600">Rules are tracked in the integrated league rules table when available. Applying rules updates approved session result points, then rebuilds the public standings table.</p>
           </div>
           <span className="rounded-full border border-zinc-300 px-3 py-1 text-xs font-black uppercase tracking-[0.12em] text-zinc-600">{storage}</span>
         </div>

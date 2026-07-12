@@ -18,7 +18,16 @@ function normalizeRules(input = {}) {
     participationPoints: Number(source.participationPoints ?? source.participation_points ?? DEFAULT_LEAGUE_RULES.participationPoints) || 0,
     minimumHandsForPoints: Number(source.minimumHandsForPoints ?? source.minimum_hands_for_points ?? DEFAULT_LEAGUE_RULES.minimumHandsForPoints) || 0,
     tiebreakers: Array.isArray(source.tiebreakers) ? source.tiebreakers.map(String) : DEFAULT_LEAGUE_RULES.tiebreakers,
+    importRules: {
+      ...DEFAULT_LEAGUE_RULES.importRules,
+      ...(source.importRules || source.import_rules || {}),
+    },
   };
+}
+
+function missingRulesTable(error) {
+  const value = `${error?.code || ""} ${error?.message || ""}`.toLowerCase();
+  return value.includes("pgrst205") || value.includes("league_rules") || value.includes("does not exist");
 }
 
 async function getSeasonSessions(seasonCode = "S0") {
@@ -57,15 +66,76 @@ function deriveRulesFromResults(results = [], seasonCode = "S0") {
   });
 }
 
+async function readLeagueRulesRecord(seasonCode = "S0") {
+  const { data, error } = await supabase
+    .from("league_rules")
+    .select("*")
+    .eq("season_code", seasonCode)
+    .eq("status", "active")
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    if (missingRulesTable(error)) return { row: null, tableMissing: true };
+    throw new Error(error.message);
+  }
+
+  return { row: data || null, tableMissing: false };
+}
+
+async function saveLeagueRulesRecord(rules, { applied = false } = {}) {
+  const payload = {
+    season_code: rules.seasonCode,
+    name: rules.name,
+    status: "active",
+    scoring_rules: {
+      pointsByFinish: rules.pointsByFinish,
+      participationPoints: rules.participationPoints,
+      minimumHandsForPoints: rules.minimumHandsForPoints,
+      tiebreakers: rules.tiebreakers,
+    },
+    import_rules: rules.importRules || DEFAULT_LEAGUE_RULES.importRules,
+    updated_at: new Date().toISOString(),
+    ...(applied ? { applied_at: new Date().toISOString() } : {}),
+  };
+
+  const existing = await readLeagueRulesRecord(rules.seasonCode);
+  if (existing.tableMissing) return { storage: "session_results", warning: "league_rules table is not available yet; scoring changes were applied to session_results only." };
+
+  const { data, error } = existing.row?.id
+    ? await supabase.from("league_rules").update(payload).eq("id", existing.row.id).select("*").single()
+    : await supabase.from("league_rules").insert(payload).select("*").single();
+
+  if (error) throw new Error(`Could not save league_rules record: ${error.message}`);
+  return { storage: "league_rules + session_results", warning: "", row: data };
+}
+
 export async function readLeagueRules(seasonCode = "S0") {
+  const record = await readLeagueRulesRecord(seasonCode);
+  if (record.row) {
+    return {
+      rules: normalizeRules({
+        ...(record.row.scoring_rules || {}),
+        seasonCode: record.row.season_code,
+        name: record.row.name,
+        importRules: record.row.import_rules,
+      }),
+      storage: "league_rules",
+      warning: "",
+    };
+  }
+
   const { results } = await getApprovedSeasonResults(seasonCode);
   const rules = deriveRulesFromResults(results, seasonCode);
   return {
     rules,
     storage: "session_results",
-    warning: results.length
-      ? ""
-      : "No approved session_results rows were found for this season yet, so default point values are shown until results exist.",
+    warning: record.tableMissing
+      ? "league_rules table is not available yet, so scoring is being derived from approved session_results."
+      : results.length
+        ? ""
+        : "No active league_rules row or approved session_results rows were found for this season yet, so default point values are shown until results exist.",
   };
 }
 
@@ -89,10 +159,11 @@ export async function saveLeagueRules(input = {}) {
     if (error) throw new Error(`Could not update session_results for finish ${finish}: ${error.message}`);
   }
 
+  const stored = await saveLeagueRulesRecord(rules);
   return {
     rules,
-    storage: "session_results",
-    warning: "Updated approved session_results.league_points for this season. Recalculate standings to refresh the public board.",
+    storage: stored.storage,
+    warning: stored.warning || "Updated approved session_results.league_points for this season. Recalculate standings to refresh the public board.",
   };
 }
 
@@ -166,9 +237,11 @@ export async function applyLeagueRules(input = {}) {
     if (error) throw new Error(`Session result points were saved, but standings recalculation failed: ${error.message}`);
   }
 
+  const stored = await saveLeagueRulesRecord(saved.rules, { applied: true });
   return {
     ...saved,
-    warning: "",
+    storage: stored.storage,
+    warning: stored.warning || "",
     standings,
   };
 }

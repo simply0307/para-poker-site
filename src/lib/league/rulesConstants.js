@@ -12,4 +12,9 @@ export const DEFAULT_LEAGUE_RULES = {
   participationPoints: 0,
   minimumHandsForPoints: 0,
   tiebreakers: ["wins", "best_finish", "avg_finish"],
+  importRules: {
+    duplicateSessionPolicy: "block",
+    csvPreferred: true,
+    rawTextFallback: true,
+  },
 };
