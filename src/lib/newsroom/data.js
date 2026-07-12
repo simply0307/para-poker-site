@@ -437,7 +437,8 @@ export async function buildPlayerViewModel(playerIdOrSlug) {
 export async function getMomentNewsroomData(momentId = "") {
   const key = text(momentId).trim();
   const moment = key
-    ? await safeQuery(supabase.from("notable_hands").select("*").eq("id", key).maybeSingle(), null)
+    ? (await safeQuery(supabase.from("notable_hands").select("*").eq("id", key).maybeSingle(), null)) ||
+      (await safeQuery(supabase.from("notable_hands").select("*").eq("hand_id", key).maybeSingle(), null))
     : await safeQuery(
         supabase
           .from("notable_hands")

@@ -51,6 +51,21 @@ export default async function MomentDetailPage({ params }) {
         <StatCard label="Session" value={moment.sessionCode} />
       </StatStrip>
 
+      {moment.video?.signed_url ? (
+        <section className="mt-8 overflow-hidden rounded-md border border-[#d8c087]/20 bg-black shadow-2xl shadow-black/40">
+          <video
+            controls
+            preload="metadata"
+            className="aspect-video w-full bg-black"
+            src={moment.video.signed_url}
+          />
+          <div className="border-t border-white/10 bg-[#08111a] px-5 py-3">
+            <p className="text-xs font-black uppercase tracking-[0.16em] text-amber-200">Moment video</p>
+            <p className="mt-1 text-sm text-stone-400">{moment.video.filename || "Attached video"}</p>
+          </div>
+        </section>
+      ) : null}
+
       <ContentRail
         main={
           <PublishedArticle

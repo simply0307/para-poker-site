@@ -14,6 +14,7 @@ import {
   text,
 } from "@/lib/newsroom/data";
 import { normalizeHandRow } from "@/lib/poker/handHistory";
+import { getMomentVideoAttachments } from "@/lib/newsroom/momentVideoAttachments";
 
 function numberValue(value, fallback = 0) {
   const parsed = Number(value);
@@ -215,14 +216,23 @@ export async function buildMomentsViewModel() {
     });
   });
 
-  const publicMoments = enriched.filter((moment) => moment.isPublic);
+  const videoByMomentId = await getMomentVideoAttachments(enriched.map((moment) => text(moment.id || moment.hand_id || moment.momentId)));
+  const enrichedWithVideo = enriched.map((moment) => {
+    const videoKey = text(moment.id || moment.hand_id || moment.momentId);
+    return {
+      ...moment,
+      video: videoByMomentId[videoKey] || null,
+    };
+  });
+
+  const publicMoments = enrichedWithVideo.filter((moment) => moment.isPublic);
   const biggestPots = [...publicMoments].filter((moment) => numberValue(moment.pot_collected) > 0).sort((left, right) => numberValue(right.pot_collected) - numberValue(left.pot_collected)).slice(0, 5);
   const recentMoments = [...publicMoments].sort((left, right) => dateValue(right) - dateValue(left) || numberValue(right.hand_no) - numberValue(left.hand_no)).slice(0, 12);
   const featuredMoment = publicMoments.find((moment) => text(moment.id) === featuredId) || publicMoments.find((moment) => moment.statuses.includes("published")) || publicMoments[0] || null;
   const momentTypes = ["biggest_pot", "turning_point", "player_marker", "showdown", "archive_marker", "late_hand"].map((type) => ({
     type,
     label: labelForType(type),
-    count: enriched.filter((moment) => moment.types.includes(type)).length,
+    count: enrichedWithVideo.filter((moment) => moment.types.includes(type)).length,
   }));
 
   return {
@@ -230,8 +240,8 @@ export async function buildMomentsViewModel() {
       title: "Moment Archive",
       dek: "The hands the table remembers.",
     },
-    moments: enriched,
-    detectedMoments: enriched,
+    moments: enrichedWithVideo,
+    detectedMoments: enrichedWithVideo,
     publicMoments,
     featuredMoment,
     biggestPots,
@@ -240,13 +250,14 @@ export async function buildMomentsViewModel() {
     publishedMomentDrafts,
     appliedOverrides: momentsOverride.appliedOverrides,
     stats: {
-      totalMoments: enriched.length,
+      totalMoments: enrichedWithVideo.length,
       publicMoments: publicMoments.length,
       publishedMoments: publicMoments.filter((moment) => moment.statuses.includes("published")).length,
       featuredOrMajorMoments: publicMoments.filter((moment) => moment.statuses.includes("featured") || moment.statuses.includes("major")).length,
       biggestListedPot: biggestPots[0]?.pot_collected || null,
-      sessionsRepresented: uniqueCount(enriched.map((moment) => moment.session_id || moment.sessionCode)),
-      playersRepresented: uniqueCount(enriched.map((moment) => normalizePlayerName(moment.winner_name))),
+      videosAttached: enrichedWithVideo.filter((moment) => moment.video).length,
+      sessionsRepresented: uniqueCount(enrichedWithVideo.map((moment) => moment.session_id || moment.sessionCode)),
+      playersRepresented: uniqueCount(enrichedWithVideo.map((moment) => normalizePlayerName(moment.winner_name))),
     },
   };
 }
@@ -258,7 +269,9 @@ export async function buildMomentViewModel(momentId) {
   ]);
   if (!momentData?.moment) return null;
 
-  const enriched = listModel.moments.find((moment) => text(moment.id) === text(momentData.moment.id)) || null;
+  const enriched = listModel.moments.find((moment) =>
+    text(moment.id || moment.hand_id || moment.momentId) === text(momentData.moment.id || momentData.moment.hand_id)
+  ) || null;
   const sessionData = momentData.session ? await getSessionNewsroomData(momentData.session.id || momentData.session.session_code) : null;
   const matchingHand = (sessionData?.hands || []).find((hand) =>
     text(hand.id) === text(momentData.moment.hand_id) ||

@@ -1,0 +1,23 @@
+{
+  "overrides": [
+    {
+      "id": "override-1783822807010-9z5n4a",
+      "scope": "moment",
+      "source_id": "384",
+      "field_path": "media.video",
+      "value": {
+        "bucket": "para-league-moment-videos",
+        "storage_path": "moments/384/1783822804829-riverport_hand6_final_with_background_music.mp4",
+        "filename": "riverport_hand6_final_with_background_music.mp4",
+        "content_type": "video/mp4",
+        "size": 7587513,
+        "uploaded_at": "2026-07-12T02:20:07.009Z"
+      },
+      "reason": "Admin moment video attachment",
+      "status": "active",
+      "created_by": "admin",
+      "created_at": "2026-07-12T02:20:07.010Z",
+      "updated_at": "2026-07-12T02:20:07.010Z"
+    }
+  ]
+}

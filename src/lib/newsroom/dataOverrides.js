@@ -60,7 +60,12 @@ async function writeDataOverrides(rows) {
 export async function createDataOverride(payload = {}) {
   const existing = await readDataOverrides();
   const next = normalizeOverride(payload);
-  return writeDataOverrides([next, ...existing]);
+  const replaced = existing.filter((row) => {
+    if (row.scope !== next.scope) return true;
+    if (row.source_id !== next.source_id) return true;
+    return row.field_path !== next.field_path;
+  });
+  return writeDataOverrides([next, ...replaced]);
 }
 
 export async function deleteDataOverride(id) {

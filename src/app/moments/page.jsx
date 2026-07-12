@@ -40,6 +40,11 @@ function MomentArchiveCard({ moment, featured = false }) {
       pot={moment.potText}
     >
       <StatusRow labels={moment.statusLabels} />
+      {moment.video ? (
+        <span className="mt-3 inline-block rounded-sm bg-amber-300 px-2 py-1 text-xs font-black uppercase tracking-[0.1em] text-[#061019]">
+          Video attached
+        </span>
+      ) : null}
       <p className={featured ? "mt-4 text-base leading-7" : ""}>
         {text(moment.displaySummary, "Approved moment copy is attached to this archive entry.")}
       </p>
@@ -88,6 +93,7 @@ export default async function MomentsPage() {
 
       <StatStrip>
         <StatCard label="Detected candidates" value={viewModel.stats.totalMoments} detail="Admin review pool, not public canon." />
+        <StatCard label="Videos attached" value={viewModel.stats.videosAttached} />
         <StatCard label="Players represented" value={viewModel.stats.playersRepresented} />
         <StatCard label="Sessions represented" value={viewModel.stats.sessionsRepresented} />
       </StatStrip>

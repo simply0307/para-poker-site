@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { AdminShell } from "@/components/admin-newsroom/AdminShell";
+import { ArticleContextSelector } from "@/components/admin-newsroom/ArticleContextSelector";
 import { PromptConfigPicker } from "@/components/admin-newsroom/PromptConfigPicker";
 import { RichTextEditor } from "@/components/admin-newsroom/RichTextEditor";
 import { getPromptPreset } from "@/lib/newsroom/promptConfigs";
@@ -22,6 +23,63 @@ function bodyFieldFor(draft = {}) {
   return ["recap_body", "profile_body", "article_body", "caption", "long_body", "body"].find((field) => typeof draft?.[field] === "string") || "";
 }
 
+function mergePayload(current, patch) {
+  const next = { ...(current || {}) };
+  for (const [key, value] of Object.entries(patch || {})) {
+    if (value && typeof value === "object" && !Array.isArray(value) && next[key] && typeof next[key] === "object" && !Array.isArray(next[key])) {
+      next[key] = mergePayload(next[key], value);
+    } else {
+      next[key] = value;
+    }
+  }
+  return next;
+}
+
+function patchMatchesPayload(payload = {}, patch = {}) {
+  return Object.entries(patch || {}).every(([key, value]) => {
+    if (value && typeof value === "object" && !Array.isArray(value)) return patchMatchesPayload(payload[key] || {}, value);
+    return String(payload[key] || "") === String(value || "");
+  });
+}
+
+function PayloadSelectionPanel({ title = "Source selector", options = [], payload = {}, onSelect }) {
+  if (!options.length) return null;
+
+  return (
+    <section className="mt-8 rounded-lg border border-zinc-300 bg-white p-4 shadow-sm">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p className="text-xs font-black uppercase tracking-[0.18em] text-amber-700">Draft target</p>
+          <h2 className="text-2xl font-black">{title}</h2>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-zinc-600">
+            Pick a source to update the generation payload. The JSON remains editable below.
+          </p>
+        </div>
+        <p className="text-sm font-bold text-zinc-500">{options.length} options</p>
+      </div>
+      <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+        {options.map((option) => {
+          const active = patchMatchesPayload(payload, option.patch || {});
+          return (
+            <button
+              key={option.id || option.label}
+              type="button"
+              onClick={() => onSelect(option.patch || {})}
+              className={`rounded-md border p-3 text-left transition ${
+                active ? "border-amber-700 bg-amber-50" : "border-zinc-200 bg-zinc-50 hover:border-amber-700 hover:bg-amber-50"
+              }`}
+            >
+              <span className="block font-black text-zinc-950">{option.label}</span>
+              {option.description ? <span className="mt-1 block text-sm leading-6 text-zinc-600">{option.description}</span> : null}
+              {active ? <span className="mt-2 inline-block rounded-sm bg-amber-700 px-2 py-1 text-xs font-black uppercase tracking-wide text-white">Selected</span> : null}
+            </button>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 export function GenericDraftWorkspace({
   title,
   endpoint,
@@ -32,6 +90,9 @@ export function GenericDraftWorkspace({
   existingDraftsTitle = "Existing drafts",
   initialDraft = null,
   preface = null,
+  articleContextOptions = null,
+  payloadOptions = [],
+  payloadOptionsTitle = "Source selector",
 }) {
   const [payloadText, setPayloadText] = useState(pretty(defaultPayload));
   const [promptConfig, setPromptConfig] = useState(defaultPayload.promptConfig || defaultPayload.articleRequest?.promptConfig || getPromptPreset(defaultPromptPreset));
@@ -53,6 +114,24 @@ export function GenericDraftWorkspace({
     const payload = parseJson(payloadText) || {};
     setPayloadText(pretty({ ...payload, variation: variationKey }));
   }
+
+  function patchPayload(patch) {
+    setPayloadText((currentText) => pretty(mergePayload(parseJson(currentText) || {}, patch)));
+  }
+
+  const handleArticleContextChange = useCallback(({ topic, contextSelection }) => {
+    setPayloadText((currentText) => {
+      const payload = parseJson(currentText) || {};
+      const next = mergePayload(payload, {
+        articleRequest: {
+          ...(payload.articleRequest || {}),
+          topic,
+          contextSelection,
+        },
+      });
+      return pretty(next);
+    });
+  }, []);
 
   async function generateDraft() {
     const payload = parseJson(payloadText);
@@ -217,6 +296,19 @@ export function GenericDraftWorkspace({
     >
       {preface ? <div className="mb-8">{preface}</div> : null}
 
+      {articleContextOptions ? (
+        <div className="mb-8">
+          <ArticleContextSelector
+            key={draftRow?.id || "new-article-context"}
+            options={articleContextOptions}
+            initialValue={currentPayload.articleRequest || currentPayload}
+            onChange={handleArticleContextChange}
+          />
+        </div>
+      ) : null}
+
+      <PayloadSelectionPanel title={payloadOptionsTitle} options={payloadOptions} payload={currentPayload} onSelect={patchPayload} />
+
       {drafts.length ? (
         <section className="rounded-lg border border-zinc-300 bg-white p-4 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -330,7 +422,10 @@ export function GenericDraftWorkspace({
             prompt_config: draftRow.context_packet?.prompt_config,
             prompt_config_instructions: draftRow.context_packet?.prompt_config_instructions,
             article_type: draftRow.context_packet?.article_request?.articleType,
+            article_context_selection: draftRow.context_packet?.article_context_selection,
+            selected_article_context: draftRow.context_packet?.selected_article_context,
             season_context: draftRow.context_packet?.season_context,
+            warnings: draftRow.context_packet?.warnings || draftRow.context_packet?.selected_article_context?.warnings,
             fallback_trace: draftRow.fallback_trace || draftRow.context_packet?.generation_debug?.fallback_trace,
             docs: draftRow.context_packet?.editorial_docs?.manifest,
             context_packet: draftRow.context_packet,

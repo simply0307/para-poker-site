@@ -22,7 +22,7 @@ export function MomentCandidateList({ moments = [] }) {
           <p className="text-xs font-black uppercase tracking-[0.18em] text-amber-700">Detected candidates</p>
           <h2 className="text-2xl font-black">Moment candidates</h2>
           <p className="mt-2 max-w-3xl text-sm leading-6 text-zinc-600">
-            Detected moments are candidate archive entries. Generate and publish a blurb to make one official public copy.
+            Detected moments are candidate archive entries. Choose one in the selector below to generate an editable blurb; publishing the blurb is what makes it public.
           </p>
         </div>
         <p className="text-sm font-bold text-zinc-500">{moments.length} detected</p>

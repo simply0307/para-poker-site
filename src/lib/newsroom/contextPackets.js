@@ -1,5 +1,7 @@
 import { NEWSROOM_PROMPT_VERSION, paraLeagueVoiceRules } from "./voiceRules";
+import { buildSelectedArticleContext } from "@/lib/newsroom/articleContextBuilder";
 import { applyOverridesToEntity, applyOverridesToList, readActiveDataOverrides } from "@/lib/newsroom/applyDataOverrides";
+import { normalizeArticleContextSelection } from "@/lib/newsroom/articleContextSelection";
 import { getContentAssignment, getSelectedVariation, getVariationOptions } from "./contentAssignments";
 import { buildPromptConfigContext } from "./promptConfigs";
 import { stripPlayerHandlesFromText } from "@/lib/playerNames";
@@ -526,6 +528,11 @@ export async function buildArticleInputPacket(articleRequest = {}) {
   const standings = standingsOverride.value;
   const taskContext = await buildTaskContext("league_article", articleRequest.variation || articleRequest.variationKey);
   const promptConfig = promptConfigContext("league_article", { promptConfig: articleRequest.promptConfig });
+  const articleContextSelection = normalizeArticleContextSelection(articleRequest.contextSelection || articleRequest.context_selection || {});
+  const selectedArticleContext = await buildSelectedArticleContext({
+    ...articleContextSelection,
+    angle: articleContextSelection.angle || articleRequest.topic || "",
+  });
   const finalityRules = [
     "Do not say the season is over unless articleRequest.seasonStatus is complete.",
     "Do not say a player has clinched, secured, finished the season, closed the campaign, or ended the race unless supplied data explicitly says so.",
@@ -554,14 +561,17 @@ export async function buildArticleInputPacket(articleRequest = {}) {
         "A. source facts/article request and standings data - hard factual boundary",
         "B. hard_factual_guardrails",
         "C. prompt_config - current creative direction",
-        "D. task_assignment and selected_variation - draft type and angle",
-        "E. prose_style_examples - energy and taste, not templates",
-        "F. task_guide - background guidance",
-        "G. broad editorial docs - context only",
-        "H. output schema",
+        "D. article_context_selection and selected_article_context - editor-chosen evidence basket",
+        "E. task_assignment and selected_variation - draft type and angle",
+        "F. prose_style_examples - energy and taste, not templates",
+        "G. task_guide - background guidance",
+        "H. broad editorial docs - context only",
+        "I. output schema",
       ],
       creative_freedom_instruction: DOCS_ARE_NOT_A_CAGE,
       docs_usage_policy: DOCS_USAGE_POLICY,
+      selected_context_instruction:
+        "The selected context is the editor's chosen evidence basket. Prioritize it over broad data, but do not treat it as a checklist or outline. Use the strongest facts, skip weak or irrelevant details, and do not invent unsupported facts.",
       ...taskContext,
       ...promptConfig,
       hard_factual_guardrails: HARD_FACTUAL_GUARDRAILS,
@@ -569,14 +579,19 @@ export async function buildArticleInputPacket(articleRequest = {}) {
       voice_rules: paraLeagueVoiceRules,
       editorial_docs: editorialDocs,
       article_request: articleRequest,
+      article_context_selection: articleContextSelection,
+      selected_article_context: selectedArticleContext,
       season_context: seasonContext,
       applied_overrides: standingsOverride.appliedOverrides,
       standings_snapshot: cleanPlayerReferences(standings),
       constraints: [
+        "Selected context is editorial evidence, not a required outline.",
+        "Article drafts may choose their strongest angle, but all factual claims must come from supplied data.",
         "Request additional structured data if the article cannot be grounded.",
         ...HARD_FACTUAL_GUARDRAILS,
         ...finalityRules,
       ],
+      warnings: selectedArticleContext.warnings,
     },
   };
 }
