@@ -1,6 +1,7 @@
 import { present, text } from "@/lib/newsroom/data";
 import { normalizeHandActionLog } from "@/lib/poker/handHistory";
 import { stripPlayerHandlesFromText } from "@/lib/playerNames";
+import Link from "next/link";
 
 export function HandActionLog({ actionLog }) {
   if (!actionLog?.hasAction) {
@@ -59,7 +60,7 @@ export function HandActionLog({ actionLog }) {
   );
 }
 
-export function HandHistoryBlock({ hand, compact = false }) {
+export function HandHistoryBlock({ hand, compact = false, detailHref = "" }) {
   const actionLog = hand.actionLog || normalizeHandActionLog(hand);
   const title = hand.hand_no ? `Hand #${hand.hand_no}` : "Recorded hand";
   const isFullHistory = actionLog.kind === "action_log";
@@ -69,7 +70,10 @@ export function HandHistoryBlock({ hand, compact = false }) {
     <article className="rounded-md border border-white/10 bg-white/[0.03] p-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h3 className="text-lg font-black text-white">{title}</h3>
-        {present(hand.pot_collected) ? <strong className="text-amber-200">{Number(hand.pot_collected).toLocaleString("en-US")} chips</strong> : null}
+        <div className="flex flex-wrap items-center gap-3">
+          {detailHref ? <Link href={detailHref} className="text-xs font-black uppercase tracking-[0.12em] text-amber-200 hover:text-amber-100">Moment detail</Link> : null}
+          {present(hand.pot_collected) ? <strong className="text-amber-200">{Number(hand.pot_collected).toLocaleString("en-US")} chips</strong> : null}
+        </div>
       </div>
       <div className={compact ? "mt-3 grid gap-x-5 md:grid-cols-3" : "mt-3 grid gap-x-5 md:grid-cols-2"}>
         <Fact label="Winner" value={hand.winner_name} playerText />

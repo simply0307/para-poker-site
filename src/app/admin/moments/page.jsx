@@ -1,13 +1,15 @@
 import { GenericDraftWorkspace } from "@/components/admin-newsroom/GenericDraftWorkspace";
+import { MomentCandidateList } from "@/components/admin-newsroom/MomentCandidateList";
 import { getVariationOptions } from "@/lib/newsroom/contentAssignments";
-import { getMomentsIndex, text } from "@/lib/newsroom/data";
+import { text } from "@/lib/newsroom/data";
 import { listNewsroomDrafts } from "@/lib/newsroom/drafts";
+import { buildMomentsViewModel } from "@/lib/newsroom/viewModels/moments";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminMomentsPage() {
-  const moments = await getMomentsIndex();
-  const firstMoment = moments[0] || {};
+  const viewModel = await buildMomentsViewModel();
+  const firstMoment = viewModel.featuredMoment || viewModel.moments[0] || {};
   const momentDrafts = await listNewsroomDrafts({ table: "moment_blurb_drafts", fallbackScope: "moment" });
 
   return (
@@ -15,7 +17,7 @@ export default async function AdminMomentsPage() {
       title="Moment blurb draft desk"
       endpoint="/api/moments/generate"
       defaultPayload={{
-        momentId: text(firstMoment.id),
+        momentId: text(firstMoment.id || firstMoment.momentId),
         variation: "impact_blurb",
         editorialNotes: "",
         promptConfig: {
@@ -36,6 +38,7 @@ export default async function AdminMomentsPage() {
       existingDrafts={momentDrafts}
       existingDraftsTitle="Moment drafts"
       initialDraft={momentDrafts[0] || null}
+      preface={<MomentCandidateList moments={viewModel.moments} />}
     />
   );
 }

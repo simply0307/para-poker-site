@@ -170,11 +170,31 @@ export async function getStandingsRows(seasonCode = "S0") {
 }
 
 export async function getMomentsIndex() {
-  return safeQuery(
+  const byCreatedAt = await safeQuery(
     supabase
       .from("notable_hands")
       .select("*")
       .order("created_at", { ascending: false })
+      .limit(40),
+    null
+  );
+  if (Array.isArray(byCreatedAt)) return byCreatedAt;
+
+  const byPot = await safeQuery(
+    supabase
+      .from("notable_hands")
+      .select("*")
+      .order("pot_collected", { ascending: false })
+      .limit(40),
+    null
+  );
+  if (Array.isArray(byPot)) return byPot;
+
+  return safeQuery(
+    supabase
+      .from("notable_hands")
+      .select("*")
+      .order("hand_no", { ascending: true })
       .limit(40),
     []
   );

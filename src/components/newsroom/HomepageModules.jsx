@@ -133,16 +133,19 @@ function FeaturedPlayersModule({ viewModel }) {
 }
 
 function FeaturedMomentsModule({ viewModel }) {
+  if (!viewModel.moments.length) return null;
+
   return (
     <CardGrid>
       {viewModel.moments.slice(0, 3).map((moment) => (
         <MomentCard
-          key={moment.id || moment.hand_no}
+          key={moment.momentId || moment.id || moment.hand_no}
+          href={moment.detailHref || (moment.id ? `/moments/${encodeURIComponent(text(moment.id))}` : "")}
           title={moment.hand_no ? `Hand #${moment.hand_no}` : "Table moment"}
-          meta={cleanName(moment.winner_name, "Winner pending")}
-          pot={moment.pot_collected ? `${formatNumber(moment.pot_collected)} chips` : ""}
+          meta={moment.typeLabel || cleanName(moment.winner_name, "Winner pending")}
+          pot={moment.potText || (moment.pot_collected ? `${formatNumber(moment.pot_collected)} chips` : "")}
         >
-          <p>{text(moment.summary || moment.winning_hand || moment.board, "Moments pending.")}</p>
+          <p>{text(moment.displaySummary || moment.summary || moment.winning_hand || moment.board, "Moments pending.")}</p>
         </MomentCard>
       ))}
     </CardGrid>

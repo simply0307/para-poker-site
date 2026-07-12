@@ -31,6 +31,7 @@ export function GenericDraftWorkspace({
   existingDrafts = [],
   existingDraftsTitle = "Existing drafts",
   initialDraft = null,
+  preface = null,
 }) {
   const [payloadText, setPayloadText] = useState(pretty(defaultPayload));
   const [promptConfig, setPromptConfig] = useState(defaultPayload.promptConfig || defaultPayload.articleRequest?.promptConfig || getPromptPreset(defaultPromptPreset));
@@ -214,6 +215,8 @@ export function GenericDraftWorkspace({
       title={title}
       description="Generate a draft, inspect context and docs, edit JSON, save, publish, or unpublish."
     >
+      {preface ? <div className="mb-8">{preface}</div> : null}
+
       {drafts.length ? (
         <section className="rounded-lg border border-zinc-300 bg-white p-4 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-3">

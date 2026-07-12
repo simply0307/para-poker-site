@@ -1,5 +1,4 @@
 import {
-  getMomentsIndex,
   getPlayersIndex,
   getSessionNewsroomData,
   getSessionsIndex,
@@ -7,18 +6,20 @@ import {
 } from "@/lib/newsroom/data";
 import { DEFAULT_HOME_SETTINGS, readHomepageSettings } from "@/lib/newsroom/homepageSettings";
 import { getPublishedArticlesIndex } from "@/lib/newsroom/repositories/draftRepository";
+import { buildMomentsViewModel } from "@/lib/newsroom/viewModels/moments";
 
 export const DEFAULT_HOME_MODULES = DEFAULT_HOME_SETTINGS.modules;
 
 export async function buildHomeViewModel(moduleConfig = null) {
   const settings = moduleConfig ? { hero: DEFAULT_HOME_SETTINGS.hero, modules: moduleConfig } : await readHomepageSettings();
-  const [sessions, standings, moments, players, articles] = await Promise.all([
+  const [sessions, standings, momentModel, players, articles] = await Promise.all([
     getSessionsIndex(),
     getStandingsRows("S0"),
-    getMomentsIndex(),
+    buildMomentsViewModel(),
     getPlayersIndex(),
     getPublishedArticlesIndex(),
   ]);
+  const moments = momentModel.publicMoments || [];
   const latest = sessions[0] || null;
   const latestData = latest ? await getSessionNewsroomData(latest.session_code || latest.id) : null;
   const winner = latestData?.sessionResults?.[0] || null;
@@ -32,6 +33,7 @@ export async function buildHomeViewModel(moduleConfig = null) {
     sessions,
     standings,
     moments,
+    detectedMoments: momentModel.detectedMoments || [],
     players,
     articles,
     latest,

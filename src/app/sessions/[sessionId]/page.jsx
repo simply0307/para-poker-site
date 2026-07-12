@@ -134,7 +134,11 @@ export default async function SessionPage({ params }) {
         </EvidencePanel>
         <EvidencePanel title="Notable Hand Summaries" empty="No notable hands are attached to this session yet.">
         {notableHands.slice(0, 12).map((hand, index) => (
-          <HandHistoryBlock key={`${hand.id || hand.hand_no || "notable"}-${index}`} hand={hand} compact />
+          <HandHistoryBlock
+            key={`${hand.id || hand.hand_no || "notable"}-${index}`}
+            hand={hand}
+            compact
+          />
         ))}
         </EvidencePanel>
       </section>
