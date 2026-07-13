@@ -35,6 +35,47 @@ function eventHandNumber(event = {}) {
   return numberValue(event.handId || event.handNumber || event.payload?.handId, 0);
 }
 
+function parseCsvRows(csvText = "") {
+  const rows = [];
+  let row = [];
+  let cell = "";
+  let quoted = false;
+  const input = String(csvText || "").replace(/^\uFEFF/u, "");
+
+  for (let index = 0; index < input.length; index += 1) {
+    const char = input[index];
+    const next = input[index + 1];
+    if (char === '"' && quoted && next === '"') {
+      cell += '"';
+      index += 1;
+    } else if (char === '"') {
+      quoted = !quoted;
+    } else if (char === "," && !quoted) {
+      row.push(cell);
+      cell = "";
+    } else if ((char === "\n" || char === "\r") && !quoted) {
+      if (char === "\r" && next === "\n") index += 1;
+      row.push(cell);
+      if (row.some((value) => String(value).trim())) rows.push(row);
+      row = [];
+      cell = "";
+    } else {
+      cell += char;
+    }
+  }
+
+  row.push(cell);
+  if (row.some((value) => String(value).trim())) rows.push(row);
+  const headers = rows[0].map((header) => String(header || "").trim().toLowerCase());
+  return rows.slice(1).map((values) => Object.fromEntries(headers.map((header, index) => [header, String(values[index] || "").trim()])));
+}
+
+function csvOrderValue(row = {}) {
+  const parsed = Number(row.order || row.log_order || row.action_order);
+  if (Number.isFinite(parsed)) return parsed;
+  return Date.parse(row.at || row.timestamp || "");
+}
+
 function validateFixtureEventOrdering(pkg) {
   const errors = [];
   const events = Array.isArray(pkg.orderedPublicEvents) ? pkg.orderedPublicEvents : [];
@@ -118,6 +159,7 @@ const packagePage = read("src/app/admin/imports/parapoker/page.jsx");
 const previewRoute = read("src/app/api/admin/imports/parapoker/preview/route.js");
 const commitRoute = read("src/app/api/admin/imports/parapoker/commit/route.js");
 const handHistory = read("src/lib/poker/handHistory.js");
+const rawParser = read("src/lib/imports/rawHandHistoryParser.js");
 read("src/app/api/admin/imports/raw-hands/preview/route.js");
 read("src/app/api/admin/imports/raw-hands/commit/route.js");
 
@@ -160,6 +202,12 @@ assert.match(packagePage, /ParaPokerPackageImportPanel/, "Package route must ren
 assert.match(previewRoute, /previewCompletedSessionPackage/, "Preview route must use server-side validation.");
 assert.match(commitRoute, /commitCompletedSessionPackage/, "Commit route must use server-side commit.");
 assert.match(handHistory, /boardCardsForStreet/, "Existing hand history normalizer must support board cards on streets.");
+assert.match(rawParser, /chronologicalCsvRows/, "Raw hand CSV imports must normalize chronological row order.");
+assert.match(rawParser, /rowSortValue/, "Raw hand CSV imports must sort by explicit order values when present.");
+assert.match(rawParser, /ending\\s\+hand/, "Raw hand parser must ignore ending-hand markers as hand starts.");
+assert.match(rawParser, /line\.match\(\/\\\(id:/, "Raw hand parser must prefer explicit hand IDs from starting hand lines.");
+assert.match(rawParser, /collected\[collected\.length - 1\] \|\| winners/, "Raw hand parser must prefer collected-pot lines over match-win lines.");
+assert.match(rawParser, /winningHandName/, "Raw hand parser must preserve winning hand text from collected-pot rows.");
 
 const fixture = JSON.parse(read("tests/fixtures/para-completed-session-multi-hand-v1.json"));
 const { integrity: _integrity, ...withoutIntegrity } = fixture;
@@ -250,5 +298,12 @@ assert.deepEqual(
   [2, 3, 4, 5, 7, 8, 10, 11, 12, 14, 15],
   "Derived hand 2 actions must preserve chronological hand-local sequence.",
 );
+
+const rawCsvFixture = read("tests/fixtures/parapoker-local-match-entry-order-hand-history.csv");
+const rawCsvRows = parseCsvRows(rawCsvFixture);
+assert.equal(rawCsvRows[0].entry, "-- ending hand #2 --", "Entry/order CSV fixture must be stored newest-first.");
+const chronologicalEntries = [...rawCsvRows].sort((left, right) => csvOrderValue(left) - csvOrderValue(right)).map((row) => row.entry);
+assert.equal(chronologicalEntries[0], "-- starting hand #1 (id: hand-1) No Limit Texas Hold'em (dealer: \"Maven\") --", "Entry/order CSV must sort to the first hand start.");
+assert.equal(chronologicalEntries.at(-1), "-- ending hand #2 --", "Entry/order CSV must end with the latest hand after order sorting.");
 
 console.log("ParaPoker package import validation passed.");

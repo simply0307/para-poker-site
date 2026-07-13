@@ -43,17 +43,43 @@ function actionKind(line = "") {
 }
 
 function parseHandStart(line = "") {
+  if (/--\s*ending\s+hand\b/i.test(line)) return null;
   const handNoMatch =
     line.match(/hand\s*#?\s*(\d+)/i) ||
     line.match(/starting\s+hand\s*#?\s*(\d+)/i) ||
     line.match(/--\s*hand\s*#?\s*(\d+)/i);
   if (!handNoMatch) return null;
-  const codeMatch = line.match(/\b([a-z0-9]{8,16})\b/i);
+  const idMatch = line.match(/\(id:\s*([^)]+)\)/i) || line.match(/\b(hand-\d+)\b/i);
+  const codeMatch = idMatch || line.match(/\b([a-z0-9]{8,16})\b/i);
   return {
     hand_no: Number(handNoMatch[1]),
     hand_code: codeMatch?.[1] || `hand-${handNoMatch[1]}`,
     raw_start: line,
   };
+}
+
+function rowSortValue(row = {}) {
+  const explicit = row.log_order || row.order || row.action_order;
+  if (explicit !== undefined && explicit !== "") {
+    const parsed = Number(String(explicit).replace(/,/g, ""));
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  const timestamp = Date.parse(row.at || row.timestamp || row.created_at || "");
+  if (Number.isFinite(timestamp)) return timestamp;
+  return null;
+}
+
+function chronologicalCsvRows(rows = []) {
+  return rows
+    .map((row, index) => ({ ...row, __originalIndex: index }))
+    .sort((left, right) => {
+      const leftSort = rowSortValue(left);
+      const rightSort = rowSortValue(right);
+      if (leftSort !== null && rightSort !== null) return leftSort - rightSort || left.__originalIndex - right.__originalIndex;
+      if (leftSort !== null) return -1;
+      if (rightSort !== null) return 1;
+      return left.__originalIndex - right.__originalIndex;
+    });
 }
 
 function parseCsvRows(csvText = "") {
@@ -98,10 +124,10 @@ function csvToRawHistory(csvText = "") {
   const rows = parseCsvRows(csvText);
   if (!rows.length) return "";
   const rawColumn = ["raw_entry", "raw", "line", "log_entry", "entry"].find((key) => key in rows[0]);
-  if (rawColumn) return rows.map((row) => row[rawColumn]).filter(Boolean).join("\n");
+  if (rawColumn) return chronologicalCsvRows(rows).map((row) => row[rawColumn]).filter(Boolean).join("\n");
 
   const grouped = new Map();
-  for (const row of rows) {
+  for (const row of chronologicalCsvRows(rows)) {
     const handNo = numberValue(row.hand_no || row.hand_number || row.hand || row.hand_id, 0);
     if (!handNo) continue;
     if (!grouped.has(handNo)) grouped.set(handNo, []);
@@ -140,17 +166,29 @@ function csvToRawHistory(csvText = "") {
 
 function finalizeHand(hand) {
   if (!hand) return null;
-  const winners = hand.actions.filter((action) => action.action === "collected" || action.action === "wins");
-  const winner = winners[winners.length - 1] || null;
+  const collected = hand.actions.filter((action) => action.action === "collected");
+  const winners = hand.actions.filter((action) => action.action === "wins");
+  const winner = collected[collected.length - 1] || winners[winners.length - 1] || null;
   const showdown = hand.actions.some((action) => action.action === "shows") || Boolean(hand.board);
 
   return {
     ...hand,
     winner_name: winner?.player_name || "",
     pot_collected: winner?.amount || 0,
+    winning_hand: hand.winning_hand || winner?.winning_hand || "",
     raw_result: winner?.raw_entry || "",
     showdown,
   };
+}
+
+function winningHandName(line = "") {
+  const match = line.match(/from pot with ([^(]+?)(?:\s*\(|$)/i);
+  return match?.[1]?.trim() || "";
+}
+
+function actionAmount(kind, line) {
+  if (kind === "shows" || kind === "mucks" || kind === "wins") return 0;
+  return numberValue(line, 0);
 }
 
 export function parseRawHandHistory(rawText = "") {
@@ -203,8 +241,9 @@ export function parseRawHandHistory(rawText = "") {
       street,
       player_name: playerName,
       action: kind,
-      amount: numberValue(line, 0),
+      amount: actionAmount(kind, line),
       all_in: /all[-\s]?in/i.test(line),
+      winning_hand: winningHandName(line),
       raw_entry: line,
     });
   }

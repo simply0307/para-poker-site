@@ -1,0 +1,25 @@
+entry,at,order
+"-- ending hand #2 --","1970-01-01T00:00:08.099Z",2000899
+"""You"" collected 33 from pot","1970-01-01T00:00:08.090Z",2000890
+"""Maven"" folds","1970-01-01T00:00:07.020Z",2000720
+"""You"" raises to 31 and goes all in","1970-01-01T00:00:06.020Z",2000620
+"""Maven"" calls 1","1970-01-01T00:00:05.020Z",2000520
+"""You"" posts a big blind of 2","1970-01-01T00:00:03.005Z",2000305
+"""Maven"" posts a small blind of 1","1970-01-01T00:00:02.004Z",2000204
+"Player stacks: #1 ""You"" (44) | #2 ""Maven"" (334)","1970-01-01T00:00:01.001Z",2000101
+"-- starting hand #2 (id: hand-2) No Limit Texas Hold'em (dealer: ""Maven"") --","1970-01-01T00:00:01.000Z",2000100
+"-- ending hand #1 --","1970-01-01T00:00:14.099Z",1001499
+"""Maven"" wins the match.","1970-01-01T00:00:14.098Z",1001498
+"""Maven"" collected 66 from pot with High card (combination: Jh, Ad, 9c, 8s, 10h)","1970-01-01T00:00:13.090Z",1001390
+"""Maven"" shows a Jh, Ad.","1970-01-01T00:00:12.061Z",1001261
+"""You"" shows a As, 2s.","1970-01-01T00:00:12.060Z",1001260
+"River: 9c, 8s, 10h, 5c [3c]","1970-01-01T00:00:11.020Z",1001120
+"Turn: 9c, 8s, 10h [5c]","1970-01-01T00:00:10.020Z",1001020
+"Flop:  [9c, 8s, 10h, 5c, 3c]","1970-01-01T00:00:09.020Z",1000920
+"""Maven"" calls 31","1970-01-01T00:00:08.020Z",1000820
+"""You"" raises to 33 and goes all in","1970-01-01T00:00:07.020Z",1000720
+"""Maven"" calls 1","1970-01-01T00:00:06.020Z",1000620
+"""You"" posts a big blind of 2","1970-01-01T00:00:03.005Z",1000305
+"""Maven"" posts a small blind of 1","1970-01-01T00:00:02.004Z",1000204
+"Player stacks: #1 ""You"" (11) | #2 ""Maven"" (367)","1970-01-01T00:00:01.001Z",1000101
+"-- starting hand #1 (id: hand-1) No Limit Texas Hold'em (dealer: ""Maven"") --","1970-01-01T00:00:01.000Z",1000100
