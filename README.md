@@ -167,3 +167,41 @@ src/lib/newsroom/upcomingEvents.js
 
 When the game-site schedule feed is ready, replace the internals of that
 repository without changing the homepage module or admin presentation contract.
+
+## ParaPoker Completed-Session Package Imports
+
+The package importer lives at:
+
+```text
+/admin/imports/parapoker
+```
+
+It is separate from the raw hand-history/CSV importer. The package importer is
+for completed-session JSON exports from `parapoker-official-client` using
+`para-completed-session-v1`.
+
+Before committing packages, apply this SQL in Supabase:
+
+```text
+sql/20260713_game_session_imports.sql
+```
+
+The migration creates:
+
+- `game_session_imports` for durable raw-package/audit storage
+- `commit_parapoker_session_import(uuid, jsonb)` for transactional commits
+- a unique idempotency index on `source_app` + `source_match_id`
+
+The admin flow is:
+
+1. Upload or paste package JSON.
+2. Validate checksum, schema, events, participants, cards, and privacy
+   exclusions server-side.
+3. Confirm participant mapping. NPCs remain NPC evidence and do not become
+   league player profiles.
+4. Preview derived sessions, hands, actions, results, stats, and notable hands.
+5. Commit explicitly. Public pages then read the imported session through the
+   existing session and hand-history view models.
+
+Local/private browser packages default to archive-only exhibition evidence.
+The importer does not recalculate standings or publish recaps.

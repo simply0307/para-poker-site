@@ -20,6 +20,22 @@ export default async function AdminImportsPage() {
       title="Import control room"
       description="Import raw hand history into Supabase, then audit session, hand, action, moment, result, and player-stat coverage before generating or publishing coverage."
     >
+      <section className="mb-6 rounded-lg border border-amber-300/40 bg-amber-50 p-5 shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.16em] text-amber-700">Completed-session packages</p>
+            <h2 className="mt-1 text-2xl font-black">Import official ParaPoker JSON packages</h2>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-amber-900">
+              Use this lane for versioned completed-session exports from the official client. It validates checksums, maps participants,
+              preserves NPCs, and commits through the package import RPC.
+            </p>
+          </div>
+          <Link href="/admin/imports/parapoker" className="rounded-sm bg-zinc-950 px-3 py-2 text-xs font-black uppercase tracking-[0.12em] text-white">
+            Open package importer
+          </Link>
+        </div>
+      </section>
+
       <RawHandImportPanel />
 
       <section className="mt-8 grid gap-4 md:grid-cols-3 lg:grid-cols-6">

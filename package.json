@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "validate:training": "node scripts/validate-training-capture.mjs",
-    "validate:homepage": "node scripts/validate-homepage-settings.mjs"
+    "validate:homepage": "node scripts/validate-homepage-settings.mjs",
+    "validate:parapoker-import": "node scripts/validate-parapoker-import.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.108.2",
