@@ -23,13 +23,25 @@ export function HandActionLog({ actionLog }) {
 
   return (
     <div className="mt-3 rounded-md border border-amber-300/20 bg-stone-950/75 p-3 font-mono text-sm leading-6 text-stone-200">
+      {(actionLog.raw || actionLog.parsed) && actionLog.boardCards?.length ? (
+        <p className="mb-3 rounded border border-white/10 bg-white/[0.025] px-3 py-2 text-xs font-bold uppercase tracking-[0.12em] text-stone-400">
+          Final board <span className="ml-2 text-sm normal-case tracking-normal text-amber-100">{actionLog.boardCards.join(" ")}</span>
+        </p>
+      ) : null}
       {actionLog.raw ? <pre className="overflow-auto whitespace-pre-wrap">{actionLog.raw}</pre> : null}
       {!actionLog.raw && actionLog.parsed ? <pre className="overflow-auto whitespace-pre-wrap">{actionLog.parsed}</pre> : null}
       {!actionLog.raw && !actionLog.parsed && actionLog.streets?.length ? (
         <div className="grid gap-3">
           {actionLog.streets.map((street) => (
             <section key={street.street}>
-              <p className="font-black uppercase tracking-[0.14em] text-amber-300">{street.street}</p>
+              <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                <p className="font-black uppercase tracking-[0.14em] text-amber-300">{street.street}</p>
+                {street.boardText ? (
+                  <p className="text-xs font-bold uppercase tracking-[0.12em] text-stone-500">
+                    Board <span className="ml-1 text-sm normal-case tracking-normal text-amber-100">{street.boardText}</span>
+                  </p>
+                ) : null}
+              </div>
               {street.actions?.length ? (
                 <ol className="mt-2 grid gap-1">
                   {street.actions.map((action, index) => (

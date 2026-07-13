@@ -29,6 +29,37 @@ function streetValue(hand, keys) {
   return keys.map((key) => valueToLogText(hand?.[key])).find(Boolean) || "";
 }
 
+function extractBoardCards(value) {
+  const normalized = valueToLogText(value);
+  if (!normalized) return [];
+  const compact = normalized.replace(/10/gu, "T");
+  return [...compact.matchAll(/\b([2-9TJQKA][♣♦♥♠cdhs])/giu)]
+    .map((match) => match[1].replace(/^T/iu, "10").replace(/[cdhs]$/u, (suit) => ({
+      c: "♣",
+      d: "♦",
+      h: "♥",
+      s: "♠",
+    }[suit.toLowerCase()] || suit)));
+}
+
+function boardCardsForStreet(street, boardCards = []) {
+  const key = text(street).toLowerCase();
+  if (!boardCards.length) return [];
+  if (key === "flop") return boardCards.slice(0, 3);
+  if (key === "turn") return boardCards.slice(0, 4);
+  if (key === "river" || key === "showdown" || key === "result") return boardCards.slice(0, 5);
+  return [];
+}
+
+function addBoardToStreet(street, boardCards = []) {
+  const cards = boardCardsForStreet(street.street, boardCards);
+  return {
+    ...street,
+    boardCards: cards,
+    boardText: cards.join(" "),
+  };
+}
+
 function actionAmountText(action) {
   if (!present(action?.amount)) return "";
   const parsed = Number(action.amount);
@@ -136,6 +167,7 @@ export function attachActionsToHands(hands = [], actions = []) {
 
 export function normalizeHandActionLog(hand = {}) {
   const actionStreets = groupActionRowsByStreet(hand.actionRows || hand.action_rows || hand.actions_log || []);
+  const boardCards = extractBoardCards(hand.board || hand.community_cards || hand.board_cards);
   const explicitRawAction = [
     hand.raw_hand_history,
     hand.raw_text,
@@ -160,7 +192,7 @@ export function normalizeHandActionLog(hand = {}) {
     .filter(([, body]) => present(body))
     .map(([street, body]) => ({ street, body }));
 
-  const displayStreets = actionStreets.length ? actionStreets : streets;
+  const displayStreets = (actionStreets.length ? actionStreets : streets).map((street) => addBoardToStreet(street, boardCards));
   const streetActionCount = displayStreets.filter((street) => !["Showdown", "Result"].includes(street.street)).length;
   const hasChronologicalAction = Boolean(actionStreets.length || explicitRawAction || parsed || streetActionCount);
   const summaryFacts = [
@@ -177,6 +209,7 @@ export function normalizeHandActionLog(hand = {}) {
     parsed,
     streets: displayStreets,
     actions: actionStreets.flatMap((street) => street.actions || []),
+    boardCards,
     summaryFacts,
     resultLine: valueToLogText(hand.raw_result),
     hasAction: hasChronologicalAction,
