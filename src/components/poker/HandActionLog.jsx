@@ -73,7 +73,13 @@ export function HandActionLog({ actionLog }) {
 }
 
 export function HandHistoryBlock({ hand, compact = false, detailHref = "", anchor = false }) {
-  const actionLog = hand.actionLog || normalizeHandActionLog(hand);
+  const normalizedActionLog = normalizeHandActionLog(hand);
+  const actionLog = {
+    ...normalizedActionLog,
+    ...(hand.actionLog || {}),
+    boardCards: hand.actionLog?.boardCards?.length ? hand.actionLog.boardCards : normalizedActionLog.boardCards,
+    streets: hand.actionLog?.streets?.some((street) => street.boardText) ? hand.actionLog.streets : normalizedActionLog.streets,
+  };
   const title = hand.hand_no ? `Hand #${hand.hand_no}` : "Recorded hand";
   const isFullHistory = actionLog.kind === "action_log";
   const detailLabel = isFullHistory ? "View Full Hand History" : "View Hand Summary";
