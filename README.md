@@ -118,3 +118,31 @@ Authorization: Bearer your-private-token
 
 Only examples explicitly marked `included`, with `approved_output` and an
 assigned split, are exported.
+
+## Homepage Presentation Settings
+
+The public homepage presentation is controlled by a limited, code-approved
+settings contract. Operators can choose module visibility, ordering, approved
+variants, source mode, featured public content, section titles/deks, item limits,
+and section-header visibility. The app does not expose raw CSS, arbitrary HTML,
+Tailwind classes, color pickers, spacing controls, or freeform layout editing.
+
+For local staging, homepage settings are stored in:
+
+```text
+newsroom-library/settings/homepage.json
+```
+
+All persistence must stay behind:
+
+```text
+src/lib/newsroom/homepageSettings.js
+```
+
+Components and view models should call the read/write settings helpers rather
+than touching the filesystem directly. This keeps the settings contract
+storage-agnostic.
+
+Production should move homepage settings to Supabase or another durable store.
+That migration should only replace the internals of the settings repository; it
+should not require rewriting the public homepage renderer or admin form.

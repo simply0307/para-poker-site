@@ -1,51 +1,26 @@
 import Link from "next/link";
 import Image from "next/image";
+import { PublicNav } from "@/components/newsroom/PublicNav";
 
-const publicLinks = [
-  ["/sessions", "Sessions"],
-  ["/players", "Players"],
-  ["/standings", "Standings"],
-  ["/moments", "Moments"],
-  ["/articles", "Articles"],
-];
-
-const adminLinks = [
-  ["/admin", "Admin"],
-  ["/admin/newsroom", "Newsroom"],
-  ["/admin/articles", "Articles"],
-];
-
-export function NewsroomShell({ children, eyebrow = "Para League" }) {
+export function NewsroomShell({ children }) {
   return (
     <main className="relative min-h-screen overflow-x-hidden bg-[#05080b] text-stone-100">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_-10%,rgba(211,185,126,0.20),transparent_34%),radial-gradient(circle_at_12%_18%,rgba(124,31,31,0.18),transparent_24%),linear-gradient(180deg,rgba(11,20,28,0.96),rgba(4,5,7,1)_58%)]" />
       <div className="pointer-events-none absolute inset-0 opacity-[0.18] [background-image:linear-gradient(rgba(255,255,255,0.045)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px)] [background-size:44px_44px]" />
       <div className="pointer-events-none absolute left-1/2 top-20 h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(211,185,126,0.12),transparent_62%)] blur-2xl" />
       <div className="relative mx-auto w-full max-w-7xl px-4 py-5 md:px-8">
-        <nav className="flex flex-wrap items-center justify-between gap-4 rounded-md border border-[#d8c087]/25 bg-[#061019]/88 px-4 py-3 shadow-2xl shadow-black/45 backdrop-blur">
-          <Link href="/" className="flex items-center gap-4 font-black tracking-wide text-white">
-            <span className="grid h-16 w-16 place-items-center overflow-hidden rounded-sm border border-[#d8c087]/55 bg-black shadow-[0_0_30px_rgba(216,192,135,0.28)] md:h-20 md:w-20">
-              <Image src="/images/para-league-logo.png" alt="Para League" width={78} height={78} className="h-[4.75rem] w-[4.75rem] object-cover md:h-[5.75rem] md:w-[5.75rem]" priority />
+        <nav className="flex items-center justify-between gap-3 rounded-md border border-[#d8c087]/25 bg-[#061019]/88 px-3 py-2.5 shadow-2xl shadow-black/45 backdrop-blur md:px-4 md:py-3">
+          <Link href="/" className="flex min-w-0 shrink-0 items-center gap-2.5 tracking-wide text-white md:gap-4">
+            <span className="grid h-11 w-11 place-items-center overflow-hidden rounded-sm border border-[#d8c087]/55 bg-black shadow-[0_0_22px_rgba(216,192,135,0.22)] md:h-16 md:w-16">
+              <Image src="/images/para-league-logo.png" alt="Para League" width={78} height={78} className="h-14 w-14 object-cover md:h-[4.75rem] md:w-[4.75rem]" priority />
             </span>
             <span>
-              <span className="block text-sm uppercase tracking-[0.26em] text-[#d8c087] md:text-base">Para-Poker</span>
-              <span className="block text-xl leading-none md:text-2xl">League</span>
+              <span className="block text-[0.64rem] font-bold uppercase tracking-[0.2em] text-[#d8c087] md:text-sm md:tracking-[0.26em]">Para-Poker</span>
+              <span className="block text-base font-black leading-none md:text-xl">League</span>
             </span>
           </Link>
-          <div className="flex flex-wrap gap-3 text-sm text-stone-300 md:gap-4">
-            {publicLinks.map(([href, label]) => (
-              <Link key={href} href={href} className="rounded-sm border border-transparent px-2 py-1 uppercase tracking-[0.12em] hover:border-[#d8c087]/30 hover:text-white">
-                {label}
-              </Link>
-            ))}
-            {adminLinks.map(([href, label]) => (
-              <Link key={href} href={href} className="rounded-sm border border-transparent px-2 py-1 uppercase tracking-[0.12em] text-[#d8c087] hover:border-[#d8c087]/30 hover:text-[#fff1bf]">
-                {label}
-              </Link>
-            ))}
-          </div>
+          <PublicNav />
         </nav>
-        <p className="mt-8 text-xs font-black uppercase tracking-[0.28em] text-[#d8c087]">{eyebrow}</p>
         <div className="pb-16">{children}</div>
       </div>
     </main>
@@ -61,7 +36,7 @@ export function LeagueHero({ eyebrow, title, dek, children, aside }) {
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#d8c087] to-transparent" />
       <div className="relative grid gap-6 p-5 md:p-8 lg:grid-cols-[minmax(0,1fr)_340px]">
         <div>
-          {eyebrow ? <p className="text-xs font-black uppercase tracking-[0.24em] text-[#d8c087]">{eyebrow}</p> : null}
+          {eyebrow ? <p className="text-xs font-bold uppercase tracking-[0.24em] text-[#d8c087]">{eyebrow}</p> : null}
           <h1 className="mt-3 max-w-4xl text-4xl font-black leading-[0.98] text-white drop-shadow-[0_2px_22px_rgba(0,0,0,0.65)] md:text-6xl">{title}</h1>
           {dek ? <p className="mt-5 max-w-3xl text-lg leading-8 text-stone-300">{dek}</p> : null}
           {children ? <div className="mt-6">{children}</div> : null}
@@ -90,7 +65,7 @@ export function StatCard({ label, value, detail }) {
   if (value === null || value === undefined || value === "") return null;
   return (
     <div className="rounded-md border border-[#d8c087]/16 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.025))] p-4 shadow-lg shadow-black/25">
-      <p className="text-xs font-black uppercase tracking-[0.16em] text-stone-400">{label}</p>
+      <p className="text-xs font-bold uppercase tracking-[0.16em] text-stone-400">{label}</p>
       <strong className="mt-2 block text-2xl font-black text-[#fff1bf]">{value}</strong>
       {detail ? <p className="mt-2 text-sm leading-6 text-stone-400">{detail}</p> : null}
     </div>
@@ -110,8 +85,8 @@ export function SectionHeader({ eyebrow, title, children }) {
   return (
     <header className="mb-4 flex flex-col gap-2 border-b border-white/10 pb-4 md:flex-row md:items-end md:justify-between">
       <div>
-        {eyebrow ? <p className="text-xs font-black uppercase tracking-[0.18em] text-amber-300">{eyebrow}</p> : null}
-        <h2 className="text-2xl font-black text-white md:text-3xl">{title}</h2>
+        {eyebrow ? <p className="text-xs font-bold uppercase tracking-[0.18em] text-amber-300">{eyebrow}</p> : null}
+        <h2 className="text-2xl font-bold text-white md:text-3xl">{title}</h2>
       </div>
       {children ? <div className="max-w-xl text-sm leading-6 text-stone-400">{children}</div> : null}
     </header>
@@ -137,7 +112,7 @@ export function DataTableShell({ title, columns = [], rows = [], empty = "No row
             <thead>
               <tr>
                 {columns.map((column) => (
-                  <th key={column} className="border-b border-white/10 px-3 py-3 text-xs font-black uppercase tracking-[0.14em] text-stone-400">
+                  <th key={column} className="border-b border-white/10 px-3 py-3 text-xs font-bold uppercase tracking-[0.14em] text-stone-400">
                     {column}
                   </th>
                 ))}
@@ -157,7 +132,7 @@ export function MomentCard({ title, meta, pot, children, href }) {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           {meta ? <p className="text-xs font-bold uppercase tracking-[0.16em] text-stone-400">{meta}</p> : null}
-          <h3 className="mt-1 text-xl font-black text-white">{title}</h3>
+          <h3 className="mt-1 text-xl font-bold text-white">{title}</h3>
         </div>
         {pot ? <strong className="rounded-sm bg-[#d8c087] px-3 py-1 text-sm text-[#061019]">{pot}</strong> : null}
       </div>
@@ -174,7 +149,7 @@ export function PlayerCard({ name, meta, href, children }) {
       <div className="grid h-12 w-12 shrink-0 place-items-center rounded-sm border border-[#d8c087]/35 bg-[#d8c087]/10 text-xl font-black text-[#fff1bf]">{initial}</div>
       <div>
         {meta ? <p className="text-xs font-bold uppercase tracking-[0.14em] text-stone-400">{meta}</p> : null}
-        <h2 className="text-2xl font-black text-white">{name}</h2>
+        <h2 className="text-2xl font-bold text-white">{name}</h2>
         {children ? <div className="mt-2 text-sm leading-6 text-stone-300">{children}</div> : null}
       </div>
     </article>

@@ -7,32 +7,81 @@
   "modules": [
     {
       "type": "hero_board",
-      "enabled": true
+      "enabled": true,
+      "variant": "editorial_lead",
+      "sourceMode": "automatic",
+      "selectedIds": [],
+      "title": "Para League",
+      "dek": "The first sessions are setting the board.",
+      "itemLimit": 1,
+      "showSectionHeader": false
     },
     {
       "type": "stat_strip",
-      "enabled": true
-    },
-    {
-      "type": "latest_session",
-      "enabled": true
-    },
-    {
-      "type": "current_standings",
-      "enabled": true
+      "enabled": true,
+      "variant": "standard",
+      "sourceMode": "automatic",
+      "selectedIds": [],
+      "title": "League Signals",
+      "dek": "The public record in compact form.",
+      "itemLimit": 4,
+      "showSectionHeader": false
     },
     {
       "type": "featured_players",
-      "enabled": true
-    },
-    {
-      "type": "featured_moments",
-      "enabled": true
+      "enabled": true,
+      "variant": "form_watch",
+      "sourceMode": "automatic",
+      "selectedIds": [],
+      "title": "Players To Know",
+      "dek": "Names carrying the early public record.",
+      "itemLimit": 3,
+      "showSectionHeader": true
     },
     {
       "type": "latest_articles",
-      "enabled": true
+      "enabled": true,
+      "variant": "headline_list",
+      "sourceMode": "latest",
+      "selectedIds": [],
+      "title": "Latest Coverage",
+      "dek": "Approved newsroom pieces from the league desk.",
+      "itemLimit": 3,
+      "showSectionHeader": true
+    },
+    {
+      "type": "current_standings",
+      "enabled": true,
+      "variant": "compact_board",
+      "sourceMode": "automatic",
+      "selectedIds": [],
+      "title": "Current Board",
+      "dek": "Rank and points stay tied to verified standings.",
+      "itemLimit": 5,
+      "showSectionHeader": true
+    },
+    {
+      "type": "featured_moments",
+      "enabled": true,
+      "variant": "archive_clippings",
+      "sourceMode": "automatic",
+      "selectedIds": [],
+      "title": "Moments From The Archive",
+      "dek": "Hands that left a visible mark.",
+      "itemLimit": 3,
+      "showSectionHeader": true
+    },
+    {
+      "type": "latest_session",
+      "enabled": true,
+      "variant": "match_report",
+      "sourceMode": "latest",
+      "selectedIds": [],
+      "title": "Latest Session",
+      "dek": "The newest approved table result.",
+      "itemLimit": 1,
+      "showSectionHeader": true
     }
   ],
-  "updatedAt": "2026-07-11T20:46:46.292Z"
+  "updatedAt": "2026-07-13T03:13:31.356Z"
 }
