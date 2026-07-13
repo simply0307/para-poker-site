@@ -1,13 +1,6 @@
-export const DRAFT_TYPES = [
-  { key: "session_recap", label: "Session Recap", endpoint: "/api/recaps/generate", requiredSource: "sessionId" },
-  { key: "player_profile", label: "Player Profile", endpoint: "/api/profiles/generate", requiredSource: "playerId" },
-  { key: "player_session_recap", label: "Player Session Recap", endpoint: "/api/player-session-recaps/generate", requiredSource: "playerId + sessionId" },
-  { key: "standings_summary", label: "Standings Summary", endpoint: "/api/standings/generate", requiredSource: "seasonCode" },
-  { key: "moment_blurb", label: "Moment Blurb", endpoint: "/api/moments/generate", requiredSource: "momentId" },
-  { key: "league_article", label: "League Article", endpoint: "/api/articles/generate", requiredSource: "articleRequest" },
-  { key: "social_caption", label: "Social Caption", endpoint: "/api/social-captions/generate", requiredSource: "sessionId/playerId/momentId" },
-  { key: "private_note", label: "Private/Admin Note", endpoint: "/api/private-notes/generate", requiredSource: "sessionId/playerId/momentId" },
-];
+import { getDraftTypeOptions } from "@/lib/newsroom/draftTypes";
+
+export const DRAFT_TYPES = getDraftTypeOptions();
 
 export const VOICE_MODES = [
   "Official Recap",

@@ -23,6 +23,12 @@ function bodyFieldFor(draft = {}) {
   return ["recap_body", "profile_body", "article_body", "caption", "long_body", "body"].find((field) => typeof draft?.[field] === "string") || "";
 }
 
+function titleFieldFor(draft = {}) {
+  if (typeof draft?.headline === "string") return "headline";
+  if (typeof draft?.title === "string") return "title";
+  return "headline";
+}
+
 function mergePayload(current, patch) {
   const next = { ...(current || {}) };
   for (const [key, value] of Object.entries(patch || {})) {
@@ -43,7 +49,18 @@ function patchMatchesPayload(payload = {}, patch = {}) {
 }
 
 function PayloadSelectionPanel({ title = "Source selector", options = [], payload = {}, onSelect }) {
+  const [query, setQuery] = useState("");
   if (!options.length) return null;
+  const normalizedQuery = query.trim().toLowerCase();
+  const filteredOptions = normalizedQuery
+    ? options.filter((option) =>
+        [option.label, option.description, option.id]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase()
+          .includes(normalizedQuery)
+      )
+    : options;
 
   return (
     <section className="mt-8 rounded-lg border border-zinc-300 bg-white p-4 shadow-sm">
@@ -55,26 +72,51 @@ function PayloadSelectionPanel({ title = "Source selector", options = [], payloa
             Pick a source to update the generation payload. The JSON remains editable below.
           </p>
         </div>
-        <p className="text-sm font-bold text-zinc-500">{options.length} options</p>
+        <p className="text-sm font-bold text-zinc-500">
+          {filteredOptions.length} of {options.length} options
+        </p>
       </div>
-      <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-        {options.map((option) => {
-          const active = patchMatchesPayload(payload, option.patch || {});
-          return (
-            <button
-              key={option.id || option.label}
-              type="button"
-              onClick={() => onSelect(option.patch || {})}
-              className={`rounded-md border p-3 text-left transition ${
-                active ? "border-amber-700 bg-amber-50" : "border-zinc-200 bg-zinc-50 hover:border-amber-700 hover:bg-amber-50"
-              }`}
-            >
-              <span className="block font-black text-zinc-950">{option.label}</span>
-              {option.description ? <span className="mt-1 block text-sm leading-6 text-zinc-600">{option.description}</span> : null}
-              {active ? <span className="mt-2 inline-block rounded-sm bg-amber-700 px-2 py-1 text-xs font-black uppercase tracking-wide text-white">Selected</span> : null}
-            </button>
-          );
-        })}
+      <div className="mt-4 flex flex-wrap items-center gap-3">
+        <label className="min-w-0 flex-1">
+          <span className="sr-only">Filter draft targets</span>
+          <input
+            type="search"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Filter by hand, player, winner, contender, pot, or session..."
+            className="w-full rounded-md border border-zinc-300 px-3 py-2.5 text-sm"
+          />
+        </label>
+        {query ? (
+          <button type="button" onClick={() => setQuery("")} className="rounded-md border border-zinc-300 px-3 py-2.5 text-sm font-black">
+            Clear
+          </button>
+        ) : null}
+      </div>
+      <div className="mt-4 max-h-[28rem] overflow-y-auto rounded-md border border-zinc-200 bg-zinc-50 p-3">
+        {filteredOptions.length ? (
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {filteredOptions.map((option) => {
+              const active = patchMatchesPayload(payload, option.patch || {});
+              return (
+                <button
+                  key={option.id || option.label}
+                  type="button"
+                  onClick={() => onSelect(option.patch || {})}
+                  className={`rounded-md border bg-white p-3 text-left transition ${
+                    active ? "border-amber-700 bg-amber-50" : "border-zinc-200 hover:border-amber-700 hover:bg-amber-50"
+                  }`}
+                >
+                  <span className="block font-black text-zinc-950">{option.label}</span>
+                  {option.description ? <span className="mt-1 block text-sm leading-6 text-zinc-600">{option.description}</span> : null}
+                  {active ? <span className="mt-2 inline-block rounded-sm bg-amber-700 px-2 py-1 text-xs font-black uppercase tracking-wide text-white">Selected</span> : null}
+                </button>
+              );
+            })}
+          </div>
+        ) : (
+          <p className="p-4 text-sm font-bold text-zinc-500">No draft targets match that filter.</p>
+        )}
       </div>
     </section>
   );
@@ -108,6 +150,8 @@ export function GenericDraftWorkspace({
   const currentPayload = parseJson(payloadText) || {};
   const currentDraft = parseJson(draftText) || {};
   const bodyField = bodyFieldFor(currentDraft);
+  const titleField = titleFieldFor(currentDraft);
+  const isArticleWorkspace = endpoint === "/api/articles/generate" || draftRow?._draft_table === "article_drafts" || Boolean(currentPayload.articleRequest);
   const selectedVariation = currentPayload.variation || currentPayload.variationKey || currentPayload.articleRequest?.variation || "";
 
   function chooseVariation(variationKey) {
@@ -192,6 +236,7 @@ export function GenericDraftWorkspace({
       body: JSON.stringify({
         table: draftRow._draft_table || "recap_drafts",
         draft,
+        articleRequest: currentPayload.articleRequest,
         status: draftRow.status || "draft",
         visibility: draftRow.visibility || "admin",
       }),
@@ -228,6 +273,32 @@ export function GenericDraftWorkspace({
   function updateBody(nextValue) {
     if (!bodyField) return;
     setDraftText(pretty({ ...(parseJson(draftText) || {}), [bodyField]: nextValue }));
+  }
+
+  function updateDraftField(field, value) {
+    setDraftText(pretty({ ...(parseJson(draftText) || {}), [field]: value }));
+  }
+
+  function updateArticleRequestField(field, value) {
+    setPayloadText((currentText) => {
+      const payload = parseJson(currentText) || {};
+      return pretty({
+        ...payload,
+        articleRequest: {
+          ...(payload.articleRequest || {}),
+          [field]: value,
+        },
+      });
+    });
+  }
+
+  function updateAuthor(value) {
+    updateDraftField("author", value);
+    updateArticleRequestField("authorName", value);
+  }
+
+  function updateDisplayDate(value) {
+    updateArticleRequestField("displayDate", value);
   }
 
   async function setPublishState(action) {
@@ -381,6 +452,7 @@ export function GenericDraftWorkspace({
             {drafts.map((row) => {
               const headline = row.draft?.headline || row.draft?.title || row.article_request?.topic || "Untitled draft";
               const active = draftRow?.id === row.id;
+              const coverageTarget = row.article_request?.coverageTarget || row.context_packet?.coverage_target || null;
               return (
                 <article key={`${row._draft_table || "draft"}-${row.id}`} className={`rounded-md border p-4 ${active ? "border-amber-600 bg-amber-50" : "border-zinc-200 bg-zinc-50"}`}>
                   <div className="flex flex-wrap items-start justify-between gap-3">
@@ -389,6 +461,11 @@ export function GenericDraftWorkspace({
                       <p className="mt-1 text-xs font-bold uppercase tracking-wide text-zinc-500">
                         {(row._draft_table || "recap_drafts").replace(/_/g, " ")} / {row.visibility || "admin"} / {row.status || "draft"}
                       </p>
+                      {coverageTarget?.role ? (
+                        <p className="mt-1 text-sm font-bold text-amber-700">
+                          Covers {coverageTarget.role}: {coverageTarget.playerName || coverageTarget.player_name || "target pending"}
+                        </p>
+                      ) : null}
                       <p className="mt-1 text-sm text-zinc-600">{row.generated_at ? new Date(row.generated_at).toLocaleString() : "Date pending"}</p>
                     </div>
                     <div className="flex flex-wrap gap-2">
@@ -462,6 +539,37 @@ export function GenericDraftWorkspace({
         </label>
       </section>
 
+      <section className="mt-6 rounded-lg border border-zinc-300 bg-white p-4 shadow-sm">
+        <p className="text-xs font-black uppercase tracking-[0.18em] text-amber-700">Editable display fields</p>
+        <div className="mt-4 grid gap-4 md:grid-cols-2">
+          <TextInput
+            label="Title"
+            value={currentDraft[titleField] || ""}
+            onChange={(value) => updateDraftField(titleField, value)}
+          />
+          <TextInput
+            label="Subheadline"
+            value={currentDraft.subheadline || ""}
+            onChange={(value) => updateDraftField("subheadline", value)}
+          />
+          {isArticleWorkspace ? (
+            <>
+              <TextInput
+                label="Author"
+                value={currentDraft.author || currentDraft.byline || currentPayload.articleRequest?.authorName || currentPayload.articleRequest?.author_name || ""}
+                onChange={updateAuthor}
+              />
+              <TextInput
+                label="Display date"
+                type="date"
+                value={currentPayload.articleRequest?.displayDate || currentPayload.articleRequest?.display_date || ""}
+                onChange={updateDisplayDate}
+              />
+            </>
+          ) : null}
+        </div>
+      </section>
+
       {bodyField ? (
         <div className="mt-6">
           <RichTextEditor label={`Editable ${bodyField}`} value={currentDraft[bodyField] || ""} onChange={updateBody} />
@@ -510,5 +618,19 @@ export function GenericDraftWorkspace({
         </details>
       ) : null}
     </AdminShell>
+  );
+}
+
+function TextInput({ label, value, onChange, type = "text" }) {
+  return (
+    <label className="grid gap-2 text-sm font-bold">
+      {label}
+      <input
+        type={type}
+        className="rounded-md border border-zinc-300 p-2.5 text-sm"
+        value={value || ""}
+        onChange={(event) => onChange(event.target.value)}
+      />
+    </label>
   );
 }

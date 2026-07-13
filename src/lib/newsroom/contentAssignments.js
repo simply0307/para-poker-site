@@ -1,3 +1,5 @@
+import { getDraftType, getDraftVariation, getDraftVariationOptions } from "@/lib/newsroom/draftTypes";
+
 export const contentAssignments = {
   player_profile: {
     id: "player-profile-assignment-v1",
@@ -325,22 +327,21 @@ export const contentAssignments = {
 };
 
 export function getContentAssignment(type) {
-  return contentAssignments[type] || null;
+  const assignment = contentAssignments[type] || null;
+  const draftType = getDraftType(type);
+  if (!assignment && !draftType) return null;
+  return {
+    ...(assignment || {}),
+    ...(draftType || {}),
+    defaultVariation: draftType?.defaultVariation || assignment?.defaultVariation,
+    variations: draftType?.variations || assignment?.variations || [],
+  };
 }
 
 export function getVariationOptions(type) {
-  return getContentAssignment(type)?.variations || [];
+  return getDraftVariationOptions(type);
 }
 
 export function getSelectedVariation(type, requestedKey = "") {
-  const assignment = getContentAssignment(type);
-  if (!assignment) return null;
-
-  const requested = String(requestedKey || "").trim();
-  return (
-    assignment.variations.find((variation) => variation.key === requested) ||
-    assignment.variations.find((variation) => variation.key === assignment.defaultVariation) ||
-    assignment.variations[0] ||
-    null
-  );
+  return getDraftVariation(type, requestedKey);
 }

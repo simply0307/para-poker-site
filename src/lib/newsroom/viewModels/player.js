@@ -73,17 +73,20 @@ export async function buildPlayerViewModel(playerIdOrSlug) {
   const statsOverride = applyOverridesToList(playerData.sessionStats || [], "player", overrides);
   const resultsOverride = applyOverridesToList(playerData.sessionResults || [], "player", overrides);
   const momentsOverride = applyOverridesToList(playerData.moments || [], "moment", overrides);
+  const contestedMomentsOverride = applyOverridesToList(playerData.contestedMoments || [], "moment", overrides);
   const player = playerOverride.value;
   const standings = standingsOverride.value;
   const sessionStats = statsOverride.value;
   const sessionResults = resultsOverride.value;
   const moments = momentsOverride.value;
+  const contestedMoments = contestedMomentsOverride.value;
   const appliedOverrides = [
     ...playerOverride.appliedOverrides,
     ...standingsOverride.appliedOverrides,
     ...statsOverride.appliedOverrides,
     ...resultsOverride.appliedOverrides,
     ...momentsOverride.appliedOverrides,
+    ...contestedMomentsOverride.appliedOverrides,
   ];
   const [publishedDraft, sessionMap] = await Promise.all([
     getPublishedDraft({ scope: "player", sourcePlayerId: player.id }),
@@ -123,6 +126,9 @@ export async function buildPlayerViewModel(playerIdOrSlug) {
     sessionResults,
     recentSessions,
     moments,
+    wonMoments: moments,
+    contestedMoments,
+    involvedMoments: [...moments, ...contestedMoments],
     notableHands: moments,
     pokerStats,
     statCards,

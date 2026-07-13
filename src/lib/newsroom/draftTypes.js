@@ -5,6 +5,8 @@ export const DRAFT_TYPE_KEYS = {
   STANDINGS_SUMMARY: "standings_summary",
   MOMENT_BLURB: "moment_blurb",
   LEAGUE_ARTICLE: "league_article",
+  SOCIAL_CAPTION: "social_caption",
+  PRIVATE_NOTE: "private_note",
 };
 
 export const draftTypes = {
@@ -13,10 +15,15 @@ export const draftTypes = {
     label: "Session Recap",
     purpose: "Public article recap of one verified Para League session.",
     sourceType: "session",
+    requiredSource: "sessionId",
+    endpoint: "/api/recaps/generate",
+    draftTable: "recap_drafts",
+    fallbackScope: "session",
     publicRoutePattern: "/sessions/[sessionId]",
     adminRoutePattern: "/admin/sessions/[sessionId]",
     guideFile: "09-session-recap-magic-guide.md",
     schemaKey: "sessionRecapDraftSchema",
+    defaultPromptPreset: "official_session_recap",
     defaultVariation: "turning_point_led",
     variations: [
       {
@@ -66,10 +73,15 @@ export const draftTypes = {
     label: "Player Profile",
     purpose: "Public player identity and archive page that turns verified league history into a player-facing profile.",
     sourceType: "player",
+    requiredSource: "playerId",
+    endpoint: "/api/profiles/generate",
+    draftTable: "profile_drafts",
+    fallbackScope: "player",
     publicRoutePattern: "/players/[playerId]",
     adminRoutePattern: "/admin/players/[playerId]",
     guideFile: "10-player-profile-guide.md",
     schemaKey: "profileDraftSchema",
+    defaultPromptPreset: "player_dossier",
     defaultVariation: "identity_snapshot",
     variations: [
       {
@@ -121,10 +133,15 @@ export const draftTypes = {
     label: "Player Session Recap",
     purpose: "Player-specific recap of one session, usable on player pages and session pages.",
     sourceType: "player_session",
+    requiredSource: "playerId + sessionId",
+    endpoint: "/api/player-session-recaps/generate",
+    draftTable: "player_session_recap_drafts",
+    fallbackScope: "player_session",
     publicRoutePattern: "/players/[playerId] and /sessions/[sessionId]",
     adminRoutePattern: "/admin/players/[playerId]",
     guideFile: "11-player-session-recap-guide.md",
     schemaKey: "sessionRecapDraftSchema",
+    defaultPromptPreset: "player_dossier",
     defaultVariation: "pressure_spot_note",
     variations: [
       {
@@ -173,10 +190,15 @@ export const draftTypes = {
     label: "Standings Summary",
     purpose: "Explain the standings page in human terms so the board feels alive and readable.",
     sourceType: "season",
+    requiredSource: "seasonCode",
+    endpoint: "/api/standings/generate",
+    draftTable: "standings_drafts",
+    fallbackScope: "season",
     publicRoutePattern: "/standings",
     adminRoutePattern: "/admin/standings",
     guideFile: "12-standings-summary-guide.md",
     schemaKey: "articleDraftSchema",
+    defaultPromptPreset: "standings_pulse",
     defaultVariation: "table_state",
     variations: [
       {
@@ -226,10 +248,15 @@ export const draftTypes = {
     label: "Moment Blurb",
     purpose: "Short public card copy for notable hands, turning points, and archive-worthy table moments.",
     sourceType: "moment",
+    requiredSource: "momentId",
+    endpoint: "/api/moments/generate",
+    draftTable: "moment_blurb_drafts",
+    fallbackScope: "moment",
     publicRoutePattern: "/moments",
     adminRoutePattern: "/admin/moments",
     guideFile: "13-moment-blurb-guide.md",
     schemaKey: "articleDraftSchema",
+    defaultPromptPreset: "moment_archive_note",
     defaultVariation: "pressure_moment",
     variations: [
       {
@@ -279,10 +306,15 @@ export const draftTypes = {
     label: "League Article",
     purpose: "Longer newsroom article built from approved league data, standings, sessions, moments, and player history.",
     sourceType: "article",
+    requiredSource: "articleRequest",
+    endpoint: "/api/articles/generate",
+    draftTable: "article_drafts",
+    fallbackScope: "article",
     publicRoutePattern: "/articles/[articleId]",
     adminRoutePattern: "/admin/articles",
     guideFile: "14-league-article-guide.md",
     schemaKey: "articleDraftSchema",
+    defaultPromptPreset: "official_session_recap",
     defaultVariation: "league_newsroom",
     variations: [
       {
@@ -326,6 +358,90 @@ export const draftTypes = {
       "empty hype",
     ],
   },
+
+  [DRAFT_TYPE_KEYS.SOCIAL_CAPTION]: {
+    key: DRAFT_TYPE_KEYS.SOCIAL_CAPTION,
+    label: "Social Caption",
+    purpose: "Short Para League social/card copy from verified league data.",
+    sourceType: "mixed",
+    requiredSource: "sessionId/playerId/momentId",
+    endpoint: "/api/social-captions/generate",
+    draftTable: "social_caption_drafts",
+    fallbackScope: "social_caption",
+    publicRoutePattern: "Future social surfaces",
+    adminRoutePattern: "/admin/social-captions",
+    guideFile: "15-prose-style-examples.md",
+    schemaKey: "socialCaptionDraftSchema",
+    defaultPromptPreset: "social_caption",
+    defaultVariation: "recap_card",
+    variations: [
+      {
+        key: "recap_card",
+        label: "Recap card",
+        instruction: "Write compact public card copy around the strongest supplied result, pot, player, or moment.",
+      },
+      {
+        key: "winner_post",
+        label: "Winner post",
+        instruction: "Center the winner and the cleanest verified reason the win matters.",
+      },
+      {
+        key: "moment_post",
+        label: "Moment post",
+        instruction: "Center one supplied hand or moment with hand number, pot, winner, or consequence when supplied.",
+      },
+      {
+        key: "standings_post",
+        label: "Standings post",
+        instruction: "Write a current-board caption. Treat standings as live and provisional unless data says otherwise.",
+      },
+      {
+        key: "sporting_roast_admin",
+        label: "Sporting roast admin",
+        instruction: "Use playful sports edge for admin review only. No personal insults or unsupported weakness claims.",
+      },
+    ],
+    publicSlots: ["social caption draft", "card text", "platform variants"],
+    playerFacingGoal: "Make approved league beats shareable without inventing drama.",
+    avoidTone: ["generic caption", "fake rivalry", "invented emotion", "overexplained recap"],
+  },
+
+  [DRAFT_TYPE_KEYS.PRIVATE_NOTE]: {
+    key: DRAFT_TYPE_KEYS.PRIVATE_NOTE,
+    label: "Private/Admin Note",
+    purpose: "Admin-only review notes from verified data. Not public copy.",
+    sourceType: "mixed",
+    requiredSource: "sessionId/playerId/momentId",
+    endpoint: "/api/private-notes/generate",
+    draftTable: "private_note_drafts",
+    fallbackScope: "private_note",
+    publicRoutePattern: "Admin only",
+    adminRoutePattern: "/admin/prompt-studio",
+    guideFile: "15-prose-style-examples.md",
+    schemaKey: "privateNoteDraftSchema",
+    defaultPromptPreset: "coach_private_note",
+    defaultVariation: "coach_private",
+    variations: [
+      {
+        key: "coach_private",
+        label: "Coach private",
+        instruction: "Write a private review note for editors/coaches from verified hands, actions, and results.",
+      },
+      {
+        key: "technical_poker",
+        label: "Technical poker",
+        instruction: "Write a technical note grounded in chronological hand/action data; frame uncertainty as review questions.",
+      },
+      {
+        key: "sporting_roast",
+        label: "Sporting roast",
+        instruction: "Write an admin-only playful roast. Keep it league-safe and fact-grounded.",
+      },
+    ],
+    publicSlots: ["admin review note"],
+    playerFacingGoal: "Keep private analysis useful without leaking it into public surfaces.",
+    avoidTone: ["public hype", "personal insult", "invented intent", "unsupported weakness claims"],
+  },
 };
 
 export function getDraftType(typeKey) {
@@ -356,4 +472,30 @@ export function getDraftVariationOptions(typeKey) {
 
 export function getDraftPublicSlots(typeKey) {
   return getDraftType(typeKey)?.publicSlots || [];
+}
+
+export function getDraftTypeOptions() {
+  return getDraftTypes().map((type) => ({
+    key: type.key,
+    label: type.label,
+    endpoint: type.endpoint,
+    requiredSource: type.requiredSource,
+    draftTable: type.draftTable,
+    fallbackScope: type.fallbackScope,
+  }));
+}
+
+export function getDraftTableConfig() {
+  return Object.fromEntries(
+    getDraftTypes()
+      .filter((type) => type.draftTable)
+      .map((type) => [
+        type.draftTable,
+        {
+          table: type.draftTable,
+          fallbackScope: type.fallbackScope,
+          contentType: type.key,
+        },
+      ])
+  );
 }

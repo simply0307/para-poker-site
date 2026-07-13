@@ -115,6 +115,24 @@ function publicHandMoment(moment) {
   };
 }
 
+function normalizeCoverageTarget(target = {}, moment = {}) {
+  const role = ["winner", "contender"].includes(text(target.role).toLowerCase()) ? text(target.role).toLowerCase() : "winner";
+  const winnerName = cleanName(moment.winner_name, "");
+  const involved = Array.isArray(moment.involved_players) ? moment.involved_players.map((name) => cleanName(name, "")).filter(Boolean) : [];
+  const contenders = involved.filter((name) => name && name !== winnerName);
+  const requestedName = cleanName(target.playerName || target.player_name, "");
+  return {
+    role,
+    player_name: requestedName || (role === "contender" ? contenders[0] || "" : winnerName),
+    winner_name: winnerName,
+    contender_names: contenders,
+    instruction:
+      role === "contender"
+        ? "Write the blurb from the contender/runner-up angle. Do not claim this player won the hand; treat the hand as pressure, resistance, a loss, or context as supported by facts."
+        : "Write the blurb from the winner angle. The winning player can own the moment because they are listed as the hand winner.",
+  };
+}
+
 function cleanPlayerReferences(value) {
   if (Array.isArray(value)) return value.map(cleanPlayerReferences);
   if (!value || typeof value !== "object") return typeof value === "string" ? stripPlayerHandlesFromText(value) : value;
@@ -260,18 +278,21 @@ export async function buildPlayerRecapInputPacket(playerIdOrSlug, options = {}) 
   const statsOverride = applyOverridesToList(playerData.sessionStats || [], "player", overrides);
   const resultsOverride = applyOverridesToList(playerData.sessionResults || [], "player", overrides);
   const momentsOverride = applyOverridesToList(playerData.moments || [], "moment", overrides);
+  const contestedMomentsOverride = applyOverridesToList(playerData.contestedMoments || [], "moment", overrides);
   const appliedOverrides = [
     ...playerOverride.appliedOverrides,
     ...standingsOverride.appliedOverrides,
     ...statsOverride.appliedOverrides,
     ...resultsOverride.appliedOverrides,
     ...momentsOverride.appliedOverrides,
+    ...contestedMomentsOverride.appliedOverrides,
   ];
   const player = playerOverride.value;
   const standings = standingsOverride.value;
   const sessionStats = statsOverride.value;
   const sessionResults = resultsOverride.value;
   const moments = momentsOverride.value;
+  const contestedMoments = contestedMomentsOverride.value;
   const editorialDocs = await loadNewsroomEditorialDocs();
   const proseStyleExamples = await loadProseStyleExamples();
   const taskContext = await buildTaskContext("player_profile", options.variation || options.variationKey);
@@ -315,7 +336,15 @@ export async function buildPlayerRecapInputPacket(playerIdOrSlug, options = {}) 
       recent_session_stats: cleanPlayerReferences(sessionStats),
       recent_results: cleanPlayerReferences(sessionResults),
       moment_source_facts: moments.map((moment) => ({
-        note: "Use these as source facts only, not style examples.",
+        note: "Player won these moments. Use these as source facts only, not style examples.",
+        hand_no: text(moment.hand_no),
+        winner_name: cleanName(moment.winner_name, ""),
+        pot_text: moment.pot_collected ? `${formatNumber(moment.pot_collected)} chips` : "",
+        board: text(moment.board),
+        winning_hand: text(moment.winning_hand),
+      })),
+      contested_moment_source_facts: contestedMoments.map((moment) => ({
+        note: "Player was involved but did not win this moment. Treat it as resistance, pressure, or context only when supported.",
         hand_no: text(moment.hand_no),
         winner_name: cleanName(moment.winner_name, ""),
         pot_text: moment.pot_collected ? `${formatNumber(moment.pot_collected)} chips` : "",
@@ -324,6 +353,7 @@ export async function buildPlayerRecapInputPacket(playerIdOrSlug, options = {}) 
       })),
       constraints: [
         "Write an expressive player-facing profile draft from supplied data only.",
+        "Do not assign a moment to the player unless they are listed as the winner. Use contested moments as context, not player-owned achievements.",
         ...HARD_FACTUAL_GUARDRAILS,
       ],
     },
@@ -338,6 +368,7 @@ export async function buildMomentBlurbInputPacket(momentId = "", editorialNotes 
   const overrides = await readActiveDataOverrides();
   const momentOverride = applyOverridesToEntity(momentData.moment, "moment", overrides);
   const sessionOverride = applyOverridesToEntity(momentData.session || {}, "session", overrides);
+  const coverageTarget = normalizeCoverageTarget(options.coverageTarget || {}, momentOverride.value);
   const taskContext = await buildTaskContext("moment_blurb", options.variation || options.variationKey);
   const promptConfig = promptConfigContext("moment_blurb", options);
 
@@ -370,13 +401,17 @@ export async function buildMomentBlurbInputPacket(momentId = "", editorialNotes 
       editorial_docs: editorialDocs,
       editorial_notes: editorialNotes,
       applied_overrides: [...momentOverride.appliedOverrides, ...sessionOverride.appliedOverrides],
+      coverage_target: coverageTarget,
       moment_source_facts: {
         note: "Use this as grounded hand/moment data only. Do not invent action or emotion.",
         ...publicHandMoment(momentOverride.value),
+        involved_players: cleanPlayerReferences(momentOverride.value.involved_players || []),
         session_code: sessionOverride.value?.session_code || "",
       },
       constraints: [
         "Write a short public moment blurb from supplied data only.",
+        "Follow coverage_target.role. If role is contender, do not describe the target player as winner or owner of the pot.",
+        coverageTarget.instruction,
         ...HARD_FACTUAL_GUARDRAILS,
       ],
     },

@@ -22,6 +22,7 @@ export async function PATCH(request, { params }) {
       draft: body.draft,
       status: body.status,
       visibility: body.visibility,
+      articleRequest: body.articleRequest,
     });
 
     return NextResponse.json({ draft });

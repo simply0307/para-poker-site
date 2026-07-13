@@ -14,16 +14,43 @@ export default async function AdminMomentsPage() {
   const momentDrafts = await listNewsroomDrafts({ table: "moment_blurb_drafts", fallbackScope: "moment" });
   const payloadOptions = detectedMoments
     .slice(0, 24)
-    .map((moment) => {
+    .flatMap((moment) => {
       const momentId = text(moment.id || moment.hand_id || moment.momentId);
-      return {
-        id: momentId,
-        label: `${moment.hand_no ? `Hand #${moment.hand_no}` : "Moment"}${moment.playerName ? ` / ${moment.playerName}` : ""}`,
-        description: [moment.sessionCode, moment.potText, moment.detectionReason].filter(Boolean).join(" / "),
-        patch: {
-          momentId,
+      if (!momentId) return [];
+      const contenderNames = Array.isArray(moment.involved_players)
+        ? moment.involved_players.filter((name) => text(name) && text(name) !== text(moment.winner_name))
+        : [];
+      const baseLabel = `${moment.hand_no ? `Hand #${moment.hand_no}` : "Moment"}${moment.potText ? ` / ${moment.potText}` : ""}`;
+      const description = [moment.sessionCode, moment.detectionReason].filter(Boolean).join(" / ");
+      const options = [
+        {
+          id: `${momentId}-winner`,
+          label: `${baseLabel} / Cover winner: ${moment.playerName || moment.winner_name || "Winner"}`,
+          description,
+          patch: {
+            momentId,
+            coverageTarget: {
+              role: "winner",
+              playerName: text(moment.winner_name || moment.playerName),
+            },
+          },
         },
-      };
+      ];
+      for (const contender of contenderNames) {
+        options.push({
+          id: `${momentId}-contender-${contender}`,
+          label: `${baseLabel} / Cover contender: ${contender}`,
+          description,
+          patch: {
+            momentId,
+            coverageTarget: {
+              role: "contender",
+              playerName: contender,
+            },
+          },
+        });
+      }
+      return options;
     })
     .filter((option) => option.id);
   const videoMomentOptions = detectedMoments
@@ -44,6 +71,10 @@ export default async function AdminMomentsPage() {
       endpoint="/api/moments/generate"
       defaultPayload={{
         momentId: text(firstMoment.id || firstMoment.hand_id || firstMoment.momentId),
+        coverageTarget: {
+          role: "winner",
+          playerName: text(firstMoment.winner_name || firstMoment.playerName),
+        },
         variation: "impact_blurb",
         editorialNotes: "",
         promptConfig: {

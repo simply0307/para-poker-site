@@ -14,6 +14,13 @@ const fonts = [
 const sizes = ["16px", "18px", "20px", "24px", "28px"];
 const colors = ["#18181b", "#92400e", "#991b1b", "#1f2937", "#f8fafc"];
 
+const toolbarGroups = {
+  text: "Text style",
+  structure: "Structure",
+  list: "Lists",
+  media: "Links and alignment",
+};
+
 export function RichTextEditor({ label = "Body", value = "", onChange, minHeight = 280 }) {
   const editorRef = useRef(null);
   const [sourceMode, setSourceMode] = useState(false);
@@ -36,7 +43,13 @@ export function RichTextEditor({ label = "Body", value = "", onChange, minHeight
   function exec(command, detail = null) {
     editorRef.current?.focus();
     document.execCommand(command, false, detail);
-    emit();
+    window.requestAnimationFrame(emit);
+  }
+
+  function toggleList(command) {
+    editorRef.current?.focus();
+    document.execCommand(command, false, null);
+    window.requestAnimationFrame(emit);
   }
 
   function applyBlock(block) {
@@ -87,19 +100,38 @@ export function RichTextEditor({ label = "Body", value = "", onChange, minHeight
 
       {!sourceMode ? (
         <>
-          <div className="mt-4 flex flex-wrap gap-2 rounded-md border border-zinc-200 bg-zinc-50 p-2">
-            <button type="button" className="toolbarButton" onClick={() => exec("bold")}>B</button>
-            <button type="button" className="toolbarButton italic" onClick={() => exec("italic")}>I</button>
-            <button type="button" className="toolbarButton underline" onClick={() => exec("underline")}>U</button>
-            <button type="button" className="toolbarButton" onClick={() => exec("insertUnorderedList")}>List</button>
-            <button type="button" className="toolbarButton" onClick={() => exec("insertOrderedList")}>1. List</button>
-            <button type="button" className="toolbarButton" onClick={addLink}>Link</button>
+          <div className="mt-4 flex flex-wrap gap-3 rounded-md border border-zinc-200 bg-zinc-50 p-2">
+            <ToolbarGroup label={toolbarGroups.text}>
+              <button type="button" className="toolbarButton toolbarIcon" title="Bold" aria-label="Bold" onClick={() => exec("bold")}>B</button>
+              <button type="button" className="toolbarButton toolbarIcon italic" title="Italic" aria-label="Italic" onClick={() => exec("italic")}>I</button>
+              <button type="button" className="toolbarButton toolbarIcon underline" title="Underline" aria-label="Underline" onClick={() => exec("underline")}>U</button>
+            </ToolbarGroup>
+
+            <ToolbarGroup label={toolbarGroups.structure}>
             <select className="toolbarSelect" onChange={(event) => applyBlock(event.target.value)} defaultValue="p" aria-label="Block style">
               <option value="p">Paragraph</option>
               <option value="h2">Heading 2</option>
               <option value="h3">Heading 3</option>
               <option value="blockquote">Quote</option>
             </select>
+            </ToolbarGroup>
+
+            <ToolbarGroup label={toolbarGroups.list}>
+              <button type="button" className="toolbarButton" title="Bulleted list" aria-label="Bulleted list" onClick={() => toggleList("insertUnorderedList")}>
+                • List
+              </button>
+              <button type="button" className="toolbarButton" title="Numbered list" aria-label="Numbered list" onClick={() => toggleList("insertOrderedList")}>
+                1. List
+              </button>
+              <button type="button" className="toolbarButton toolbarIcon" title="Outdent list item" aria-label="Outdent list item" onClick={() => exec("outdent")}>
+                ←
+              </button>
+              <button type="button" className="toolbarButton toolbarIcon" title="Indent list item" aria-label="Indent list item" onClick={() => exec("indent")}>
+                →
+              </button>
+            </ToolbarGroup>
+
+            <ToolbarGroup label={toolbarGroups.text}>
             <select className="toolbarSelect" onChange={(event) => applyStyle({ fontFamily: event.target.value })} defaultValue="" aria-label="Font family">
               <option value="">Font</option>
               {fonts.map(([valueOption, labelOption]) => (
@@ -118,12 +150,17 @@ export function RichTextEditor({ label = "Body", value = "", onChange, minHeight
                 <option key={color} value={color}>{color}</option>
               ))}
             </select>
-            <button type="button" className="toolbarButton" onClick={() => exec("justifyLeft")}>Left</button>
-            <button type="button" className="toolbarButton" onClick={() => exec("justifyCenter")}>Center</button>
+            </ToolbarGroup>
+
+            <ToolbarGroup label={toolbarGroups.media}>
+              <button type="button" className="toolbarButton" onClick={addLink}>Link</button>
+              <button type="button" className="toolbarButton" onClick={() => exec("justifyLeft")}>Left</button>
+              <button type="button" className="toolbarButton" onClick={() => exec("justifyCenter")}>Center</button>
+            </ToolbarGroup>
           </div>
           <div
             ref={editorRef}
-            className="mt-3 rounded-md border border-zinc-300 bg-white p-4 leading-8 text-zinc-950 outline-none focus:border-amber-600"
+            className="richTextEditorSurface mt-3 rounded-md border border-zinc-300 bg-white p-4 leading-8 text-zinc-950 outline-none focus:border-amber-600"
             contentEditable
             suppressContentEditableWarning
             onInput={emit}
@@ -150,11 +187,64 @@ export function RichTextEditor({ label = "Body", value = "", onChange, minHeight
           font-weight: 800;
           padding: 0.45rem 0.65rem;
         }
+        .toolbarGroup {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: 0.35rem;
+          border-right: 1px solid #e4e4e7;
+          padding-right: 0.65rem;
+        }
+        .toolbarGroup:last-child {
+          border-right: 0;
+          padding-right: 0;
+        }
+        .toolbarGroupLabel {
+          flex-basis: 100%;
+          color: #71717a;
+          font-size: 0.62rem;
+          font-weight: 900;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+        }
+        .toolbarIcon {
+          min-width: 2.25rem;
+          text-align: center;
+        }
         .toolbarButton:hover,
         .toolbarSelect:hover {
           border-color: #d97706;
         }
+        .richTextEditorSurface :global(ul),
+        .richTextEditorSurface :global(ol) {
+          margin: 0.75rem 0;
+          padding-left: 1.5rem;
+        }
+        .richTextEditorSurface :global(ul) {
+          list-style: disc;
+        }
+        .richTextEditorSurface :global(ol) {
+          list-style: decimal;
+        }
+        .richTextEditorSurface :global(li) {
+          display: list-item;
+          margin: 0.25rem 0;
+          padding-left: 0.2rem;
+        }
+        .richTextEditorSurface :global(li > ul),
+        .richTextEditorSurface :global(li > ol) {
+          margin: 0.25rem 0;
+        }
       `}</style>
     </section>
+  );
+}
+
+function ToolbarGroup({ label, children }) {
+  return (
+    <div className="toolbarGroup">
+      <span className="toolbarGroupLabel">{label}</span>
+      {children}
+    </div>
   );
 }

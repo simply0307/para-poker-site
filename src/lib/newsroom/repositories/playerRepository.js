@@ -52,6 +52,37 @@ function rowMentionsPlayer(row = {}, player = {}) {
   return rowNames.some((name) => candidates.includes(name)) || rawText.some((value) => candidates.some((candidate) => value.includes(candidate)));
 }
 
+function rowWinnerMatchesPlayer(row = {}, player = {}) {
+  if (!player) return false;
+  if (row.winner_player_id && String(row.winner_player_id) === String(player.id)) return true;
+  const candidates = playerNameCandidates(player);
+  const winnerNames = [
+    row.winner_name,
+    row.player_name,
+  ].map(normalizePlayerName).filter(Boolean);
+  return winnerNames.some((name) => candidates.includes(name));
+}
+
+function rowInvolvesPlayer(row = {}, player = {}) {
+  if (rowWinnerMatchesPlayer(row, player)) return true;
+  const candidates = playerNameCandidates(player);
+  const involvedNames = [
+    ...(Array.isArray(row.involved_players) ? row.involved_players : []),
+    ...(Array.isArray(row.player_names) ? row.player_names : []),
+    ...(Array.isArray(row.players_involved) ? row.players_involved : []),
+  ].map(normalizePlayerName).filter(Boolean);
+
+  const rawText = [
+    row.involved_players,
+    row.players_involved,
+    row.player_names,
+    row.raw_result,
+    row.summary,
+  ].map((value) => (typeof value === "string" ? normalizePlayerName(value) : "")).filter(Boolean);
+
+  return involvedNames.some((name) => candidates.includes(name)) || rawText.some((value) => candidates.some((candidate) => value.includes(candidate)));
+}
+
 export function resolvePlayerIdentity(row = {}, players = []) {
   const rowPlayerId = text(row.player_id || row.winner_player_id || row.id);
   if (rowPlayerId) {
@@ -64,13 +95,22 @@ export function resolvePlayerIdentity(row = {}, players = []) {
     row.winner_name,
     row.display_name,
     row.pokernow_name,
+  ].map(normalizePlayerName).filter(Boolean);
+
+  const directMatch = players.find((player) => {
+    const candidates = playerNameCandidates(player);
+    return rowNames.some((rowName) => candidates.includes(rowName));
+  });
+  if (directMatch) return directMatch;
+
+  const involvedNames = [
     ...(Array.isArray(row.involved_players) ? row.involved_players : []),
     ...(Array.isArray(row.player_names) ? row.player_names : []),
   ].map(normalizePlayerName).filter(Boolean);
 
   return players.find((player) => {
     const candidates = playerNameCandidates(player);
-    return rowNames.some((rowName) => candidates.includes(rowName));
+    return involvedNames.some((rowName) => candidates.includes(rowName));
   }) || null;
 }
 
@@ -140,7 +180,8 @@ export async function getPlayerNewsroomData(playerIdOrSlug) {
   const standings = (standingsRows || []).filter((row) => rowMentionsPlayer(row, player) || normalizePlayerName(row.player_name) === normalized);
   const sessionStats = (sessionStatsRows || []).filter((row) => rowMentionsPlayer(row, player) || normalizePlayerName(row.player_name) === normalized);
   const sessionResults = (sessionResultsRows || []).filter((row) => rowMentionsPlayer(row, player) || normalizePlayerName(row.player_name) === normalized);
-  const moments = (momentsRows || []).filter((row) => rowMentionsPlayer(row, player));
+  const wonMoments = (momentsRows || []).filter((row) => rowWinnerMatchesPlayer(row, player));
+  const contestedMoments = (momentsRows || []).filter((row) => rowInvolvesPlayer(row, player) && !rowWinnerMatchesPlayer(row, player));
 
   return {
     player,
@@ -148,7 +189,9 @@ export async function getPlayerNewsroomData(playerIdOrSlug) {
     standings: standings || [],
     sessionStats: sessionStats || [],
     sessionResults: sessionResults || [],
-    moments: (moments || []).map(normalizeHandRow),
+    moments: (wonMoments || []).map((row) => ({ ...normalizeHandRow(row), player_moment_role: "winner" })),
+    contestedMoments: (contestedMoments || []).map((row) => ({ ...normalizeHandRow(row), player_moment_role: "contested" })),
+    involvedMoments: [...wonMoments, ...contestedMoments].map(normalizeHandRow),
   };
 }
 

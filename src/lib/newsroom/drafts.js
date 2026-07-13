@@ -1,9 +1,14 @@
 import { supabase } from "@/lib/supabase";
+import { getDraftTableConfig } from "@/lib/newsroom/draftTypes";
+import {
+  createTrainingExampleForDraft,
+  recordApprovedOutputForDraft,
+} from "@/lib/newsroom/trainingExamples";
 
-export const DRAFT_TABLES = {
+const DRAFT_TABLE_REGISTRY = getDraftTableConfig();
+
+const DRAFT_TABLE_SOURCE_COLUMNS = {
   recap_drafts: {
-    table: "recap_drafts",
-    fallbackScope: "session",
     providerColumn: "provider",
     hasScope: true,
     sourceColumns: {
@@ -13,41 +18,37 @@ export const DRAFT_TABLES = {
     },
   },
   profile_drafts: {
-    table: "profile_drafts",
-    fallbackScope: "player",
     sourceColumns: { sourcePlayerId: "player_id" },
   },
   player_session_recap_drafts: {
-    table: "player_session_recap_drafts",
-    fallbackScope: "player",
     sourceColumns: { sourcePlayerId: "player_id", sourceSessionId: "session_id" },
   },
   standings_drafts: {
-    table: "standings_drafts",
-    fallbackScope: "season",
     sourceColumns: { seasonCode: "season_code" },
   },
   moment_blurb_drafts: {
-    table: "moment_blurb_drafts",
-    fallbackScope: "moment",
     sourceColumns: { momentId: "moment_id" },
   },
   article_drafts: {
-    table: "article_drafts",
-    fallbackScope: "article",
     sourceColumns: { articleRequest: "article_request" },
   },
   social_caption_drafts: {
-    table: "social_caption_drafts",
-    fallbackScope: "social_caption",
     sourceColumns: { sourceSessionId: "session_id", sourcePlayerId: "player_id", seasonCode: "season_code", momentId: "moment_id", articleRequest: "article_request" },
   },
   private_note_drafts: {
-    table: "private_note_drafts",
-    fallbackScope: "private_note",
     sourceColumns: { sourceSessionId: "session_id", sourcePlayerId: "player_id", seasonCode: "season_code", momentId: "moment_id", articleRequest: "article_request" },
   },
 };
+
+export const DRAFT_TABLES = Object.fromEntries(
+  Object.entries(DRAFT_TABLE_REGISTRY).map(([table, config]) => [
+    table,
+    {
+      ...config,
+      ...(DRAFT_TABLE_SOURCE_COLUMNS[table] || {}),
+    },
+  ])
+);
 
 function arrayValue(value) {
   return Array.isArray(value) ? value.map(String).filter(Boolean) : [];
@@ -333,6 +334,21 @@ export async function saveNewsroomDraft(input) {
 
   try {
     const { data } = await insertSingleWithSchemaCacheFallback(table, insert);
+    await createTrainingExampleForDraft({
+      draftRow: data,
+      draftTable: table,
+      scope: input.scope,
+      sourceSessionId: input.sourceSessionId,
+      sourcePlayerId: input.sourcePlayerId,
+      seasonCode: input.seasonCode,
+      momentId: input.momentId,
+      contextPacket: insert.context_packet,
+      originalOutput: input.draft,
+      provider: input.provider,
+      modelUsed: input.modelUsed,
+      promptVersion: input.promptVersion,
+      sourceDataVersion: input.sourceDataVersion,
+    });
     await logGeneration({
       scope: input.scope,
       sourceId: input.sourceSessionId || input.sourcePlayerId || input.seasonCode || input.momentId || "",
@@ -345,6 +361,21 @@ export async function saveNewsroomDraft(input) {
   } catch (error) {
     if (isMissingOptionalGenerationColumn(error)) {
       const { data: retryData } = await insertSingleWithSchemaCacheFallback(table, removeOptionalGenerationColumns(insert));
+      await createTrainingExampleForDraft({
+        draftRow: retryData,
+        draftTable: table,
+        scope: input.scope,
+        sourceSessionId: input.sourceSessionId,
+        sourcePlayerId: input.sourcePlayerId,
+        seasonCode: input.seasonCode,
+        momentId: input.momentId,
+        contextPacket: insert.context_packet,
+        originalOutput: input.draft,
+        provider: input.provider,
+        modelUsed: input.modelUsed,
+        promptVersion: input.promptVersion,
+        sourceDataVersion: input.sourceDataVersion,
+      });
       await logGeneration({
         scope: input.scope,
         sourceId: input.sourceSessionId || input.sourcePlayerId || input.seasonCode || input.momentId || "",
@@ -395,6 +426,10 @@ export async function updateDraft(table, draftId, patch) {
     status: patch.status || "draft",
     visibility: patch.visibility || "admin",
   };
+  const tableConfig = DRAFT_TABLES[cleanTable] || {};
+  if (tableConfig.sourceColumns?.articleRequest && patch.articleRequest) {
+    update[tableConfig.sourceColumns.articleRequest] = patch.articleRequest;
+  }
 
   if (cleanTable === "recap_drafts") {
     update.confidence_notes = arrayValue(nextDraft.confidence_notes);
@@ -558,6 +593,10 @@ export async function setDraftPublishStateForTable(table, draftId, { publish, ap
 
   const { data } = await updateSingleWithSchemaCacheFallback(cleanTable, draftId, patch);
   const warnings = [];
+
+  if (publish) {
+    await recordApprovedOutputForDraft(cleanTable, data, approvedBy);
+  }
 
   if (cleanTable === "article_drafts") {
     if (publish) {

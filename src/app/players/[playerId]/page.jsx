@@ -44,6 +44,7 @@ export default async function PlayerPage({ params }) {
     pokerStats,
     recentSessions,
     notableHands,
+    contestedMoments,
     statCards,
   } = viewModel;
   const cardMap = new Map(statCards);
@@ -134,22 +135,35 @@ export default async function PlayerPage({ params }) {
           })}
         </EvidencePanel>
 
-        <EvidencePanel title="Notable Hands" empty="No notable hands are attached to this player yet.">
-          {notableHands.slice(0, 8).map((moment, index) => (
-            <MomentCard
-              key={`${moment.id || moment.hand_no || "moment"}-${index}`}
-              title={moment.hand_no ? `Hand #${moment.hand_no}` : "Notable hand"}
-              meta={cleanName(moment.winner_name, "")}
-              pot={moment.pot_collected ? `${formatNumber(moment.pot_collected)} chips` : ""}
-            >
-              <StatLine label="Winner" value={cleanName(moment.winner_name, "")} />
-              <StatLine label="Board" value={moment.board} />
-              <StatLine label="Winning hand" value={moment.winning_hand} />
-            </MomentCard>
-          ))}
+        <EvidencePanel title="Player Moments" empty="No notable hands are attached to this player yet.">
+          <PlayerMomentSection title="Won moments" moments={notableHands} role="Winner" />
+          <PlayerMomentSection title="Contested moments" moments={contestedMoments} role="Involved" />
         </EvidencePanel>
       </section>
     </NewsroomShell>
+  );
+}
+
+function PlayerMomentSection({ title, moments = [], role }) {
+  if (!moments.length) return null;
+  return (
+    <div className="mb-5 last:mb-0">
+      <h3 className="mb-3 text-xs font-black uppercase tracking-[0.16em] text-amber-200">{title}</h3>
+      <div className="grid gap-3">
+        {moments.slice(0, 6).map((moment, index) => (
+          <MomentCard
+            key={`${moment.id || moment.hand_no || title}-${index}`}
+            title={moment.hand_no ? `Hand #${moment.hand_no}` : "Notable hand"}
+            meta={`${role}: ${cleanName(moment.winner_name, "Winner pending")}`}
+            pot={moment.pot_collected ? `${formatNumber(moment.pot_collected)} chips` : ""}
+          >
+            <StatLine label="Winner" value={cleanName(moment.winner_name, "")} />
+            <StatLine label="Board" value={moment.board} />
+            <StatLine label="Winning hand" value={moment.winning_hand} />
+          </MomentCard>
+        ))}
+      </div>
+    </div>
   );
 }
 
