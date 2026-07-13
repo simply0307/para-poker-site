@@ -140,6 +140,10 @@ function eventHandNumber(event = {}) {
   return numberValue(event.handId || event.handNumber || event.payload?.handId, 0);
 }
 
+function orderedHandsFor(pkg = {}) {
+  return [...(pkg.hands || [])].sort((left, right) => numberValue(left.handNumber, 0) - numberValue(right.handNumber, 0));
+}
+
 function eventSeatIds(event = {}) {
   const payload = event.payload || {};
   if (event.type === "handStarted") return [payload.dealerSeatId, ...(payload.participantSeatIds || [])].filter(Boolean);
@@ -215,7 +219,10 @@ export function validateCompletedSessionPackage(input) {
   const seatIds = new Set(participants.map((participant) => text(participant.seatId)).filter(Boolean));
   const handNumbers = new Set(hands.map((hand) => numberValue(hand.handNumber, 0)).filter(Boolean));
   const eventIds = new Set();
-  let previousSequence = 0;
+  const previousSequenceByHand = new Map();
+  const completedHands = new Set();
+  let activeHandNumber = null;
+  let highestHandNumberSeen = 0;
 
   if (!participants.length) errors.push("Package has no participants.");
   if (!hands.length) errors.push("Package has no hands.");
@@ -264,11 +271,31 @@ export function validateCompletedSessionPackage(input) {
     if (!text(event.eventId)) errors.push("A public event is missing eventId.");
     if (eventIds.has(event.eventId)) errors.push(`Duplicate event ID: ${event.eventId}.`);
     eventIds.add(event.eventId);
-    const sequence = numberValue(event.sequenceNumber, 0);
-    if (!sequence || sequence <= previousSequence) errors.push(`Event ${text(event.eventId, "(missing)")} has invalid sequence order.`);
-    previousSequence = sequence;
     const handNo = eventHandNumber(event);
-    if (handNo && !handNumbers.has(handNo)) errors.push(`Event ${text(event.eventId)} references unknown hand #${handNo}.`);
+    if (!handNo) errors.push(`Event ${text(event.eventId, "(missing)")} is missing a hand reference.`);
+    else if (!handNumbers.has(handNo)) errors.push(`Event ${text(event.eventId)} references unknown hand #${handNo}.`);
+    else {
+      if (activeHandNumber === null) {
+        activeHandNumber = handNo;
+        highestHandNumberSeen = handNo;
+      } else if (handNo !== activeHandNumber) {
+        if (completedHands.has(handNo) || handNo < highestHandNumberSeen) {
+          errors.push(`Event ${text(event.eventId, "(missing)")} returns to Hand #${handNo} after later hand events were already seen.`);
+        }
+        completedHands.add(activeHandNumber);
+        activeHandNumber = handNo;
+        highestHandNumberSeen = Math.max(highestHandNumberSeen, handNo);
+      }
+
+      const sequence = numberValue(event.sequenceNumber, 0);
+      const expectedSequence = (previousSequenceByHand.get(handNo) || 0) + 1;
+      if (!sequence) {
+        errors.push(`Hand #${handNo} event ${text(event.eventId, "(missing)")} is missing sequenceNumber ${expectedSequence}.`);
+      } else if (sequence !== expectedSequence) {
+        errors.push(`Hand #${handNo} event ${text(event.eventId, "(missing)")} expected sequence ${expectedSequence} but received ${sequence}.`);
+      }
+      if (sequence) previousSequenceByHand.set(handNo, sequence);
+    }
     for (const seatId of eventSeatIds(event)) {
       if (!seatIds.has(text(seatId))) errors.push(`Event ${text(event.eventId)} references unknown seat ${text(seatId)}.`);
     }
@@ -301,7 +328,9 @@ function seatNameMap(pkg) {
 }
 
 function handEventsFor(pkg, handNumber) {
-  return (pkg.orderedPublicEvents || []).filter((event) => eventHandNumber(event) === Number(handNumber));
+  return (pkg.orderedPublicEvents || [])
+    .filter((event) => eventHandNumber(event) === Number(handNumber))
+    .sort((left, right) => numberValue(left.sequenceNumber, 0) - numberValue(right.sequenceNumber, 0));
 }
 
 function actionName(event) {
@@ -355,7 +384,9 @@ function deriveRecords(pkg, participantMapping = {}) {
   const notableHands = [];
   let globalActionOrder = 0;
 
-  for (const hand of pkg.hands || []) {
+  const orderedHands = orderedHandsFor(pkg);
+
+  for (const hand of orderedHands) {
     const handNumber = numberValue(hand.handNumber, 0);
     const handEvents = handEventsFor(pkg, handNumber);
     const award = [...(hand.potAwards || [])].sort((left, right) => numberValue(right.amount) - numberValue(left.amount))[0] || {};
@@ -451,7 +482,7 @@ function deriveRecords(pkg, participantMapping = {}) {
     notableHands: 0,
   }]));
 
-  for (const hand of pkg.hands || []) {
+  for (const hand of orderedHands) {
     for (const seatId of hand.participantSeatIds || []) {
       if (statsBySeat.has(seatId)) statsBySeat.get(seatId).hands += 1;
     }
