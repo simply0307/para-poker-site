@@ -4,14 +4,12 @@ import {
   ContentRail,
   EvidencePanel,
   LeagueHero,
-  MomentCard,
   NewsroomShell,
   PublishedArticle,
   StatCard,
   StatStrip,
 } from "@/components/newsroom/NewsroomShell";
 import {
-  cleanName,
   formatDate,
   formatNumber,
   formatPokerPercent,
@@ -21,6 +19,7 @@ import {
 import { buildPlayerViewModel } from "@/lib/newsroom/viewModels/player";
 import { draftHeadline, draftHtml, draftParagraphs, draftSubheadline, waitingCopy } from "@/lib/newsroom/rendering";
 import { PokerStatGrid } from "@/components/poker/PokerStatGrid";
+import { HandHistoryBlock } from "@/components/poker/HandActionLog";
 
 export const revalidate = 60;
 
@@ -30,6 +29,12 @@ function firstPresent(...values) {
 
 function sessionLabel(session, sessionId) {
   return text(session.session_code || session.session_number || sessionId, "Session");
+}
+
+function handDetailHref(hand = {}) {
+  const sessionId = hand.session_code || hand.session_id;
+  if (!sessionId) return "";
+  return `/sessions/${encodeURIComponent(text(sessionId))}${hand.hand_no ? `#hand-${hand.hand_no}` : ""}`;
 }
 
 export default async function PlayerPage({ params }) {
@@ -106,7 +111,7 @@ export default async function PlayerPage({ params }) {
         }
       />
 
-      <section className="grid gap-6 pb-12 lg:grid-cols-2">
+      <section className="mt-10 grid gap-8 pb-12 lg:grid-cols-2">
         <EvidencePanel title="Recent Sessions" empty="No recent session rows are available for this player yet.">
           {recentSessions.map((row, index) => {
             const result = row.result || row;
@@ -149,18 +154,15 @@ function PlayerMomentSection({ title, moments = [], role }) {
   return (
     <div className="mb-5 last:mb-0">
       <h3 className="mb-3 text-xs font-black uppercase tracking-[0.16em] text-amber-200">{title}</h3>
-      <div className="grid gap-3">
+      <div className="grid gap-4">
         {moments.slice(0, 6).map((moment, index) => (
-          <MomentCard
+          <div
             key={`${moment.id || moment.hand_no || title}-${index}`}
-            title={moment.hand_no ? `Hand #${moment.hand_no}` : "Notable hand"}
-            meta={`${role}: ${cleanName(moment.winner_name, "Winner pending")}`}
-            pot={moment.pot_collected ? `${formatNumber(moment.pot_collected)} chips` : ""}
+            className="grid gap-2"
           >
-            <StatLine label="Winner" value={cleanName(moment.winner_name, "")} />
-            <StatLine label="Board" value={moment.board} />
-            <StatLine label="Winning hand" value={moment.winning_hand} />
-          </MomentCard>
+            <p className="text-xs font-black uppercase tracking-[0.14em] text-stone-500">{role} moment</p>
+            <HandHistoryBlock hand={moment} compact detailHref={handDetailHref(moment)} />
+          </div>
         ))}
       </div>
     </div>

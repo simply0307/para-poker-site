@@ -96,6 +96,9 @@ function groupActionRowsByStreet(actionRows = []) {
 
 function handKeyCandidates(hand = {}) {
   return [
+    hand.session_id && hand.hand_id ? `session:${hand.session_id}:hand_id:${hand.hand_id}` : "",
+    hand.session_id && hand.id ? `session:${hand.session_id}:id:${hand.id}` : "",
+    hand.session_id && hand.hand_no ? `session:${hand.session_id}:hand_no:${hand.hand_no}` : "",
     hand.hand_id,
     hand.id,
     hand.hand_no ? `hand_no:${hand.hand_no}` : "",
@@ -104,6 +107,9 @@ function handKeyCandidates(hand = {}) {
 
 function actionKeyCandidates(action = {}) {
   return [
+    action.session_id && action.hand_id ? `session:${action.session_id}:hand_id:${action.hand_id}` : "",
+    action.session_id && action.id ? `session:${action.session_id}:id:${action.id}` : "",
+    action.session_id && action.hand_no ? `session:${action.session_id}:hand_no:${action.hand_no}` : "",
     action.hand_id,
     action.hand_no ? `hand_no:${action.hand_no}` : "",
   ].map((value) => text(value)).filter(Boolean);

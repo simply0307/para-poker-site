@@ -6,6 +6,7 @@ import {
 } from "@/lib/newsroom/data";
 import { DEFAULT_HOME_SETTINGS, readHomepageSettings } from "@/lib/newsroom/homepageSettings";
 import { getPublishedArticlesIndex } from "@/lib/newsroom/repositories/draftRepository";
+import { getPublicUpcomingEvents } from "@/lib/newsroom/upcomingEvents";
 import { buildMomentsViewModel } from "@/lib/newsroom/viewModels/moments";
 
 export const DEFAULT_HOME_MODULES = DEFAULT_HOME_SETTINGS.modules;
@@ -24,6 +25,7 @@ function idMatches(item = {}, id = "") {
     item.session_code,
     item.sessionCode,
     item.momentId,
+    item.event_id,
     item.hand_id,
   ].map((value) => text(value)).filter(Boolean).includes(key);
 }
@@ -78,6 +80,18 @@ function resolveModuleContent(homepageModule, context) {
         : [],
     };
   }
+  if (homepageModule.type === "upcoming_events") {
+    const manual = homepageModule.sourceMode === "manual"
+      ? selectedItems(context.events, homepageModule.selectedIds, limit)
+      : [];
+    return {
+      ...homepageModule,
+      resolvedContent: manual.length ? manual : limited(context.events, limit),
+      warnings: homepageModule.sourceMode === "manual" && homepageModule.selectedIds?.length && !manual.length
+        ? ["Selected events are unavailable; showing automatic upcoming events."]
+        : [],
+    };
+  }
   if (homepageModule.type === "featured_players") {
     const standingsByPlayer = new Map((context.standings || []).map((row) => [String(row.player_id || row.player_name), row]));
     const automaticPlayers = [...(context.players || [])].sort((left, right) => {
@@ -125,12 +139,13 @@ function resolveModuleContent(homepageModule, context) {
 
 export async function buildHomeViewModel(moduleConfig = null) {
   const settings = moduleConfig ? { hero: DEFAULT_HOME_SETTINGS.hero, modules: moduleConfig } : await readHomepageSettings();
-  const [sessions, standings, momentModel, players, articles] = await Promise.all([
+  const [sessions, standings, momentModel, players, articles, events] = await Promise.all([
     getSessionsIndex(),
     getStandingsRows("S0"),
     buildMomentsViewModel(),
     getPlayersIndex(),
     getPublishedArticlesIndex(),
+    getPublicUpcomingEvents(),
   ]);
   const moments = momentModel.publicMoments || [];
   const latest = sessions[0] || null;
@@ -146,6 +161,7 @@ export async function buildHomeViewModel(moduleConfig = null) {
     moments,
     players,
     articles,
+    events,
     latest,
   };
   const modules = settings.modules
@@ -161,6 +177,7 @@ export async function buildHomeViewModel(moduleConfig = null) {
     detectedMoments: momentModel.detectedMoments || [],
     players,
     articles,
+    events,
     latest,
     latestData,
     winner,

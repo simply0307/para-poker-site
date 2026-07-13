@@ -81,6 +81,17 @@
       "dek": "The newest approved table result.",
       "itemLimit": 1,
       "showSectionHeader": true
+    },
+    {
+      "type": "upcoming_events",
+      "enabled": true,
+      "variant": "event_cards",
+      "sourceMode": "automatic",
+      "selectedIds": [],
+      "title": "Upcoming Tables",
+      "dek": "Future events will appear here once staged by the league desk.",
+      "itemLimit": 2,
+      "showSectionHeader": true
     }
   ],
   "updatedAt": "2026-07-13T03:13:31.356Z"

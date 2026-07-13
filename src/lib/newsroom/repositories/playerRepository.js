@@ -1,5 +1,5 @@
 import { supabase } from "@/lib/supabase";
-import { normalizeHandRow } from "@/lib/poker/handHistory";
+import { attachActionsToHands, normalizeHandRow } from "@/lib/poker/handHistory";
 import { normalizePlayerNameForMatch, stripPlayerHandle } from "@/lib/playerNames";
 import { getSessionsIndex, safeQuery } from "./sessionRepository";
 
@@ -177,11 +177,25 @@ export async function getPlayerNewsroomData(playerIdOrSlug) {
     getPlayersIndex(),
   ]);
 
+  const momentSessionIds = [...new Set((momentsRows || []).map((row) => row.session_id).filter(Boolean).map(String))];
+  const actionRows = momentSessionIds.length
+    ? await safeQuery(
+        supabase
+          .from("actions")
+          .select("*")
+          .in("session_id", momentSessionIds)
+          .order("log_order", { ascending: true })
+          .limit(5000),
+        []
+      )
+    : [];
+
+  const momentsWithActions = attachActionsToHands(momentsRows || [], actionRows || []);
   const standings = (standingsRows || []).filter((row) => rowMentionsPlayer(row, player) || normalizePlayerName(row.player_name) === normalized);
   const sessionStats = (sessionStatsRows || []).filter((row) => rowMentionsPlayer(row, player) || normalizePlayerName(row.player_name) === normalized);
   const sessionResults = (sessionResultsRows || []).filter((row) => rowMentionsPlayer(row, player) || normalizePlayerName(row.player_name) === normalized);
-  const wonMoments = (momentsRows || []).filter((row) => rowWinnerMatchesPlayer(row, player));
-  const contestedMoments = (momentsRows || []).filter((row) => rowInvolvesPlayer(row, player) && !rowWinnerMatchesPlayer(row, player));
+  const wonMoments = (momentsWithActions || []).filter((row) => rowWinnerMatchesPlayer(row, player));
+  const contestedMoments = (momentsWithActions || []).filter((row) => rowInvolvesPlayer(row, player) && !rowWinnerMatchesPlayer(row, player));
 
   return {
     player,

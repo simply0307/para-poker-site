@@ -60,14 +60,14 @@ export function HandActionLog({ actionLog }) {
   );
 }
 
-export function HandHistoryBlock({ hand, compact = false, detailHref = "" }) {
+export function HandHistoryBlock({ hand, compact = false, detailHref = "", anchor = false }) {
   const actionLog = hand.actionLog || normalizeHandActionLog(hand);
   const title = hand.hand_no ? `Hand #${hand.hand_no}` : "Recorded hand";
   const isFullHistory = actionLog.kind === "action_log";
   const detailLabel = isFullHistory ? "View Full Hand History" : "View Hand Summary";
 
   return (
-    <article className="rounded-md border border-white/10 bg-white/[0.03] p-4">
+    <article id={anchor && hand.hand_no ? `hand-${hand.hand_no}` : undefined} className="scroll-mt-28 rounded-md border border-white/10 bg-white/[0.03] p-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h3 className="text-lg font-black text-white">{title}</h3>
         <div className="flex flex-wrap items-center gap-3">

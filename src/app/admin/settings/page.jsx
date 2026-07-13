@@ -5,14 +5,16 @@ import { getPlayersIndex, getSessionsIndex, formatDate } from "@/lib/newsroom/da
 import { readHomepageSettings } from "@/lib/newsroom/homepageSettings";
 import { readPageHeroSettings } from "@/lib/newsroom/pageHeroSettings";
 import { getPublishedArticlesIndex } from "@/lib/newsroom/repositories/draftRepository";
+import { readUpcomingEventsSettings } from "@/lib/newsroom/upcomingEvents";
 import { buildMomentsViewModel } from "@/lib/newsroom/viewModels/moments";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminSettingsPage() {
-  const [homepageSettings, pageHeroSettings, sessions, players, momentModel, articles] = await Promise.all([
+  const [homepageSettings, pageHeroSettings, eventsSettings, sessions, players, momentModel, articles] = await Promise.all([
     readHomepageSettings(),
     readPageHeroSettings(),
+    readUpcomingEventsSettings(),
     getSessionsIndex(),
     getPlayersIndex(),
     buildMomentsViewModel(),
@@ -39,6 +41,11 @@ export default async function AdminSettingsPage() {
       id: article.slug || article.id,
       label: article.title || "Published article",
       description: [article.author, article.display_date ? formatDate(article.display_date) : ""].filter(Boolean).join(" / "),
+    })),
+    events: (eventsSettings.events || []).map((event) => ({
+      id: event.id,
+      label: event.title || "Future event",
+      description: [event.displayDate || (event.startsAt ? formatDate(event.startsAt) : ""), event.venue, event.status].filter(Boolean).join(" / "),
     })),
   };
 

@@ -16,6 +16,7 @@ function HomeModule({ module, viewModel }) {
   if (module.type === "hero_board") return <HeroBoard module={module} viewModel={viewModel} />;
   if (module.type === "stat_strip") return <HomeStatStrip module={module} viewModel={viewModel} />;
   if (module.type === "latest_session") return <LatestSessionModule module={module} viewModel={viewModel} />;
+  if (module.type === "upcoming_events") return <UpcomingEventsModule module={module} />;
   if (module.type === "current_standings") return <CurrentStandingsModule module={module} viewModel={viewModel} />;
   if (module.type === "featured_players") return <FeaturedPlayersModule module={module} viewModel={viewModel} />;
   if (module.type === "featured_moments") return <FeaturedMomentsModule module={module} />;
@@ -51,6 +52,10 @@ function sessionHref(session) {
 
 function articleHref(article) {
   return `/articles/${encodeURIComponent(text(article?.slug || article?.id))}`;
+}
+
+function eventDate(event) {
+  return text(event.displayDate, event.startsAt ? formatDate(event.startsAt) : "Date pending");
 }
 
 function HeroBoard({ module, viewModel }) {
@@ -196,6 +201,71 @@ function LatestSessionModule({ module, viewModel }) {
       </div>
     </ModuleSection>
   );
+}
+
+function UpcomingEventsModule({ module }) {
+  const events = module.resolvedContent || [];
+  if (!events.length) {
+    return (
+      <EmptyModule
+        module={module}
+        title="Upcoming Tables"
+        message="Future league events will appear here once the desk stages the next table."
+      />
+    );
+  }
+
+  if (module.variant === "schedule_strip") {
+    return (
+      <ModuleSection module={module} fallbackTitle="Upcoming Tables" fallbackDek="Future events staged by the league desk.">
+        <div className="grid gap-2">
+          {events.map((event) => (
+            <EventStrip key={event.id} event={event} />
+          ))}
+        </div>
+      </ModuleSection>
+    );
+  }
+
+  const displayEvents = module.variant === "single_teaser" ? events.slice(0, 1) : events;
+  return (
+    <ModuleSection module={module} fallbackTitle="Upcoming Tables" fallbackDek="Future events staged by the league desk.">
+      <div className={module.variant === "single_teaser" ? "max-w-3xl" : "grid gap-3 md:grid-cols-2"}>
+        {displayEvents.map((event) => (
+          <EventCard key={event.id} event={event} />
+        ))}
+      </div>
+    </ModuleSection>
+  );
+}
+
+function EventCard({ event }) {
+  const body = (
+    <article className="h-full rounded-md border border-[#d8c087]/16 bg-[#08111a]/78 p-5 shadow-lg shadow-black/20">
+      <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#d8c087]">{text(event.status, "draft").replace(/_/g, " ")}</p>
+      <h3 className="mt-2 text-2xl font-black text-white">{text(event.title, "Future table")}</h3>
+      <p className="mt-3 text-sm leading-6 text-stone-300">{text(event.dek, "The next table will appear here once the desk stages it.")}</p>
+      <div className="mt-4 grid gap-2 text-sm text-stone-400">
+        <p>{eventDate(event)}</p>
+        {event.venue ? <p>{event.venue}</p> : null}
+      </div>
+      {event.ctaHref ? <p className="mt-4 text-xs font-black uppercase tracking-[0.14em] text-[#fff1bf]">{text(event.ctaLabel, "Event details")}</p> : null}
+    </article>
+  );
+
+  return event.ctaHref ? <Link href={event.ctaHref}>{body}</Link> : body;
+}
+
+function EventStrip({ event }) {
+  const body = (
+    <div className="grid gap-2 rounded-md border border-white/10 bg-black/25 p-3 text-sm md:grid-cols-[130px_minmax(0,1fr)_auto] md:items-center">
+      <span className="font-bold text-[#fff1bf]">{eventDate(event)}</span>
+      <span className="text-stone-300">{text(event.title, "Future table")}</span>
+      <span className="text-stone-400">{event.venue || text(event.status, "draft")}</span>
+    </div>
+  );
+
+  return event.ctaHref ? <Link href={event.ctaHref}>{body}</Link> : body;
 }
 
 function CurrentStandingsModule({ module, viewModel }) {

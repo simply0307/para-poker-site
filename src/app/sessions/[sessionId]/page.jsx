@@ -155,7 +155,7 @@ export default async function SessionPage({ params }) {
           </p>
         ) : null}
         {displayHands.map((hand, index) => (
-          <HandHistoryBlock key={`${hand.id || hand.hand_no || "hand"}-${index}`} hand={hand} />
+          <HandHistoryBlock key={`${hand.id || hand.hand_no || "hand"}-${index}`} hand={hand} anchor />
         ))}
       </EvidencePanel>
     </NewsroomShell>

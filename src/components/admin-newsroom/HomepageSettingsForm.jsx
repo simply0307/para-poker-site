@@ -65,6 +65,7 @@ function optionsFor(definition, selectionOptions = {}) {
   if (definition.manualSelectionType === "players") return selectionOptions.players || [];
   if (definition.manualSelectionType === "moments") return selectionOptions.moments || [];
   if (definition.manualSelectionType === "articles") return selectionOptions.articles || [];
+  if (definition.manualSelectionType === "events") return selectionOptions.events || [];
   return [];
 }
 
@@ -328,7 +329,7 @@ export function HomepageSettingsForm({ initialSettings, selectionOptions = {} })
           <p className="text-xs font-black uppercase tracking-[0.16em] text-amber-700">Current setup</p>
           <h2 className="mt-1 text-2xl font-black">{enabledCount} modules live</h2>
           <p className="mt-3 text-sm leading-6 text-zinc-600">
-            Public pages display saved settings only. Manual selections use public sessions, public players, public moments, and published articles.
+            Public pages display saved settings only. Manual selections use public sessions, public players, public moments, published articles, and staged events.
           </p>
           <Link href="/" className="mt-4 inline-flex rounded-sm bg-zinc-950 px-3 py-2 text-xs font-black uppercase tracking-[0.12em] text-white hover:bg-zinc-800">
             View homepage

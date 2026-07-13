@@ -146,3 +146,24 @@ storage-agnostic.
 Production should move homepage settings to Supabase or another durable store.
 That migration should only replace the internals of the settings repository; it
 should not require rewriting the public homepage renderer or admin form.
+
+## Upcoming Event Drafts
+
+Future event cards are staged through `/admin/events` and can be surfaced by the
+homepage `upcoming_events` module. This is a placeholder newsroom workflow for
+tables that will later come from the game site.
+
+For local staging, event drafts are stored in:
+
+```text
+newsroom-library/settings/upcoming-events.json
+```
+
+All persistence must stay behind:
+
+```text
+src/lib/newsroom/upcomingEvents.js
+```
+
+When the game-site schedule feed is ready, replace the internals of that
+repository without changing the homepage module or admin presentation contract.

@@ -6,6 +6,7 @@ const adminRoutes = [
   ["/admin/players", "Player Drafts", "Choose a player and generate profile drafts."],
   ["/admin/standings", "Standings Drafts", "Standings summary generation workspace."],
   ["/admin/moments", "Moment Drafts", "Moment blurb generation workspace."],
+  ["/admin/events", "Event Draft Room", "Stage future table cards for homepage modules before the game-site feed is connected."],
   ["/admin/rules", "Rules Admin", "Set scoring rules, preview standings, and apply recalculations."],
   ["/admin/articles", "Article Drafts", "League article generation workspace."],
   ["/admin/social-captions", "Social Captions", "Generate short social/card copy from verified league data."],
