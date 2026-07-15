@@ -30,6 +30,7 @@ const navGroups = [
       ["/admin/moments", "Moments"],
       ["/admin/social-captions", "Social Captions"],
       ["/admin/prompt-studio", "Prompt Studio"],
+      ["/admin/content-types", "Content Types"],
       ["/admin/newsroom", "Prompt Library"],
     ],
   },

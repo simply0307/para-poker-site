@@ -27,14 +27,13 @@ export async function getSessionByIdOrCode(sessionIdOrCode) {
   );
 }
 
-export async function getSessionsIndex() {
-  return safeQuery(
-    supabase
-      .from("sessions")
-      .select("id, session_code, season_code, session_number, played_at, table_name, format, status, hands_count")
-      .order("session_number", { ascending: false }),
-    []
-  );
+export async function getSessionsIndex(seasonCode = "") {
+  let query = supabase
+    .from("sessions")
+    .select("id, session_code, season_code, session_number, played_at, table_name, format, status, hands_count")
+    .order("session_number", { ascending: false });
+  if (seasonCode) query = query.eq("season_code", seasonCode);
+  return safeQuery(query, []);
 }
 
 export async function getStandingsRows(seasonCode = "S0") {

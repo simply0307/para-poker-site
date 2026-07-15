@@ -19,6 +19,7 @@ export async function POST(request) {
     const input = await buildPlayerRecapInputPacket(playerId, {
       editorialNotes: body.editorialNotes || "",
       variation: body.variation || body.variationKey || "",
+      seasonCode: body.seasonCode || body.articleRequest?.seasonCode || "S0",
       promptConfig: body.promptConfig || {},
     });
     const aiResult = await callNewsroomAiJson({

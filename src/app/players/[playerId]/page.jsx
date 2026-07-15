@@ -18,6 +18,7 @@ import {
 } from "@/lib/newsroom/data";
 import { buildPlayerViewModel } from "@/lib/newsroom/viewModels/player";
 import { draftHeadline, draftHtml, draftParagraphs, draftSubheadline, waitingCopy } from "@/lib/newsroom/rendering";
+import { readSeasonSettings } from "@/lib/newsroom/seasonSettings";
 import { PokerStatGrid } from "@/components/poker/PokerStatGrid";
 import { HandHistoryBlock } from "@/components/poker/HandActionLog";
 
@@ -39,7 +40,8 @@ function handDetailHref(hand = {}) {
 
 export default async function PlayerPage({ params }) {
   const { playerId } = await params;
-  const viewModel = await buildPlayerViewModel(playerId);
+  const seasonSettings = await readSeasonSettings();
+  const viewModel = await buildPlayerViewModel(playerId, { seasonCode: seasonSettings.activeSeasonCode });
   if (!viewModel?.player) notFound();
 
   const {
@@ -57,7 +59,7 @@ export default async function PlayerPage({ params }) {
   return (
     <NewsroomShell eyebrow="Player Dossier">
       <LeagueHero
-        eyebrow="Player dossier"
+        eyebrow={`${seasonSettings.activeSeasonCode} player dossier`}
         title={displayName}
         dek={[cardMap.get("Rank") ? `Rank ${cardMap.get("Rank")}` : "", cardMap.get("Points") ? `${cardMap.get("Points")} points` : "", cardMap.get("Sessions") ? `${cardMap.get("Sessions")} sessions` : ""].filter(Boolean).join(" · ") || "The board is still forming."}
         aside={

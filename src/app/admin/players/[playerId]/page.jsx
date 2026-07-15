@@ -1,12 +1,13 @@
 import { GenericDraftWorkspace } from "@/components/admin-newsroom/GenericDraftWorkspace";
 import { getPlayerByIdOrSlug } from "@/lib/newsroom/data";
 import { listNewsroomDrafts } from "@/lib/newsroom/drafts";
+import { readSeasonSettings } from "@/lib/newsroom/seasonSettings";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminPlayerPage({ params }) {
   const { playerId } = await params;
-  const player = await getPlayerByIdOrSlug(playerId);
+  const [player, seasonSettings] = await Promise.all([getPlayerByIdOrSlug(playerId), readSeasonSettings()]);
   const profileDrafts = player?.id
     ? await listNewsroomDrafts({ table: "profile_drafts", fallbackScope: "player", sourcePlayerId: player.id })
     : [];
@@ -17,6 +18,7 @@ export default async function AdminPlayerPage({ params }) {
       title={`Player draft desk: ${playerId}`}
       defaultPayload={{
         playerId,
+        seasonCode: seasonSettings.activeSeasonCode,
         variation: "shareable_profile",
         editorialNotes: "",
         promptConfig: {

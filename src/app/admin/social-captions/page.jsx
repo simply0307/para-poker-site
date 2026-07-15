@@ -1,10 +1,14 @@
 import { GenericDraftWorkspace } from "@/components/admin-newsroom/GenericDraftWorkspace";
 import { listNewsroomDrafts } from "@/lib/newsroom/drafts";
+import { readSeasonSettings } from "@/lib/newsroom/seasonSettings";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminSocialCaptionsPage() {
-  const socialDrafts = await listNewsroomDrafts({ table: "social_caption_drafts", fallbackScope: "social_caption" });
+  const [socialDrafts, seasonSettings] = await Promise.all([
+    listNewsroomDrafts({ table: "social_caption_drafts", fallbackScope: "social_caption" }),
+    readSeasonSettings(),
+  ]);
 
   return (
     <GenericDraftWorkspace
@@ -15,7 +19,7 @@ export default async function AdminSocialCaptionsPage() {
         sessionId: "S0-001",
         playerId: "",
         momentId: "",
-        seasonCode: "S0",
+        seasonCode: seasonSettings.activeSeasonCode,
         variation: "recap_card",
         editorialNotes: "",
         promptConfig: {

@@ -3,6 +3,7 @@ import { AdminShell, AdminStat } from "@/components/admin-newsroom/AdminShell";
 import { RawHandImportPanel } from "@/components/admin-newsroom/RawHandImportPanel";
 import { buildImportHealthViewModel } from "@/lib/newsroom/importHealth";
 import { formatNumber } from "@/lib/newsroom/data";
+import { readSeasonSettings } from "@/lib/newsroom/seasonSettings";
 
 export const dynamic = "force-dynamic";
 
@@ -13,14 +14,14 @@ function statusClass(status) {
 }
 
 export default async function AdminImportsPage() {
-  const health = await buildImportHealthViewModel();
+  const [health, seasonSettings] = await Promise.all([buildImportHealthViewModel(), readSeasonSettings()]);
 
   return (
     <AdminShell
       title="Import control room"
       description="Import raw hand-history CSV files into Supabase, then audit session, hand, action, moment, result, and player-stat coverage before generating or publishing coverage."
     >
-      <RawHandImportPanel />
+      <RawHandImportPanel initialSeasonCode={seasonSettings.activeSeasonCode} />
 
       <section className="mt-8 grid gap-4 md:grid-cols-3 lg:grid-cols-6">
         <AdminStat label="Sessions" value={formatNumber(health.totals.sessions)} />

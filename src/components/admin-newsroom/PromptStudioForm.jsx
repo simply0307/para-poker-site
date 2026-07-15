@@ -13,15 +13,18 @@ import {
   getPromptPresetOptions,
   normalizePromptConfig,
 } from "@/lib/newsroom/promptConfigs";
+import { getDraftDefaultPayload, getDraftType, mergeDraftPayload } from "@/lib/newsroom/draftTypes";
 
-const defaultSources = {
-  sessionId: "S0-001",
-  playerId: "para-poker-at-mt1ejg0x7",
-  seasonCode: "S0",
-  momentId: "",
-  articleTopic: "",
-  socialSourceType: "session",
-};
+function defaultSourcesFor(seasonSettings = {}) {
+  return {
+    sessionId: "S0-001",
+    playerId: "para-poker-at-mt1ejg0x7",
+    seasonCode: seasonSettings.activeSeasonCode || "S0",
+    momentId: "",
+    articleTopic: "",
+    socialSourceType: "session",
+  };
+}
 
 function toggle(list, value) {
   return list.includes(value) ? list.filter((item) => item !== value) : [...list, value];
@@ -32,49 +35,50 @@ function listText(value) {
 }
 
 function payloadFor(draftType, promptConfig, sources) {
-  const variation = "";
-  if (draftType === "session_recap") return { sessionId: sources.sessionId, variation, promptConfig };
-  if (draftType === "player_profile") return { playerId: sources.playerId, variation, editorialNotes: "", promptConfig };
+  const registry = getDraftType(draftType);
+  const variation = registry?.defaultVariation || "";
+  const basePayload = getDraftDefaultPayload(draftType, { variation, promptConfig });
+  if (draftType === "session_recap") return mergeDraftPayload(basePayload, { sessionId: sources.sessionId, promptConfig });
+  if (draftType === "player_profile") return mergeDraftPayload(basePayload, { playerId: sources.playerId, seasonCode: sources.seasonCode, editorialNotes: "", promptConfig });
   if (draftType === "player_session_recap") {
-    return { playerId: sources.playerId, sessionId: sources.sessionId, variation, editorialNotes: "", promptConfig };
+    return mergeDraftPayload(basePayload, { playerId: sources.playerId, sessionId: sources.sessionId, seasonCode: sources.seasonCode, editorialNotes: "", promptConfig });
   }
-  if (draftType === "standings_summary") return { seasonCode: sources.seasonCode, variation, editorialNotes: "", promptConfig };
-  if (draftType === "moment_blurb") return { momentId: sources.momentId, variation, editorialNotes: "", promptConfig };
+  if (draftType === "standings_summary") return mergeDraftPayload(basePayload, { seasonCode: sources.seasonCode, editorialNotes: "", promptConfig });
+  if (draftType === "moment_blurb") return mergeDraftPayload(basePayload, { momentId: sources.momentId, editorialNotes: "", promptConfig });
   if (draftType === "social_caption") {
-    return {
+    return mergeDraftPayload(basePayload, {
       sourceType: sources.socialSourceType || "session",
       sessionId: sources.sessionId,
       playerId: sources.playerId,
       momentId: sources.momentId,
       seasonCode: sources.seasonCode,
-      variation: "recap_card",
       editorialNotes: "",
       promptConfig,
-    };
+    });
   }
   if (draftType === "league_article") {
-    return {
-      variation: "beat_report",
+    return mergeDraftPayload(basePayload, {
       promptConfig,
       articleRequest: {
         topic: sources.articleTopic,
         seasonCode: sources.seasonCode,
-        seasonPhase: "preseason",
-        seasonStatus: "in_progress",
-        lifecycleNote: "Season 0 is ongoing. Do not write as if the season, preseason, standings race, or player stories are complete.",
-        articleType: "beat_report",
+        seasonPhase: basePayload.articleRequest?.seasonPhase || "preseason",
+        seasonStatus: basePayload.articleRequest?.seasonStatus || "in_progress",
+        lifecycleNote: basePayload.articleRequest?.lifecycleNote || "This season is ongoing. Treat standings and results as current markers, not final outcomes.",
+        articleType: basePayload.articleRequest?.articleType || "beat_report",
         promptConfig,
       },
-    };
+    });
   }
-  return { promptConfig };
+  return mergeDraftPayload(basePayload, { promptConfig });
 }
 
 function endpointFor(draftType) {
   return DRAFT_TYPES.find((type) => type.key === draftType)?.endpoint || "Future endpoint";
 }
 
-export function PromptStudioForm({ initialPresetSettings = { presets: [], defaults: {} } }) {
+export function PromptStudioForm({ initialPresetSettings = { presets: [], defaults: {} }, seasonSettings = {} }) {
+  const defaultSources = useMemo(() => defaultSourcesFor(seasonSettings), [seasonSettings]);
   const [presetKey, setPresetKey] = useState("official_session_recap");
   const [presetSettings, setPresetSettings] = useState(initialPresetSettings);
   const [presetName, setPresetName] = useState("");

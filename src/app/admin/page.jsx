@@ -12,6 +12,7 @@ const adminRoutes = [
   ["/admin/social-captions", "Social Captions", "Generate short social/card copy from verified league data."],
   ["/admin/drafts", "Draft Studio", "Jump between draft queues and publishing workspaces."],
   ["/admin/prompt-studio", "Prompt Studio", "Build reusable prompt configs through form controls."],
+  ["/admin/content-types", "Content Types", "Inspect the canonical content registry for prompts, generators, editors, and public slots."],
   ["/admin/newsroom", "Newsroom Library", "Prompt docs, assignment layers, and generation notes."],
   ["/admin/settings", "Settings", "Season status, homepage modules, provider diagnostics, and defaults."],
 ];

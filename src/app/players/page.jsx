@@ -1,11 +1,12 @@
 import { CardGrid, LeagueHero, NewsroomShell, PlayerCard, StatCard, StatStrip } from "@/components/newsroom/NewsroomShell";
 import { cleanName, getPlayersIndex, text } from "@/lib/newsroom/data";
 import { getPageHero } from "@/lib/newsroom/pageHeroSettings";
+import { readSeasonSettings } from "@/lib/newsroom/seasonSettings";
 
 export const revalidate = 60;
 
 export default async function PlayersPage() {
-  const [players, hero] = await Promise.all([getPlayersIndex(), getPageHero("players")]);
+  const [players, hero, seasonSettings] = await Promise.all([getPlayersIndex(), getPageHero("players"), readSeasonSettings()]);
 
   return (
     <NewsroomShell eyebrow="Players">
@@ -16,7 +17,7 @@ export default async function PlayersPage() {
       />
       <StatStrip>
         <StatCard label="Players" value={players.length} detail="Roster entries available for public profiles." />
-        <StatCard label="Season" value="S0" detail="Preseason" />
+        <StatCard label="Season" value={seasonSettings.activeSeasonCode} detail={seasonSettings.seasonPhase} />
       </StatStrip>
       <CardGrid>
         {players.length ? players.map((player) => (

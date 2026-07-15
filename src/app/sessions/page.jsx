@@ -1,11 +1,13 @@
 import { CardGrid, LeagueHero, NewsroomShell, SessionCard, StatCard, StatStrip } from "@/components/newsroom/NewsroomShell";
 import { formatDate, getSessionsIndex, text } from "@/lib/newsroom/data";
 import { getPageHero } from "@/lib/newsroom/pageHeroSettings";
+import { readSeasonSettings } from "@/lib/newsroom/seasonSettings";
 
 export const revalidate = 60;
 
 export default async function SessionsPage() {
-  const [sessions, hero] = await Promise.all([getSessionsIndex(), getPageHero("sessions")]);
+  const seasonSettings = await readSeasonSettings();
+  const [sessions, hero] = await Promise.all([getSessionsIndex(seasonSettings.activeSeasonCode), getPageHero("sessions")]);
 
   return (
     <NewsroomShell eyebrow="Sessions">
@@ -16,6 +18,7 @@ export default async function SessionsPage() {
       />
       <StatStrip>
         <StatCard label="Sessions" value={sessions.length} />
+        <StatCard label="Season" value={seasonSettings.activeSeasonCode} detail={seasonSettings.seasonPhase} />
         <StatCard
           label="Tracked hands"
           value={sessions.reduce((sum, session) => sum + Number(session.hands_count || 0), 0)}

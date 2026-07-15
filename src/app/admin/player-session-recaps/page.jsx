@@ -1,11 +1,13 @@
 import { GenericDraftWorkspace } from "@/components/admin-newsroom/GenericDraftWorkspace";
 import { getPlayersIndex, getSessionsIndex, text } from "@/lib/newsroom/data";
 import { listNewsroomDrafts } from "@/lib/newsroom/drafts";
+import { readSeasonSettings } from "@/lib/newsroom/seasonSettings";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminPlayerSessionRecapsPage() {
-  const [players, sessions] = await Promise.all([getPlayersIndex(), getSessionsIndex()]);
+  const seasonSettings = await readSeasonSettings();
+  const [players, sessions] = await Promise.all([getPlayersIndex(), getSessionsIndex(seasonSettings.activeSeasonCode)]);
   const player = players[0] || {};
   const session = sessions[0] || {};
   const playerSessionDrafts = await listNewsroomDrafts({ table: "player_session_recap_drafts", fallbackScope: "player_session" });
@@ -17,6 +19,7 @@ export default async function AdminPlayerSessionRecapsPage() {
       defaultPayload={{
         playerId: text(player.slug || player.id),
         sessionId: text(session.session_code || session.id, "S0-001"),
+        seasonCode: seasonSettings.activeSeasonCode,
         variation: "pressure_spot_note",
         editorialNotes: "",
         promptConfig: {

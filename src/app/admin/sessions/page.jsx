@@ -1,16 +1,18 @@
 import Link from "next/link";
 import { AdminShell } from "@/components/admin-newsroom/AdminShell";
 import { formatDate, getSessionsIndex, text } from "@/lib/newsroom/data";
+import { readSeasonSettings } from "@/lib/newsroom/seasonSettings";
 
 export const revalidate = 60;
 
 export default async function AdminSessionsIndexPage() {
-  const sessions = await getSessionsIndex();
+  const seasonSettings = await readSeasonSettings();
+  const sessions = await getSessionsIndex(seasonSettings.activeSeasonCode);
 
   return (
     <AdminShell
       title="Session recap drafts"
-      description="Pick a session to generate, inspect, edit, save, publish, or unpublish its public recap."
+      description={`Pick a ${seasonSettings.activeSeasonCode} session to generate, inspect, edit, save, publish, or unpublish its public recap.`}
     >
       <section className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {sessions.map((session) => (

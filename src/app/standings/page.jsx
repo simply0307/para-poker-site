@@ -2,11 +2,17 @@ import { DataTableShell, LeagueHero, NewsroomShell, PublishedArticle, StatCard, 
 import { cleanName, formatNumber, getPublishedDraft, getStandingsRows, text } from "@/lib/newsroom/data";
 import { getPageHero } from "@/lib/newsroom/pageHeroSettings";
 import { draftHeadline, draftHtml, draftParagraphs, draftSubheadline, waitingCopy } from "@/lib/newsroom/rendering";
+import { readSeasonSettings } from "@/lib/newsroom/seasonSettings";
 
 export const revalidate = 60;
 
 export default async function StandingsPage() {
-  const [published, standings, hero] = await Promise.all([getPublishedDraft({ scope: "season" }), getStandingsRows("S0"), getPageHero("standings")]);
+  const seasonSettings = await readSeasonSettings();
+  const [published, standings, hero] = await Promise.all([
+    getPublishedDraft({ scope: "season", seasonCode: seasonSettings.activeSeasonCode }),
+    getStandingsRows(seasonSettings.activeSeasonCode),
+    getPageHero("standings"),
+  ]);
   const leader = standings[0] || {};
 
   return (
@@ -23,6 +29,7 @@ export default async function StandingsPage() {
         }
       />
       <StatStrip>
+        <StatCard label="Season" value={seasonSettings.activeSeasonCode} detail={seasonSettings.seasonStatus.replace(/_/g, " ")} />
         <StatCard label="Players ranked" value={standings.length} />
         <StatCard label="Top points" value={text(leader.points || leader.league_points || leader.total_points, "-")} />
       </StatStrip>

@@ -63,8 +63,8 @@ function buildPlayerPokerStats(player, sessionStats = [], sessionResults = [], n
   };
 }
 
-export async function buildPlayerViewModel(playerIdOrSlug) {
-  const playerData = await getPlayerNewsroomData(playerIdOrSlug);
+export async function buildPlayerViewModel(playerIdOrSlug, options = {}) {
+  const playerData = await getPlayerNewsroomData(playerIdOrSlug, options.seasonCode || "S0");
   if (!playerData?.player) return null;
 
   const overrides = await readActiveDataOverrides();

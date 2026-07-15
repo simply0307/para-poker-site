@@ -1,17 +1,19 @@
 import { GenericDraftWorkspace } from "@/components/admin-newsroom/GenericDraftWorkspace";
 import { listNewsroomDrafts } from "@/lib/newsroom/drafts";
+import { readSeasonSettings } from "@/lib/newsroom/seasonSettings";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminStandingsPage() {
-  const standingsDrafts = await listNewsroomDrafts({ table: "standings_drafts", fallbackScope: "season", seasonCode: "S0" });
+  const seasonSettings = await readSeasonSettings();
+  const standingsDrafts = await listNewsroomDrafts({ table: "standings_drafts", fallbackScope: "season", seasonCode: seasonSettings.activeSeasonCode });
 
   return (
     <GenericDraftWorkspace
       draftType="standings_summary"
       title="Standings draft desk"
       defaultPayload={{
-        seasonCode: "S0",
+        seasonCode: seasonSettings.activeSeasonCode,
         variation: "table_state",
         editorialNotes: "",
         promptConfig: {

@@ -134,7 +134,7 @@ export async function getPlayersIndex() {
   );
 }
 
-export async function getPlayerNewsroomData(playerIdOrSlug) {
+export async function getPlayerNewsroomData(playerIdOrSlug, seasonCode = "S0") {
   const player = await getPlayerByIdOrSlug(playerIdOrSlug);
   if (!player) return null;
   const playerName = cleanName(player.display_name || player.pokernow_name);
@@ -145,7 +145,7 @@ export async function getPlayerNewsroomData(playerIdOrSlug) {
       supabase
         .from("standings")
         .select("*")
-        .eq("season_code", "S0")
+        .eq("season_code", seasonCode || "S0")
         .order("rank", { ascending: true })
         .limit(100),
       []

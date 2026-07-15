@@ -151,6 +151,7 @@ async function expandSelection(selection) {
 export async function buildSelectedArticleContext(selectionInput = {}) {
   const selection = await expandSelection(normalizeArticleContextSelection(selectionInput));
   const warnings = [];
+  const seasonCode = selectionInput.seasonCode || "S0";
 
   const [selectedSessions, selectedPlayers, selectedMoments, selectedStandings] = await Promise.all([
     Promise.all(
@@ -162,7 +163,7 @@ export async function buildSelectedArticleContext(selectionInput = {}) {
     ),
     Promise.all(
       unique(selection.playerIds).map(async (playerId) => {
-        const data = await getPlayerNewsroomData(playerId);
+        const data = await getPlayerNewsroomData(playerId, seasonCode);
         if (!data) warnings.push(`Selected player not found: ${playerId}`);
         return data ? compactPlayer(data) : null;
       })
@@ -174,7 +175,7 @@ export async function buildSelectedArticleContext(selectionInput = {}) {
         return data ? compactMoment(data) : null;
       })
     ),
-    selection.includeStandings ? getStandingsRows("S0") : Promise.resolve([]),
+    selection.includeStandings ? getStandingsRows(seasonCode) : Promise.resolve([]),
   ]);
 
   if (!selectedSessions.some(Boolean) && !selectedPlayers.some(Boolean) && !selectedMoments.some(Boolean) && !selection.includeStandings) {

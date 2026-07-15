@@ -6,10 +6,10 @@ function defaultPlayedAt() {
   return new Date().toISOString().slice(0, 16);
 }
 
-export function RawHandImportPanel() {
+export function RawHandImportPanel({ initialSeasonCode = "S0" }) {
   const [form, setForm] = useState({
     sessionCode: "",
-    seasonCode: "S0",
+    seasonCode: initialSeasonCode,
     sessionNumber: "",
     tableName: "Imported Table",
     playedAt: defaultPlayedAt(),

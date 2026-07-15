@@ -1,17 +1,19 @@
 import { GenericDraftWorkspace } from "@/components/admin-newsroom/GenericDraftWorkspace";
 import { cleanName, formatDate, formatNumber, getPlayersIndex, getSessionsIndex, getStandingsRows, text } from "@/lib/newsroom/data";
 import { listArticleDrafts } from "@/lib/newsroom/drafts";
+import { readSeasonSettings } from "@/lib/newsroom/seasonSettings";
 import { DEFAULT_ARTICLE_CONTEXT_SELECTION } from "@/lib/newsroom/articleContextSelection";
 import { buildMomentsViewModel } from "@/lib/newsroom/viewModels/moments";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminArticlesPage() {
+  const seasonSettings = await readSeasonSettings();
   const [articleDrafts, sessions, players, standingsRows, momentsViewModel] = await Promise.all([
     listArticleDrafts(),
-    getSessionsIndex(),
+    getSessionsIndex(seasonSettings.activeSeasonCode),
     getPlayersIndex(),
-    getStandingsRows("S0"),
+    getStandingsRows(seasonSettings.activeSeasonCode),
     buildMomentsViewModel(),
   ]);
   const standingsByPlayerId = new Map((standingsRows || []).map((row) => [String(row.player_id), row]));
@@ -66,11 +68,10 @@ export default async function AdminArticlesPage() {
         },
         articleRequest: {
           topic: "",
-          seasonCode: "S0",
-          seasonPhase: "preseason",
-          seasonStatus: "in_progress",
-          lifecycleNote:
-            "Season 0 is ongoing. Do not write as if the season, preseason, standings race, or player stories are complete.",
+          seasonCode: seasonSettings.activeSeasonCode,
+          seasonPhase: seasonSettings.seasonPhase,
+          seasonStatus: seasonSettings.seasonStatus,
+          lifecycleNote: seasonSettings.lifecycleNote,
           articleType: "beat_report",
           authorName: "Para League Desk",
           displayDate: new Date().toISOString().slice(0, 10),

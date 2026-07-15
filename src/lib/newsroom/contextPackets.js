@@ -270,7 +270,8 @@ export async function buildSessionRecapInputPacket(sessionIdOrCode, options = {}
 }
 
 export async function buildPlayerRecapInputPacket(playerIdOrSlug, options = {}) {
-  const playerData = await getPlayerNewsroomData(playerIdOrSlug);
+  const seasonCode = options.seasonCode || "S0";
+  const playerData = await getPlayerNewsroomData(playerIdOrSlug, seasonCode);
   if (!playerData) throw new Error("Player not found.");
   const overrides = await readActiveDataOverrides();
   const playerOverride = applyOverridesToEntity(playerData.player, "player", overrides);
@@ -322,6 +323,10 @@ export async function buildPlayerRecapInputPacket(playerIdOrSlug, options = {}) 
       ...taskContext,
       ...promptConfig,
       hard_factual_guardrails: HARD_FACTUAL_GUARDRAILS,
+      season_context: {
+        season_code: seasonCode,
+        note: "Use this season as the active public frame for player standings and current-form claims.",
+      },
       prose_style_examples: proseStyleExamples,
       voice_rules: paraLeagueVoiceRules,
       editorial_docs: editorialDocs,
@@ -566,6 +571,7 @@ export async function buildArticleInputPacket(articleRequest = {}) {
   const articleContextSelection = normalizeArticleContextSelection(articleRequest.contextSelection || articleRequest.context_selection || {});
   const selectedArticleContext = await buildSelectedArticleContext({
     ...articleContextSelection,
+    seasonCode: articleRequest.seasonCode || "S0",
     angle: articleContextSelection.angle || articleRequest.topic || "",
   });
   const finalityRules = [
