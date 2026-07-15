@@ -98,22 +98,30 @@ export default async function PlayerPage({ params }) {
           />
         }
         rail={
-          <EvidencePanel title="Poker Stats" empty="No poker stats are available yet.">
-            <PokerStatGrid
-              stats={[
-                { label: "Hands", value: pokerStats?.hands ? formatNumber(pokerStats.hands) : "", empty: "Hands not tracked yet" },
-                { label: "VPIP", value: formatPokerPercent(pokerStats?.vpip), empty: "VPIP not tracked yet" },
-                { label: "PFR", value: formatPokerPercent(pokerStats?.pfr), empty: "PFR not tracked yet" },
-                { label: "Wins", value: pokerStats?.wins || "", empty: "Wins not tracked yet" },
-                { label: "Top Finishes", value: pokerStats?.topFinishes || "", empty: "Top finishes not tracked yet" },
-                { label: "Biggest Pot", value: pokerStats?.biggestPot ? `${formatNumber(pokerStats.biggestPot)} chips` : "", empty: "Biggest pot not tracked yet" },
-              ]}
-            />
-          </EvidencePanel>
+          <div className="grid gap-5">
+            <EvidencePanel title="Season Card" eyebrow="Public record" empty="No record card is available yet.">
+              <RecordLine label="Rank" value={cardMap.get("Rank") ? `#${cardMap.get("Rank")}` : ""} />
+              <RecordLine label="Points" value={cardMap.get("Points")} />
+              <RecordLine label="Sessions" value={cardMap.get("Sessions")} />
+              <RecordLine label="Best Finish" value={pokerStats?.bestFinish ? `#${pokerStats.bestFinish}` : cardMap.get("Best result")} />
+            </EvidencePanel>
+            <EvidencePanel title="Poker Stats" empty="No poker stats are available yet.">
+              <PokerStatGrid
+                stats={[
+                  { label: "Hands", value: pokerStats?.hands ? formatNumber(pokerStats.hands) : "", empty: "Hands not tracked yet" },
+                  { label: "VPIP", value: formatPokerPercent(pokerStats?.vpip), empty: "VPIP not tracked yet" },
+                  { label: "PFR", value: formatPokerPercent(pokerStats?.pfr), empty: "PFR not tracked yet" },
+                  { label: "Wins", value: pokerStats?.wins || "", empty: "Wins not tracked yet" },
+                  { label: "Top Finishes", value: pokerStats?.topFinishes || "", empty: "Top finishes not tracked yet" },
+                  { label: "Biggest Pot", value: pokerStats?.biggestPot ? `${formatNumber(pokerStats.biggestPot)} chips` : "", empty: "Biggest pot not tracked yet" },
+                ]}
+              />
+            </EvidencePanel>
+          </div>
         }
       />
 
-      <section className="mt-10 grid gap-8 pb-12 lg:grid-cols-2">
+      <section className="mt-12 grid gap-8 pb-12 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
         <EvidencePanel title="Recent Sessions" empty="No recent session rows are available for this player yet.">
           {recentSessions.map((row, index) => {
             const result = row.result || row;
@@ -122,7 +130,7 @@ export default async function PlayerPage({ params }) {
             const sessionCode = session.session_code || sessionId;
             const href = sessionCode ? `/sessions/${encodeURIComponent(text(sessionCode))}` : "";
             return (
-              <article key={`${sessionId || "session"}-${index}`} className="rounded-md border border-white/10 bg-white/[0.03] p-4">
+              <article key={`${sessionId || "session"}-${index}`} className="rounded-md border border-white/10 bg-white/[0.035] p-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   {href ? (
                     <Link href={href} className="text-lg font-black text-white hover:text-amber-200">
@@ -162,7 +170,7 @@ function PlayerMomentSection({ title, moments = [], role }) {
             key={`${moment.id || moment.hand_no || title}-${index}`}
             className="grid gap-2"
           >
-            <p className="text-xs font-black uppercase tracking-[0.14em] text-stone-500">{role} moment</p>
+            <p className="text-xs font-black uppercase tracking-[0.14em] text-stone-500">{role === "Winner" ? "Won hand" : "Contender hand"}</p>
             <HandHistoryBlock hand={moment} compact detailHref={handDetailHref(moment)} />
           </div>
         ))}
@@ -178,5 +186,15 @@ function StatLine({ label, value }) {
       <span className="font-bold text-stone-400">{label}:</span>{" "}
       {typeof value === "number" ? formatNumber(value) : text(value)}
     </p>
+  );
+}
+
+function RecordLine({ label, value }) {
+  if (!present(value)) return null;
+  return (
+    <div className="flex items-center justify-between gap-4 rounded-md border border-white/10 bg-white/[0.035] px-3 py-2">
+      <span className="text-xs font-black uppercase tracking-[0.14em] text-stone-500">{label}</span>
+      <strong className="text-lg text-amber-100">{typeof value === "number" ? formatNumber(value) : text(value)}</strong>
+    </div>
   );
 }

@@ -7,6 +7,7 @@ import {
   MomentCard,
   NewsroomShell,
   PublishedArticle,
+  DataTableShell,
   StatCard,
   StatStrip,
 } from "@/components/newsroom/NewsroomShell";
@@ -81,6 +82,12 @@ export default async function SessionPage({ params }) {
         }
         rail={
           <>
+            <EvidencePanel title="Session Pulse" eyebrow="Official record" empty="Session pulse is waiting on imported data.">
+              <FactPill label="Winner" value={sessionResults.find((row) => Number(row.finish) === 1)?.player_name || participants[0]?.name} />
+              <FactPill label="Biggest Pot" value={biggestPot?.pot_collected ? chipValue(biggestPot.pot_collected) : ""} />
+              <FactPill label="Hands Logged" value={session.hands_count || displayHands.length} />
+              <FactPill label="Action Coverage" value={hasFullActionLogs ? "Street-by-street" : "Summary only"} />
+            </EvidencePanel>
             <EvidencePanel title="Key Moments" empty="No published key moments are attached to this recap yet.">
               {keyMoments.map((moment, index) => (
                 <MomentCard
@@ -92,29 +99,34 @@ export default async function SessionPage({ params }) {
                 </MomentCard>
               ))}
             </EvidencePanel>
-            <EvidencePanel title="Session Results" empty="No result rows are available for this session yet.">
-              {sessionResults.map((result, index) => {
-                const participant = participants.find((player) => String(player.id) === String(result.player_id)) || {};
-                const playerHref = participant.slug || result.player_id ? `/players/${encodeURIComponent(text(participant.slug || result.player_id))}` : "";
-                return (
-                  <article key={`${result.player_id || result.player_name || "result"}-${index}`} className="rounded-md border border-white/10 bg-white/[0.03] p-4">
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                      {playerHref ? (
-                        <Link href={playerHref} className="text-lg font-black text-white hover:text-amber-200">
-                          {cleanName(participant.name || result.player_name)}
-                        </Link>
-                      ) : (
-                        <h3 className="text-lg font-black text-white">{cleanName(result.player_name)}</h3>
-                      )}
-                      {result.finish ? <strong className="text-amber-200">#{result.finish}</strong> : null}
-                    </div>
-                    <FactLine label="Points" value={firstPresent(result.league_points, result.points)} />
-                  </article>
-                );
-              })}
-            </EvidencePanel>
           </>
         }
+      />
+
+      <DataTableShell
+        title="Session Results"
+        columns={["Finish", "Player", "Points"]}
+        rows={sessionResults}
+        empty="No result rows are available for this session yet."
+        renderRow={(result, index) => {
+          const participant = participants.find((player) => String(player.id) === String(result.player_id)) || {};
+          const playerHref = participant.slug || result.player_id ? `/players/${encodeURIComponent(text(participant.slug || result.player_id))}` : "";
+          return (
+            <tr key={`${result.player_id || result.player_name || "result"}-${index}`}>
+              <td className="border-b border-white/5 px-3 py-4 font-black text-amber-200">{result.finish ? `#${result.finish}` : "-"}</td>
+              <td className="border-b border-white/5 px-3 py-4">
+                {playerHref ? (
+                  <Link href={playerHref} className="font-black text-white hover:text-amber-200">
+                    {cleanName(participant.name || result.player_name)}
+                  </Link>
+                ) : (
+                  <span className="font-black text-white">{cleanName(result.player_name)}</span>
+                )}
+              </td>
+              <td className="border-b border-white/5 px-3 py-4 text-stone-300">{firstPresent(result.league_points, result.points) ?? "-"}</td>
+            </tr>
+          );
+        }}
       />
 
       <section className="mt-8 grid gap-6 lg:grid-cols-2">
@@ -173,5 +185,15 @@ function FactLine({ label, value }) {
       <span className="font-bold text-stone-400">{label}:</span>{" "}
       {typeof value === "number" ? formatNumber(value) : text(value)}
     </p>
+  );
+}
+
+function FactPill({ label, value }) {
+  if (!present(value)) return null;
+  return (
+    <div className="rounded-md border border-white/10 bg-white/[0.035] p-3">
+      <p className="text-xs font-black uppercase tracking-[0.16em] text-stone-500">{label}</p>
+      <p className="mt-1 text-lg font-black text-stone-100">{typeof value === "number" ? formatNumber(value) : text(value)}</p>
+    </div>
   );
 }
