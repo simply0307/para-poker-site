@@ -26,7 +26,12 @@ export default async function AdminMomentsPage() {
         ? moment.involved_players.filter((name) => text(name) && text(name) !== text(moment.winner_name))
         : [];
       const baseLabel = `${moment.sessionCode ? `${moment.sessionCode} / ` : ""}${moment.hand_no ? `Hand #${moment.hand_no}` : "Moment"}${moment.potText ? ` / ${moment.potText}` : ""}`;
-      const description = [moment.sessionCode, moment.detectionReason].filter(Boolean).join(" / ");
+      const description = [
+        moment.sessionCode,
+        moment.statusLabels?.length ? `Status: ${moment.statusLabels.join(", ")}` : "",
+        moment.typeLabels?.length ? `Type: ${moment.typeLabels.join(", ")}` : "",
+        moment.detectionReason,
+      ].filter(Boolean).join(" / ");
       const options = [
         {
           id: `${momentId}-winner`,

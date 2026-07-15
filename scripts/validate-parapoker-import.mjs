@@ -76,6 +76,7 @@ const { nextSessionNumber, positiveSessionNumber } = await import("../src/lib/im
 assert.match(rawPanel, /accept="\.csv,text\/csv"/, "Import panel must accept CSV uploads.");
 assert.match(rawPanel, /fetch\("\/api\/admin\/imports\/raw-hands\/preview"/, "Import panel must preview through the raw-hand API.");
 assert.match(rawPanel, /fetch\("\/api\/admin\/imports\/raw-hands\/commit"/, "Import panel must commit through the raw-hand API.");
+assert.match(rawPanel, /Big-blind normalization/, "Import preview must show big-blind normalization status.");
 assert.match(rawPanel, /Commit New Session/, "Import panel must make new live Supabase commits explicit.");
 assert.match(rawPanel, /Replace Live Session/, "Import panel must make replacement explicit.");
 assert.match(rawPanel, /matchingSession.*!form\.replaceExisting/s, "Import panel must block duplicate session-code commits unless replacement is explicit.");
@@ -89,6 +90,7 @@ assert.match(commitRoute, /commitRawHandImport/, "Commit route must use server-s
 assert.match(sessionImportRoute, /updateImportedSession/, "Imported sessions must be editable through an admin API.");
 assert.match(sessionImportRoute, /deleteImportedSession/, "Imported sessions must be deletable through an admin API.");
 assert.match(importManager, /Delete Imported Session/, "Import manager must expose a clear imported-session delete action.");
+assert.match(read("src/components/admin-newsroom/SessionResultReviewPanel.jsx"), /Recalc Season \+ Career/, "Import review must expose season/career stat recalculation.");
 assert.match(rawRepository, /\.from\("sessions"\)/, "Raw import repository must write sessions through Supabase.");
 assert.match(rawRepository, /insertWithOptionalColumns\("hands"/s, "Raw import repository must write hands through Supabase with optional normalized pot columns.");
 assert.match(rawRepository, /\.from\("actions"\)\.insert/s, "Raw import repository must write chronological actions through Supabase.");

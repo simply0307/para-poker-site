@@ -69,6 +69,29 @@ export function SessionResultReviewPanel({ sessions = [] }) {
     setBusy("");
   }
 
+  async function recalculate(action) {
+    if (!selectedId) return;
+    setBusy(action);
+    setError("");
+    setMessage("");
+    const response = await fetch(`/api/admin/imports/sessions/${encodeURIComponent(selectedId)}/results`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action }),
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      setError(payload.error || "Could not recalculate stats.");
+      setBusy("");
+      return;
+    }
+    setMessage(action === "recalculate_season"
+      ? "Session, season, career stats, and standings were recalculated."
+      : "Session player stats were recalculated from hands/actions.");
+    await loadReview(selectedId);
+    setBusy("");
+  }
+
   function updateRow(index, field, value) {
     setRows((current) =>
       current.map((row, rowIndex) => {
@@ -113,6 +136,12 @@ export function SessionResultReviewPanel({ sessions = [] }) {
           <button type="button" onClick={() => loadReview()} disabled={Boolean(busy)} className="rounded-md border border-zinc-300 px-3 py-2 text-sm font-black disabled:opacity-50">
             {busy === "load" ? "Loading..." : "Review"}
           </button>
+          <button type="button" onClick={() => recalculate("recalculate_session")} disabled={Boolean(busy)} className="rounded-md border border-zinc-300 px-3 py-2 text-sm font-black disabled:opacity-50">
+            {busy === "recalculate_session" ? "Recalculating..." : "Recalc Session Stats"}
+          </button>
+          <button type="button" onClick={() => recalculate("recalculate_season")} disabled={Boolean(busy)} className="rounded-md bg-zinc-950 px-3 py-2 text-sm font-black text-white disabled:opacity-50">
+            {busy === "recalculate_season" ? "Recalculating..." : "Recalc Season + Career"}
+          </button>
         </div>
       </div>
 
@@ -153,7 +182,8 @@ export function SessionResultReviewPanel({ sessions = [] }) {
               {(review.stats || []).map((stat) => (
                 <div key={stat.player_id || stat.player_name} className="rounded-md bg-white p-3">
                   <p className="font-black text-zinc-950">{stat.player_name}</p>
-                  <p>{stat.hands} hands / {stat.hands_won} won / {stat.biggest_pot_won} biggest pot</p>
+                  <p>{stat.hands} hands / {stat.hands_won} won / {stat.biggest_pot_won_bb ? `${stat.biggest_pot_won_bb} BB` : stat.biggest_pot_won} biggest pot</p>
+                  {stat.total_collected_bb ? <p>{Number(stat.total_collected_bb).toFixed(1)} BB collected</p> : null}
                   <p>VPIP {stat.vpip_pct ?? "pending"} / PFR {stat.pfr_pct ?? "pending"}</p>
                 </div>
               ))}

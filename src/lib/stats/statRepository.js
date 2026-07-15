@@ -68,6 +68,7 @@ export async function derivePlayerSessionStats(sessionIdOrCode) {
 
 export async function recalculatePlayerSessionStats(sessionIdOrCode) {
   const result = await derivePlayerSessionStats(sessionIdOrCode);
+  const summary = { players: result.stats.length, hands: result.hands.length, actions: result.actions.length };
   await supabase.from("player_session_stats").delete().eq("session_id", result.session.id);
   if (result.stats.length) {
     await maybeInsert("player_session_stats", result.stats);
@@ -76,9 +77,9 @@ export async function recalculatePlayerSessionStats(sessionIdOrCode) {
     scope: "session",
     seasonCode: result.session.season_code,
     sessionId: result.session.id,
-    summary: { players: result.stats.length, hands: result.hands.length, actions: result.actions.length },
+    summary,
   });
-  return result;
+  return { ...result, summary };
 }
 
 export async function getSessionResultReview(sessionIdOrCode) {

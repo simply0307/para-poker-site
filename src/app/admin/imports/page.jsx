@@ -53,6 +53,7 @@ export default async function AdminImportsPage() {
                 <th className="px-5 py-3">Date</th>
                 <th className="px-5 py-3 text-right">Hands</th>
                 <th className="px-5 py-3 text-right">With actions</th>
+                <th className="px-5 py-3 text-right">BB ready</th>
                 <th className="px-5 py-3 text-right">Action rows</th>
                 <th className="px-5 py-3 text-right">Results</th>
                 <th className="px-5 py-3 text-right">Stats</th>
@@ -83,6 +84,11 @@ export default async function AdminImportsPage() {
                   <td className="px-5 py-4 text-right">
                     {formatNumber(session.handsWithActions)}
                     {session.actionCoverage !== null ? <span className="text-zinc-400"> ({session.actionCoverage}%)</span> : null}
+                  </td>
+                  <td className="px-5 py-4 text-right">
+                    {formatNumber(session.handsWithDerivedPotBb)}
+                    {session.bbCoverage !== null ? <span className="text-zinc-400"> ({session.bbCoverage}%)</span> : null}
+                    <span className="block text-xs text-zinc-400">{session.bbStorageStatus}</span>
                   </td>
                   <td className="px-5 py-4 text-right">{formatNumber(session.actionRows)}</td>
                   <td className="px-5 py-4 text-right">{formatNumber(session.resultRows)}</td>

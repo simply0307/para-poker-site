@@ -1,4 +1,5 @@
 import { cleanName, formatDate, safeQuery, safeQueryAll, supabase, text } from "@/lib/newsroom/data";
+import { detectBigBlindFromActions, potBb } from "@/lib/poker/potUnits";
 
 function groupCount(rows = [], keyName = "session_id") {
   const counts = new Map();
@@ -18,6 +19,17 @@ function actionHands(actions = []) {
     if (!sessionId || !handKey) continue;
     if (!groups.has(sessionId)) groups.set(sessionId, new Set());
     groups.get(sessionId).add(handKey);
+  }
+  return groups;
+}
+
+function groupActionsBySessionHand(actions = []) {
+  const groups = new Map();
+  for (const action of actions || []) {
+    const key = `${text(action.session_id)}:${text(action.hand_no)}`;
+    if (key === ":") continue;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(action);
   }
   return groups;
 }
@@ -72,6 +84,7 @@ export async function buildImportHealthViewModel() {
   const handsBySession = groupCount(hands);
   const actionsBySession = groupCount(actions);
   const actionHandsBySession = actionHands(actions);
+  const actionsBySessionHand = groupActionsBySessionHand(actions);
   const notableBySession = groupCount(notableHands);
   const resultsBySession = groupCount(sessionResults);
   const statsBySession = groupCount(playerSessionStats);
@@ -80,7 +93,14 @@ export async function buildImportHealthViewModel() {
     const sessionId = text(session.id);
     const declaredHands = Number(session.hands_count || 0);
     const handsImported = handsBySession.get(sessionId) || 0;
+    const sessionHands = (hands || []).filter((hand) => text(hand.session_id) === sessionId);
     const handsWithActions = actionHandsBySession.get(sessionId)?.size || 0;
+    const storedPotBbHands = sessionHands.filter((hand) => Number(hand.pot_bb || 0) > 0).length;
+    const derivedPotBbHands = sessionHands.filter((hand) => {
+      if (Number(hand.pot_bb || 0) > 0) return true;
+      const handActions = actionsBySessionHand.get(`${sessionId}:${text(hand.hand_no)}`) || [];
+      return Number(potBb(hand.pot_collected, hand.big_blind || detectBigBlindFromActions(handActions)) || 0) > 0;
+    }).length;
     const coverage = {
       id: sessionId,
       sessionCode: text(session.session_code || session.id, "Session"),
@@ -95,6 +115,10 @@ export async function buildImportHealthViewModel() {
       declaredHands,
       handsImported,
       handsWithActions,
+      handsWithStoredPotBb: storedPotBbHands,
+      handsWithDerivedPotBb: derivedPotBbHands,
+      bbCoverage: percent(derivedPotBbHands, handsImported || declaredHands),
+      bbStorageStatus: storedPotBbHands === handsImported && handsImported ? "stored" : derivedPotBbHands ? "runtime-derived" : "missing",
       actionRows: actionsBySession.get(sessionId) || 0,
       notableHands: notableBySession.get(sessionId) || 0,
       resultRows: resultsBySession.get(sessionId) || 0,

@@ -205,6 +205,25 @@ export function RawHandImportPanel({ initialSeasonCode = "S0", existingSessions 
                 </div>
               ))}
             </dl>
+            {preview.blindSummary ? (
+              <div className="mt-4 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+                <p className="font-black">Big-blind normalization</p>
+                <dl className="mt-2 grid gap-1">
+                  <div className="flex justify-between gap-3">
+                    <dt>Hands with BB</dt>
+                    <dd>{preview.blindSummary.handsWithPotBb || 0} / {preview.totals?.hands || 0}</dd>
+                  </div>
+                  <div className="flex justify-between gap-3">
+                    <dt>Blind levels</dt>
+                    <dd>{preview.blindSummary.blindLevels?.length ? preview.blindSummary.blindLevels.join(", ") : "pending"}</dd>
+                  </div>
+                  <div className="flex justify-between gap-3">
+                    <dt>Biggest normalized pot</dt>
+                    <dd>{preview.blindSummary.biggestPotBb ? `${preview.blindSummary.biggestPotBb} BB` : "pending"}</dd>
+                  </div>
+                </dl>
+              </div>
+            ) : null}
             {preview.warnings?.length ? (
               <div className="mt-4 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
                 <p className="font-black">Warnings</p>
@@ -221,6 +240,7 @@ export function RawHandImportPanel({ initialSeasonCode = "S0", existingSessions 
                   <th className="px-3 py-2">Hand</th>
                   <th className="px-3 py-2">Winner</th>
                   <th className="px-3 py-2">Pot</th>
+                  <th className="px-3 py-2">BB</th>
                   <th className="px-3 py-2">Board</th>
                   <th className="px-3 py-2">Actions</th>
                 </tr>
@@ -231,6 +251,7 @@ export function RawHandImportPanel({ initialSeasonCode = "S0", existingSessions 
                     <td className="px-3 py-3 font-black">#{hand.hand_no}</td>
                     <td className="px-3 py-3">{hand.winner_name || "-"}</td>
                     <td className="px-3 py-3">{hand.pot_collected || "-"}</td>
+                    <td className="px-3 py-3">{hand.pot_bb ? `${hand.pot_bb} BB` : "-"}</td>
                     <td className="px-3 py-3">{hand.board || "-"}</td>
                     <td className="px-3 py-3">{hand.actions?.length || 0}</td>
                   </tr>

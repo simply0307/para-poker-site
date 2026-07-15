@@ -240,6 +240,21 @@ async function insertWithOptionalColumns(table, rows, optionalColumns = []) {
   return supabase.from(table).insert(payload).select("*");
 }
 
+function blindSummary(parsed) {
+  const hands = parsed.hands || [];
+  const withBigBlind = hands.filter((hand) => hand.big_blind).length;
+  const withPotBb = hands.filter((hand) => hand.pot_bb).length;
+  const blindLevels = [...new Set(hands.map((hand) => hand.big_blind).filter(Boolean))].sort((left, right) => Number(left) - Number(right));
+  const biggestPotBb = hands.reduce((max, hand) => Math.max(max, Number(hand.pot_bb || 0)), 0);
+  return {
+    handsWithBigBlind: withBigBlind,
+    handsWithPotBb: withPotBb,
+    blindLevels,
+    biggestPotBb: biggestPotBb || null,
+    status: withPotBb === hands.length ? "stored_from_import" : withPotBb ? "partial" : "missing",
+  };
+}
+
 async function upsertBasicPlayerStats(session, parsed, playersByRawName) {
   const byPlayer = new Map();
   for (const hand of parsed.hands) {
@@ -304,6 +319,7 @@ export function previewRawHandImport(input = {}) {
       format: text(input.format, "Imported hand history"),
     },
     ...parsed,
+    blindSummary: blindSummary(parsed),
     hands: parsed.hands.slice(0, 12),
     actions: parsed.actions.slice(0, 30),
     notableHands: parsed.notableHands.slice(0, 12),
