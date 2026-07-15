@@ -1,4 +1,4 @@
-import { cleanName, formatDate, safeQuery, supabase, text } from "@/lib/newsroom/data";
+import { cleanName, formatDate, safeQuery, safeQueryAll, supabase, text } from "@/lib/newsroom/data";
 
 function groupCount(rows = [], keyName = "session_id") {
   const counts = new Map();
@@ -14,7 +14,7 @@ function actionHands(actions = []) {
   const groups = new Map();
   for (const action of actions || []) {
     const sessionId = text(action.session_id);
-    const handKey = text(action.hand_id || action.hand_no);
+    const handKey = action.hand_no ? `hand_no:${action.hand_no}` : text(action.hand_id);
     if (!sessionId || !handKey) continue;
     if (!groups.has(sessionId)) groups.set(sessionId, new Set());
     groups.get(sessionId).add(handKey);
@@ -62,11 +62,11 @@ export async function buildImportHealthViewModel() {
         .order("session_number", { ascending: false }),
       []
     ),
-    safeQuery(supabase.from("hands").select("*").limit(10000), []),
-    safeQuery(supabase.from("actions").select("*").limit(20000), []),
-    safeQuery(supabase.from("notable_hands").select("*").limit(10000), []),
-    safeQuery(supabase.from("session_results").select("*").limit(10000), []),
-    safeQuery(supabase.from("player_session_stats").select("*").limit(10000), []),
+    safeQueryAll(supabase.from("hands").select("*"), []),
+    safeQueryAll(supabase.from("actions").select("*"), []),
+    safeQueryAll(supabase.from("notable_hands").select("*"), []),
+    safeQueryAll(supabase.from("session_results").select("*"), []),
+    safeQueryAll(supabase.from("player_session_stats").select("*"), []),
   ]);
 
   const handsBySession = groupCount(hands);
