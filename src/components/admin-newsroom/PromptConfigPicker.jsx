@@ -17,10 +17,6 @@ function listText(value) {
   return Array.isArray(value) ? value.join(", ") : String(value || "");
 }
 
-function toggle(list, value) {
-  return list.includes(value) ? list.filter((item) => item !== value) : [...list, value];
-}
-
 export function PromptConfigPicker({ defaultPreset = "official_session_recap", onChange, className = "" }) {
   const [presetKey, setPresetKey] = useState(defaultPreset);
   const [config, setConfig] = useState(() => normalizePromptConfig(getPromptPreset(defaultPreset)));
@@ -93,42 +89,14 @@ export function PromptConfigPicker({ defaultPreset = "official_session_recap", o
         <div>
           <p className="text-xs font-black uppercase tracking-[0.18em] text-amber-700">Writing direction</p>
           <h2 className="mt-1 text-xl font-black">Guide the draft</h2>
-          <p className="mt-1 text-sm leading-6 text-zinc-600">
-            The docs and source data are included automatically. Use these controls to steer voice, focus, and emphasis.
-          </p>
+          <p className="mt-1 text-sm leading-6 text-zinc-600">Docs, examples, and source data are included automatically. Pick a style and add one editor note if needed.</p>
         </div>
         <button type="button" onClick={() => applyPreset(defaultPreset)} className="rounded-md border border-zinc-300 px-3 py-2 text-sm font-black">
           Reset to default
         </button>
       </div>
 
-      <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Select label="Preset" value={presetKey} onChange={applyPreset} options={presets.map((preset) => ({ value: preset.key, label: preset.label }))} />
-        <Select label="Voice mode" value={config.voiceMode} onChange={(value) => update("voiceMode", value)} options={VOICE_MODES} />
-        <Select label="Intensity" value={config.intensity} onChange={(value) => update("intensity", value)} options={INTENSITY_LEVELS} />
-        <Select label="Length" value={config.length} onChange={(value) => update("length", value)} options={LENGTH_OPTIONS} />
-      </div>
-
-      <div className="mt-4">
-        <p className="text-sm font-black">What should the draft care about?</p>
-        <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-          {COVERAGE_FOCUS_OPTIONS.map((option) => (
-            <label
-              key={option}
-              className={`flex items-center gap-2 rounded-md border px-3 py-2 text-xs font-bold ${
-                config.coverageFocus.includes(option) ? "border-amber-600 bg-amber-100 text-amber-900" : "border-zinc-300 bg-white text-zinc-700"
-              }`}
-            >
-              <input
-                type="checkbox"
-                checked={config.coverageFocus.includes(option)}
-                onChange={() => update("coverageFocus", toggle(config.coverageFocus, option))}
-              />
-              {option}
-            </label>
-          ))}
-        </div>
-      </div>
+      <Select label="Draft style" value={presetKey} onChange={applyPreset} options={presets.map((preset) => ({ value: preset.key, label: preset.label }))} className="mt-4" />
 
       <TextArea
         className="mt-4"
@@ -142,8 +110,12 @@ export function PromptConfigPicker({ defaultPreset = "official_session_recap", o
       <details className="mt-4 rounded-md border border-zinc-200 bg-zinc-50 p-3">
         <summary className="cursor-pointer text-sm font-black">Advanced direction</summary>
         <div className="mt-4 grid gap-4 md:grid-cols-2">
+          <Select label="Voice mode" value={config.voiceMode} onChange={(value) => update("voiceMode", value)} options={VOICE_MODES} />
+          <Select label="Intensity" value={config.intensity} onChange={(value) => update("intensity", value)} options={INTENSITY_LEVELS} />
+          <Select label="Length" value={config.length} onChange={(value) => update("length", value)} options={LENGTH_OPTIONS} />
           <Select label="Format" value={config.format} onChange={(value) => update("format", value)} options={FORMAT_OPTIONS} />
           <Select label="Audience" value={config.audience} onChange={(value) => update("audience", value)} options={AUDIENCE_OPTIONS} />
+          <TextArea label="Coverage focus" value={listText(config.coverageFocus)} onChange={(value) => update("coverageFocus", value)} />
           <TextArea label="Must mention" value={listText(config.mustMention)} onChange={(value) => update("mustMention", value)} />
           <TextArea label="Avoid" value={listText(config.avoid)} onChange={(value) => update("avoid", value)} />
         </div>
@@ -160,11 +132,11 @@ export function PromptConfigPicker({ defaultPreset = "official_session_recap", o
   );
 }
 
-function Select({ label, value, onChange, options }) {
+function Select({ label, value, onChange, options, className = "" }) {
   const normalizedOptions = options.map((option) => (typeof option === "string" ? { value: option, label: option } : option));
 
   return (
-    <label className="grid gap-2 text-sm font-bold">
+    <label className={`grid gap-2 text-sm font-bold ${className}`}>
       {label}
       <select className="rounded-md border border-zinc-300 bg-white p-2.5" value={value} onChange={(event) => onChange(event.target.value)}>
         {normalizedOptions.map((option) => (
