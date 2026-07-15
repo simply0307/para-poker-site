@@ -68,6 +68,43 @@ function patchMatchesPayload(payload = {}, patch = {}) {
   });
 }
 
+function publicHrefForRow(row = {}) {
+  if (row._draft_table === "article_drafts") {
+    const slug = row.article_request?.slug || row.draft?.slug || row.id;
+    return slug ? `/articles/${encodeURIComponent(slug)}` : "";
+  }
+  if (row._draft_table === "moment_blurb_drafts") return "/moments";
+  if (row._draft_table === "standings_drafts") return "/standings";
+  if (row._draft_table === "profile_drafts") {
+    const playerId = row.player_id || row.source_player_id;
+    return playerId ? `/players/${encodeURIComponent(playerId)}` : "/players";
+  }
+  if (row._draft_table === "recap_drafts" && row.scope === "session") {
+    return row.source_session_id ? `/sessions/${encodeURIComponent(row.source_session_id)}` : "/sessions";
+  }
+  return "";
+}
+
+function articleMetaForRow(row = {}) {
+  const draft = row.draft || {};
+  const request = row.article_request || {};
+  return {
+    author: draft.author || draft.byline || request.authorName || request.author_name || "",
+    displayDate: request.displayDate || request.display_date || row.published_at || row.generated_at || "",
+    slug: request.slug || draft.slug || row.id || "",
+    contextSelection: request.contextSelection || request.context_selection || {},
+  };
+}
+
+function contextCounts(selection = {}) {
+  return [
+    Array.isArray(selection.sessionIds) && selection.sessionIds.length ? `${selection.sessionIds.length} sessions` : "",
+    Array.isArray(selection.playerIds) && selection.playerIds.length ? `${selection.playerIds.length} players` : "",
+    Array.isArray(selection.momentIds) && selection.momentIds.length ? `${selection.momentIds.length} moments` : "",
+    selection.includeStandings ? "standings" : "",
+  ].filter(Boolean).join(" / ");
+}
+
 function PayloadSelectionPanel({ title = "Source selector", options = [], payload = {}, onSelect }) {
   const [query, setQuery] = useState("");
   if (!options.length) return null;
@@ -183,12 +220,30 @@ export function GenericDraftWorkspace({
   const [busy, setBusy] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [draftQuery, setDraftQuery] = useState("");
   const currentPayload = parseJson(payloadText) || {};
   const currentDraft = parseJson(draftText) || {};
   const bodyField = bodyFieldFor(currentDraft, editorConfig);
   const titleField = titleFieldFor(currentDraft, editorConfig);
   const isArticleWorkspace = editorConfig.supportsAuthor || workspaceEndpoint === "/api/articles/generate" || draftRow?._draft_table === "article_drafts" || Boolean(currentPayload.articleRequest);
   const selectedVariation = currentPayload.variation || currentPayload.variationKey || currentPayload.articleRequest?.variation || "";
+  const normalizedDraftQuery = draftQuery.trim().toLowerCase();
+  const filteredDrafts = normalizedDraftQuery
+    ? drafts.filter((row) => {
+        const meta = articleMetaForRow(row);
+        return [
+          row.draft?.headline,
+          row.draft?.title,
+          row.draft?.subheadline,
+          row.article_request?.topic,
+          meta.author,
+          meta.slug,
+          row.visibility,
+          row.status,
+          contextCounts(meta.contextSelection),
+        ].filter(Boolean).join(" ").toLowerCase().includes(normalizedDraftQuery);
+      })
+    : drafts;
 
   function chooseVariation(variationKey) {
     const payload = parseJson(payloadText) || {};
@@ -485,22 +540,50 @@ export function GenericDraftWorkspace({
             <div>
               <p className="text-xs font-black uppercase tracking-[0.18em] text-amber-700">Draft library</p>
               <h2 className="text-2xl font-black">{existingDraftsTitle}</h2>
+              <p className="mt-1 text-sm leading-6 text-zinc-600">
+                {isArticleWorkspace ? "Live articles appear here for editing, public review, unpublishing, or deletion." : "Saved drafts for this workspace."}
+              </p>
             </div>
             <p className="text-sm font-bold text-zinc-500">{drafts.length} saved</p>
           </div>
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <input
+              type="search"
+              value={draftQuery}
+              onChange={(event) => setDraftQuery(event.target.value)}
+              placeholder={isArticleWorkspace ? "Filter by title, author, slug, context, or status..." : "Filter drafts..."}
+              className="min-w-0 flex-1 rounded-md border border-zinc-300 px-3 py-2.5 text-sm"
+            />
+            {draftQuery ? (
+              <button type="button" onClick={() => setDraftQuery("")} className="rounded-md border border-zinc-300 px-3 py-2.5 text-sm font-black">
+                Clear
+              </button>
+            ) : null}
+          </div>
           <div className="mt-4 grid gap-3">
-            {drafts.map((row) => {
+            {filteredDrafts.map((row) => {
               const headline = row.draft?.headline || row.draft?.title || row.article_request?.topic || "Untitled draft";
               const active = draftRow?.id === row.id;
               const coverageTarget = row.article_request?.coverageTarget || row.context_packet?.coverage_target || null;
+              const articleMeta = articleMetaForRow(row);
+              const publicHref = publicHrefForRow(row);
+              const contextSummary = contextCounts(articleMeta.contextSelection);
               return (
                 <article key={`${row._draft_table || "draft"}-${row.id}`} className={`rounded-md border p-4 ${active ? "border-amber-600 bg-amber-50" : "border-zinc-200 bg-zinc-50"}`}>
                   <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div>
+                    <div className="min-w-0">
                       <h3 className="text-lg font-black">{headline}</h3>
                       <p className="mt-1 text-xs font-bold uppercase tracking-wide text-zinc-500">
                         {(row._draft_table || "recap_drafts").replace(/_/g, " ")} / {row.visibility || "admin"} / {row.status || "draft"}
                       </p>
+                      {isArticleWorkspace ? (
+                        <div className="mt-2 flex flex-wrap gap-2 text-xs font-bold text-zinc-600">
+                          {articleMeta.author ? <span className="rounded-sm bg-white px-2 py-1">By {articleMeta.author}</span> : null}
+                          {articleMeta.displayDate ? <span className="rounded-sm bg-white px-2 py-1">{new Date(articleMeta.displayDate).toLocaleDateString()}</span> : null}
+                          {articleMeta.slug ? <span className="rounded-sm bg-white px-2 py-1">/{articleMeta.slug}</span> : null}
+                          {contextSummary ? <span className="rounded-sm bg-amber-100 px-2 py-1 text-amber-800">{contextSummary}</span> : null}
+                        </div>
+                      ) : null}
                       {coverageTarget?.role ? (
                         <p className="mt-1 text-sm font-bold text-amber-700">
                           Covers {coverageTarget.role}: {coverageTarget.playerName || coverageTarget.player_name || "target pending"}
@@ -512,6 +595,14 @@ export function GenericDraftWorkspace({
                       <button type="button" onClick={() => loadDraft(row)} className="rounded-md bg-zinc-950 px-3 py-2 text-sm font-black text-white">
                         {active ? "Loaded" : "Edit"}
                       </button>
+                      {publicHref ? (
+                        <a
+                          href={publicHref}
+                          className="rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm font-black text-zinc-800"
+                        >
+                          Public
+                        </a>
+                      ) : null}
                       <button
                         type="button"
                         onClick={() => setRowPublishState(row, row.visibility === "published" ? "unpublish" : "publish")}
@@ -533,6 +624,11 @@ export function GenericDraftWorkspace({
                 </article>
               );
             })}
+            {!filteredDrafts.length ? (
+              <p className="rounded-md border border-zinc-200 bg-zinc-50 p-4 text-sm font-bold text-zinc-500">
+                No drafts match that filter.
+              </p>
+            ) : null}
           </div>
         </section>
       ) : null}
