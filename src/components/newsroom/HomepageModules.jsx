@@ -348,17 +348,25 @@ function FeaturedMomentsModule({ module }) {
         {moments.slice(0, module.variant === "featured_moment" ? 1 : moments.length).map((moment) => (
           <MomentCard
             key={moment.momentId || moment.id || moment.hand_no}
-            href={moment.detailHref || (moment.id ? `/moments/${encodeURIComponent(text(moment.id))}` : "")}
+            href={moment.video?.signed_url ? "" : moment.detailHref || (moment.id ? `/moments/${encodeURIComponent(text(moment.id))}` : "")}
             title={moment.hand_no ? `Hand #${moment.hand_no}` : "Table moment"}
             meta={moment.typeLabel || cleanName(moment.winner_name, "Winner pending")}
             pot={moment.potText || (moment.pot_collected ? `${formatNumber(moment.pot_collected)} chips` : "")}
           >
             {moment.video?.signed_url ? (
               <span className="mb-3 block overflow-hidden rounded-sm border border-amber-300/25 bg-black">
-                <video className="aspect-video w-full object-cover" src={moment.video.signed_url} muted playsInline preload="metadata" />
+                <video className="aspect-video w-full object-cover" src={moment.video.signed_url} controls playsInline preload="metadata" />
               </span>
             ) : null}
             <p>{text(moment.displaySummary || moment.summary || moment.winning_hand || moment.board, "No moment has entered the archive from this session yet.")}</p>
+            {moment.video?.signed_url && (moment.detailHref || moment.id) ? (
+              <Link
+                href={moment.detailHref || `/moments/${encodeURIComponent(text(moment.id))}`}
+                className="mt-3 inline-flex text-xs font-black uppercase tracking-[0.14em] text-[#fff1bf] hover:text-white"
+              >
+                Open moment
+              </Link>
+            ) : null}
           </MomentCard>
         ))}
       </CardGrid>
@@ -468,8 +476,14 @@ function RecentFormModule({ module, viewModel }) {
 }
 
 function ArticleCard({ article, lead = false }) {
-  return (
-    <Link href={articleHref(article)} className={`block rounded-md border border-white/10 bg-black/20 p-4 hover:border-[#d8c087]/45 ${lead ? "md:p-6" : ""}`}>
+  const cardClass = `block rounded-md border border-white/10 bg-black/20 p-4 hover:border-[#d8c087]/45 ${lead ? "md:p-6" : ""}`;
+  const content = (
+    <>
+      {article.video?.signed_url ? (
+        <span className="mb-4 block overflow-hidden rounded-sm border border-[#d8c087]/20 bg-black">
+          <video className="aspect-video w-full object-cover" src={article.video.signed_url} controls playsInline preload="metadata" />
+        </span>
+      ) : null}
       <p className="text-xs font-bold uppercase tracking-[0.16em] text-stone-400">
         {[article.author || "Para League Desk", article.display_date ? formatDate(article.display_date) : ""].filter(Boolean).join(" / ")}
       </p>
@@ -477,6 +491,21 @@ function ArticleCard({ article, lead = false }) {
       {article.body?.subheadline || article.subheadline ? (
         <p className="mt-3 text-sm leading-6 text-stone-400">{article.body?.subheadline || article.subheadline}</p>
       ) : null}
+      {article.video?.signed_url ? (
+        <Link href={articleHref(article)} className="mt-4 inline-flex text-xs font-black uppercase tracking-[0.14em] text-[#fff1bf] hover:text-white">
+          Read article
+        </Link>
+      ) : null}
+    </>
+  );
+
+  if (article.video?.signed_url) {
+    return <article className={cardClass}>{content}</article>;
+  }
+
+  return (
+    <Link href={articleHref(article)} className={cardClass}>
+      {content}
     </Link>
   );
 }

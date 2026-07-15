@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase";
+import { getArticleVideoAttachment, getArticleVideoAttachments } from "@/lib/newsroom/articleVideoAttachments";
 import { safeQuery } from "./sessionRepository";
 
 function text(value, fallback = "") {
@@ -22,6 +23,22 @@ function normalizedArticleDraft(row, source = "article_drafts") {
     display_date: request.displayDate || request.display_date || publishedAt,
     published_at: publishedAt,
   };
+}
+
+async function withArticleVideo(article) {
+  if (!article?.id) return article;
+  return {
+    ...article,
+    video: await getArticleVideoAttachment(article.id),
+  };
+}
+
+async function withArticleVideos(articles = []) {
+  const videoMap = await getArticleVideoAttachments(articles.map((article) => article.id));
+  return articles.map((article) => ({
+    ...article,
+    video: videoMap[article.id] || null,
+  }));
 }
 
 export async function getPublishedDraft({ scope, sourceSessionId, sourcePlayerId }) {
@@ -92,7 +109,7 @@ export async function getPublishedArticlesIndex() {
       .order("published_at", { ascending: false }),
     []
   );
-  if (draftRows?.length) return draftRows.map((row) => normalizedArticleDraft(row, "article_drafts"));
+  if (draftRows?.length) return withArticleVideos(draftRows.map((row) => normalizedArticleDraft(row, "article_drafts")));
 
   const bridgeRows = await safeQuery(
     supabase
@@ -102,7 +119,7 @@ export async function getPublishedArticlesIndex() {
       .order("published_at", { ascending: false }),
     []
   );
-  if (bridgeRows?.length) return bridgeRows.map((row) => normalizedArticleDraft(row, "published_articles"));
+  if (bridgeRows?.length) return withArticleVideos(bridgeRows.map((row) => normalizedArticleDraft(row, "published_articles")));
 
   const recapRows = await safeQuery(
     supabase
@@ -113,7 +130,7 @@ export async function getPublishedArticlesIndex() {
       .order("published_at", { ascending: false }),
     []
   );
-  return (recapRows || []).map((row) => normalizedArticleDraft(row, "recap_drafts"));
+  return withArticleVideos((recapRows || []).map((row) => normalizedArticleDraft(row, "recap_drafts")));
 }
 
 export async function getPublishedArticle(articleIdOrSlug) {
@@ -129,7 +146,7 @@ export async function getPublishedArticle(articleIdOrSlug) {
       .maybeSingle(),
     null
   );
-  if (articleDraftById) return normalizedArticleDraft(articleDraftById, "article_drafts");
+  if (articleDraftById) return withArticleVideo(normalizedArticleDraft(articleDraftById, "article_drafts"));
 
   const articleDraftBySlug = await safeQuery(
     supabase
@@ -140,7 +157,7 @@ export async function getPublishedArticle(articleIdOrSlug) {
       .maybeSingle(),
     null
   );
-  if (articleDraftBySlug) return normalizedArticleDraft(articleDraftBySlug, "article_drafts");
+  if (articleDraftBySlug) return withArticleVideo(normalizedArticleDraft(articleDraftBySlug, "article_drafts"));
 
   const bridgeById = await safeQuery(
     supabase
@@ -151,7 +168,7 @@ export async function getPublishedArticle(articleIdOrSlug) {
       .maybeSingle(),
     null
   );
-  if (bridgeById) return normalizedArticleDraft(bridgeById, "published_articles");
+  if (bridgeById) return withArticleVideo(normalizedArticleDraft(bridgeById, "published_articles"));
 
   const bridgeBySlug = await safeQuery(
     supabase
@@ -162,7 +179,7 @@ export async function getPublishedArticle(articleIdOrSlug) {
       .maybeSingle(),
     null
   );
-  if (bridgeBySlug) return normalizedArticleDraft(bridgeBySlug, "published_articles");
+  if (bridgeBySlug) return withArticleVideo(normalizedArticleDraft(bridgeBySlug, "published_articles"));
 
   const recapById = await safeQuery(
     supabase
@@ -174,7 +191,7 @@ export async function getPublishedArticle(articleIdOrSlug) {
       .maybeSingle(),
     null
   );
-  if (recapById) return normalizedArticleDraft(recapById, "recap_drafts");
+  if (recapById) return withArticleVideo(normalizedArticleDraft(recapById, "recap_drafts"));
 
   const recapBySlug = await safeQuery(
     supabase
@@ -186,5 +203,5 @@ export async function getPublishedArticle(articleIdOrSlug) {
       .maybeSingle(),
     null
   );
-  return normalizedArticleDraft(recapBySlug, "recap_drafts");
+  return withArticleVideo(normalizedArticleDraft(recapBySlug, "recap_drafts"));
 }

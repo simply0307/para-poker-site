@@ -50,6 +50,7 @@ function articleContextItems(article = {}) {
 export default async function ArticlePage({ params }) {
   const { articleId } = await params;
   const article = await getPublishedArticle(articleId);
+  const articleVideo = article?.video || null;
   const body = article?.body || {};
   const textBody = stripPlayerHandlesFromText(body.article_body || body.recap_body || body.profile_body || "");
   const html = hasRichTextMarkup(textBody) ? sanitizeRichText(textBody) : "";
@@ -68,6 +69,21 @@ export default async function ArticlePage({ params }) {
         <StatCard label="Author" value={stripPlayerHandlesFromText(article?.author || "Para League Desk")} />
         <StatCard label="Published" value={articleDate ? new Date(articleDate).toLocaleDateString("en-US") : "Pending"} />
       </StatStrip>
+      {articleVideo?.signed_url ? (
+        <section className="mt-8 overflow-hidden rounded-md border border-[#d8c087]/20 bg-[#08111a]/80 shadow-2xl shadow-black/30">
+          <video
+            key={articleVideo.signed_url}
+            className="aspect-video w-full bg-black object-contain"
+            src={articleVideo.signed_url}
+            controls
+            playsInline
+            preload="metadata"
+          />
+          <div className="border-t border-white/10 px-4 py-3 text-xs font-bold uppercase tracking-[0.16em] text-stone-400">
+            Article video{articleVideo.filename ? ` / ${articleVideo.filename}` : ""}
+          </div>
+        </section>
+      ) : null}
       <ContentRail
         main={
           <PublishedArticle

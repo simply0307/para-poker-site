@@ -1,9 +1,11 @@
+import { ArticleVideoManager } from "@/components/admin-newsroom/ArticleVideoManager";
 import { GenericDraftWorkspace } from "@/components/admin-newsroom/GenericDraftWorkspace";
 import { cleanName, formatDate, formatNumber, getPlayersIndex, getSessionsIndex, getStandingsRows, text } from "@/lib/newsroom/data";
 import { listArticleDrafts } from "@/lib/newsroom/drafts";
 import { readSeasonSettings } from "@/lib/newsroom/seasonSettings";
 import { DEFAULT_ARTICLE_CONTEXT_SELECTION } from "@/lib/newsroom/articleContextSelection";
 import { buildMomentsViewModel } from "@/lib/newsroom/viewModels/moments";
+import { getArticleVideoAttachments } from "@/lib/newsroom/articleVideoAttachments";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +19,20 @@ export default async function AdminArticlesPage() {
     buildMomentsViewModel(),
   ]);
   const standingsByPlayerId = new Map((standingsRows || []).map((row) => [String(row.player_id), row]));
+  const articleVideoMap = await getArticleVideoAttachments((articleDrafts || []).map((article) => article.id));
+  const articleVideoOptions = (articleDrafts || [])
+    .map((article) => {
+      const title = article.draft?.headline || article.draft?.title || article.article_request?.topic || "Untitled article";
+      const author = article.draft?.author || article.draft?.byline || article.article_request?.authorName || article.article_request?.author_name || "";
+      const date = article.article_request?.displayDate || article.article_request?.display_date || article.published_at || article.generated_at || "";
+      return {
+        id: text(article.id),
+        label: text(title, "Untitled article"),
+        description: [author, date ? formatDate(date) : "", article.article_request?.slug ? `/${article.article_request.slug}` : ""].filter(Boolean).join(" / "),
+        video: articleVideoMap[article.id] || null,
+      };
+    })
+    .filter((article) => article.id);
   const articleContextOptions = {
     sessions: (sessions || []).map((session) => ({
       id: text(session.session_code || session.id),
@@ -94,6 +110,7 @@ export default async function AdminArticlesPage() {
       existingDraftsTitle="Live articles"
       initialDraft={articleDrafts[0] || null}
       articleContextOptions={articleContextOptions}
+      preface={<ArticleVideoManager articles={articleVideoOptions} />}
     />
   );
 }
