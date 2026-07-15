@@ -517,7 +517,7 @@ export function GenericDraftWorkspace({
   return (
     <AdminShell
       title={title}
-      description="Generate a draft, inspect context and docs, edit JSON, save, publish, or unpublish."
+      description="Pick a source, guide the writing, generate a draft, edit the visible fields, then publish when ready."
     >
       {preface ? <div className="mb-8">{preface}</div> : null}
 
@@ -535,17 +535,19 @@ export function GenericDraftWorkspace({
       <PayloadSelectionPanel title={payloadOptionsTitle} options={payloadOptions} payload={currentPayload} onSelect={patchPayload} />
 
       {drafts.length ? (
-        <section className="rounded-lg border border-zinc-300 bg-white p-4 shadow-sm">
+        <details className="rounded-lg border border-zinc-300 bg-white p-4 shadow-sm" open={isArticleWorkspace || undefined}>
+          <summary className="cursor-pointer list-none">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.18em] text-amber-700">Draft library</p>
               <h2 className="text-2xl font-black">{existingDraftsTitle}</h2>
               <p className="mt-1 text-sm leading-6 text-zinc-600">
-                {isArticleWorkspace ? "Live articles appear here for editing, public review, unpublishing, or deletion." : "Saved drafts for this workspace."}
+                {isArticleWorkspace ? "Live articles appear here for editing, public review, unpublishing, or deletion." : "Open saved drafts when you need to edit an older version."}
               </p>
             </div>
-            <p className="text-sm font-bold text-zinc-500">{drafts.length} saved</p>
+            <p className="text-sm font-bold text-zinc-500">{drafts.length} saved / click to {isArticleWorkspace ? "manage" : "open"}</p>
           </div>
+          </summary>
           <div className="mt-4 flex flex-wrap items-center gap-3">
             <input
               type="search"
@@ -630,12 +632,12 @@ export function GenericDraftWorkspace({
               </p>
             ) : null}
           </div>
-        </section>
+        </details>
       ) : null}
 
       {resolvedVariationOptions.length ? (
         <section className="mt-8 rounded-lg border border-zinc-300 bg-white p-4">
-          <p className="text-xs font-black uppercase tracking-[0.18em] text-amber-700">Draft variation</p>
+          <p className="text-xs font-black uppercase tracking-[0.18em] text-amber-700">Story angle</p>
           <div className="mt-3 flex flex-wrap gap-2">
             {resolvedVariationOptions.map((option) => (
               <button
@@ -650,13 +652,19 @@ export function GenericDraftWorkspace({
               </button>
             ))}
           </div>
-          <div className="mt-4 grid gap-2 md:grid-cols-2">
-            {resolvedVariationOptions.map((option) => (
-              <p key={option.key} className="rounded-md bg-zinc-100 p-3 text-sm leading-6 text-zinc-700">
-                <strong className="text-zinc-950">{option.label}:</strong> {option.instruction}
-              </p>
-            ))}
-          </div>
+          <p className="mt-3 rounded-md bg-zinc-100 p-3 text-sm leading-6 text-zinc-700">
+            {resolvedVariationOptions.find((option) => option.key === selectedVariation)?.instruction || "Choose the strongest angle for this draft."}
+          </p>
+          <details className="mt-3 rounded-md border border-zinc-200 bg-zinc-50 p-3">
+            <summary className="cursor-pointer text-sm font-black">View all angle notes</summary>
+            <div className="mt-3 grid gap-2 md:grid-cols-2">
+              {resolvedVariationOptions.map((option) => (
+                <p key={option.key} className="rounded-md bg-white p-3 text-sm leading-6 text-zinc-700">
+                  <strong className="text-zinc-950">{option.label}:</strong> {option.instruction}
+                </p>
+              ))}
+            </div>
+          </details>
         </section>
       ) : null}
 
@@ -664,15 +672,31 @@ export function GenericDraftWorkspace({
         <PromptConfigPicker defaultPreset={resolvedDefaultPromptPreset} onChange={setPromptConfig} />
       </div>
 
-      <section className="mt-8 grid gap-5 lg:grid-cols-2">
-        <label className="grid gap-2">
-          <span className="font-black">Generation payload</span>
-          <textarea className="min-h-64 rounded-lg border border-zinc-300 p-3 font-mono text-sm" value={payloadText} onChange={(event) => setPayloadText(event.target.value)} />
-        </label>
-        <label className="grid gap-2">
-          <span className="font-black">Editable draft JSON</span>
-          <textarea className="min-h-64 rounded-lg border border-zinc-300 p-3 font-mono text-sm" value={draftText} onChange={(event) => setDraftText(event.target.value)} />
-        </label>
+      <section className="mt-8 rounded-lg border border-zinc-300 bg-white p-4 shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-amber-700">Workflow</p>
+            <h2 className="text-2xl font-black">Generate, edit, publish</h2>
+            <p className="mt-1 text-sm leading-6 text-zinc-600">Use the visible fields below for normal editing. JSON and context are tucked into Advanced.</p>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <button className="rounded-md bg-zinc-950 px-4 py-3 font-black text-white disabled:opacity-50" onClick={generateDraft} disabled={Boolean(busy)}>
+              {busy === "generate" ? "Generating..." : "Generate"}
+            </button>
+            <button className="rounded-md bg-zinc-700 px-4 py-3 font-black text-white disabled:opacity-50" onClick={saveDraft} disabled={Boolean(busy) || !draftRow?.id}>
+              Save
+            </button>
+            <button className="rounded-md bg-amber-600 px-4 py-3 font-black text-white disabled:opacity-50" onClick={() => setPublishState("publish")} disabled={Boolean(busy) || !draftRow?.id}>
+              Publish
+            </button>
+            <button className="rounded-md border border-zinc-400 px-4 py-3 font-black disabled:opacity-50" onClick={() => setPublishState("unpublish")} disabled={Boolean(busy) || !draftRow?.id}>
+              Unpublish
+            </button>
+            <button className="rounded-md border border-red-300 px-4 py-3 font-black text-red-700 disabled:opacity-50" onClick={handleDelete} disabled={Boolean(busy) || !draftRow?.id}>
+              {busy === "delete" ? "Deleting..." : "Delete"}
+            </button>
+          </div>
+        </div>
       </section>
 
       <section className="mt-6 rounded-lg border border-zinc-300 bg-white p-4 shadow-sm">
@@ -720,26 +744,22 @@ export function GenericDraftWorkspace({
         </div>
       ) : null}
 
-      <div className="mt-5 flex flex-wrap gap-3">
-        <button className="rounded-md bg-zinc-950 px-4 py-3 font-black text-white disabled:opacity-50" onClick={generateDraft} disabled={Boolean(busy)}>
-          {busy === "generate" ? "Generating..." : "Generate Draft"}
-        </button>
-        <button className="rounded-md bg-zinc-700 px-4 py-3 font-black text-white disabled:opacity-50" onClick={saveDraft} disabled={Boolean(busy) || !draftRow?.id}>
-          Save Draft
-        </button>
-        <button className="rounded-md bg-amber-600 px-4 py-3 font-black text-white disabled:opacity-50" onClick={() => setPublishState("publish")} disabled={Boolean(busy) || !draftRow?.id}>
-          Publish
-        </button>
-        <button className="rounded-md border border-zinc-400 px-4 py-3 font-black disabled:opacity-50" onClick={() => setPublishState("unpublish")} disabled={Boolean(busy) || !draftRow?.id}>
-          Unpublish
-        </button>
-        <button className="rounded-md border border-red-300 px-4 py-3 font-black text-red-700 disabled:opacity-50" onClick={handleDelete} disabled={Boolean(busy) || !draftRow?.id}>
-          {busy === "delete" ? "Deleting..." : "Delete Draft"}
-        </button>
-      </div>
-
       {message ? <p className="mt-4 rounded-md bg-green-100 p-3 font-bold text-green-800">{message}</p> : null}
       {error ? <p className="mt-4 rounded-md bg-red-100 p-3 font-bold text-red-800">{error}</p> : null}
+
+      <details className="mt-6 rounded-lg border border-zinc-300 bg-white p-4">
+        <summary className="cursor-pointer font-black">Advanced JSON editing</summary>
+        <section className="mt-4 grid gap-5 lg:grid-cols-2">
+          <label className="grid gap-2">
+            <span className="font-black">Generation payload</span>
+            <textarea className="min-h-64 rounded-lg border border-zinc-300 p-3 font-mono text-sm" value={payloadText} onChange={(event) => setPayloadText(event.target.value)} />
+          </label>
+          <label className="grid gap-2">
+            <span className="font-black">Editable draft JSON</span>
+            <textarea className="min-h-64 rounded-lg border border-zinc-300 p-3 font-mono text-sm" value={draftText} onChange={(event) => setDraftText(event.target.value)} />
+          </label>
+        </section>
+      </details>
 
       {draftRow ? (
         <details className="mt-6 rounded-lg border border-zinc-300 bg-white p-4">

@@ -192,11 +192,11 @@ export function SessionRecapDraftEditor({ sessionKey, initialDraft, variationOpt
           <span className={styles.kicker}>Newsroom MVP</span>
           <h2>Public session recap draft</h2>
           <p>
-            Generate an editable recap from structured league data. Nothing publishes automatically.
+            Pick a story angle, guide the voice, generate a draft, edit the public text, then publish when ready.
           </p>
         </div>
         <button type="button" onClick={handleGenerate} disabled={Boolean(busy)} className={styles.primaryButton}>
-          {busy === "generate" ? "Generating..." : "Generate Public Session Recap Draft"}
+          {busy === "generate" ? "Generating..." : "Generate Draft"}
         </button>
       </div>
 
@@ -215,20 +215,25 @@ export function SessionRecapDraftEditor({ sessionKey, initialDraft, variationOpt
               </button>
             ))}
           </div>
-          <div className={styles.variationNotes}>
-            {variationOptions.map((option) => (
-              <p key={option.key}>
-                <strong>{option.label}:</strong> {option.instruction}
-              </p>
-            ))}
-          </div>
+          <p className={styles.activeVariationNote}>
+            {variationOptions.find((option) => option.key === selectedVariation)?.instruction || "Choose the strongest angle for this session."}
+          </p>
+          <details className={styles.compactDetails}>
+            <summary>View all angle notes</summary>
+            <div className={styles.variationNotes}>
+              {variationOptions.map((option) => (
+                <p key={option.key}>
+                  <strong>{option.label}:</strong> {option.instruction}
+                </p>
+              ))}
+            </div>
+          </details>
         </section>
       ) : null}
 
       <PromptConfigPicker defaultPreset="official_session_recap" onChange={handlePromptConfigChange} />
 
       <div className={styles.meta}>{generatedMeta}</div>
-      {draftRow ? <AdminDebugPanel draftRow={draftRow} /> : null}
       {notice ? <p className={styles.notice}>{notice}</p> : null}
       {error ? <p className={styles.error}>{error}</p> : null}
 
@@ -244,35 +249,41 @@ export function SessionRecapDraftEditor({ sessionKey, initialDraft, variationOpt
         <div className={styles.full}>
           <RichTextEditor label="Recap body" value={draft.recap_body || ""} onChange={(nextValue) => updateField("recap_body", nextValue)} />
         </div>
-        <JsonTextarea
-          key={`key-moments-${draftRow?.id || "new"}`}
-          label="Key moments JSON"
-          value={draft.key_moments || []}
-          onChange={(nextValue) => updateField("key_moments", nextValue)}
-        />
-        <JsonTextarea
-          key={`player-blurbs-${draftRow?.id || "new"}`}
-          label="Player blurbs JSON"
-          value={draft.player_blurbs || []}
-          onChange={(nextValue) => updateField("player_blurbs", nextValue)}
-        />
-        <label className={styles.field}>
-          <span>Confidence notes</span>
-          <textarea
-            rows={6}
-            value={listToText(draft.confidence_notes)}
-            onChange={(event) => updateField("confidence_notes", textToList(event.target.value))}
-          />
-        </label>
-        <label className={styles.field}>
-          <span>Missing data warnings</span>
-          <textarea
-            rows={6}
-            value={listToText(draft.missing_data_warnings)}
-            onChange={(event) => updateField("missing_data_warnings", textToList(event.target.value))}
-          />
-        </label>
       </div>
+
+      <details className={styles.advancedPanel}>
+        <summary>Advanced recap fields</summary>
+        <div className={styles.formGrid}>
+          <JsonTextarea
+            key={`key-moments-${draftRow?.id || "new"}`}
+            label="Key moments JSON"
+            value={draft.key_moments || []}
+            onChange={(nextValue) => updateField("key_moments", nextValue)}
+          />
+          <JsonTextarea
+            key={`player-blurbs-${draftRow?.id || "new"}`}
+            label="Player blurbs JSON"
+            value={draft.player_blurbs || []}
+            onChange={(nextValue) => updateField("player_blurbs", nextValue)}
+          />
+          <label className={styles.field}>
+            <span>Confidence notes</span>
+            <textarea
+              rows={6}
+              value={listToText(draft.confidence_notes)}
+              onChange={(event) => updateField("confidence_notes", textToList(event.target.value))}
+            />
+          </label>
+          <label className={styles.field}>
+            <span>Missing data warnings</span>
+            <textarea
+              rows={6}
+              value={listToText(draft.missing_data_warnings)}
+              onChange={(event) => updateField("missing_data_warnings", textToList(event.target.value))}
+            />
+          </label>
+        </div>
+      </details>
 
       <div className={styles.actions}>
         <button type="button" onClick={handleSave} disabled={Boolean(busy) || !draftRow?.id}>
@@ -285,6 +296,8 @@ export function SessionRecapDraftEditor({ sessionKey, initialDraft, variationOpt
           {busy === "unpublish" ? "Unpublishing..." : "Unpublish"}
         </button>
       </div>
+
+      {draftRow ? <AdminDebugPanel draftRow={draftRow} /> : null}
     </section>
   );
 }

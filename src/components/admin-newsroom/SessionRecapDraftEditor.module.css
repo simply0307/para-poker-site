@@ -125,6 +125,35 @@
   color: #18181b;
 }
 
+.activeVariationNote {
+  margin: 12px 0 0;
+  border-radius: 6px;
+  background: #fff;
+  color: #52525b;
+  font-size: 14px;
+  line-height: 1.5;
+  padding: 10px;
+}
+
+.compactDetails,
+.advancedPanel {
+  margin-top: 12px;
+  border: 1px solid #e4e4e7;
+  border-radius: 8px;
+  background: #fafafa;
+  padding: 12px;
+}
+
+.compactDetails summary,
+.advancedPanel summary {
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.advancedPanel {
+  margin-top: 18px;
+}
+
 .debugPanel {
   margin-top: 12px;
   border: 1px solid #e4e4e7;

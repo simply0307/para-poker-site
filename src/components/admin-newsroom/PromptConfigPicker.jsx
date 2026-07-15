@@ -91,26 +91,26 @@ export function PromptConfigPicker({ defaultPreset = "official_session_recap", o
     <section className={`rounded-lg border border-zinc-300 bg-white p-4 shadow-sm ${className}`}>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-black uppercase tracking-[0.18em] text-amber-700">Prompt config</p>
-          <h2 className="mt-1 text-xl font-black">Creative controls</h2>
-          <p className="mt-1 text-sm leading-6 text-zinc-600">Sent automatically with generation. Copy JSON is only an escape hatch.</p>
+          <p className="text-xs font-black uppercase tracking-[0.18em] text-amber-700">Writing direction</p>
+          <h2 className="mt-1 text-xl font-black">Guide the draft</h2>
+          <p className="mt-1 text-sm leading-6 text-zinc-600">
+            The docs and source data are included automatically. Use these controls to steer voice, focus, and emphasis.
+          </p>
         </div>
         <button type="button" onClick={() => applyPreset(defaultPreset)} className="rounded-md border border-zinc-300 px-3 py-2 text-sm font-black">
           Reset to default
         </button>
       </div>
 
-      <div className="mt-4 grid gap-4 md:grid-cols-2">
+      <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Select label="Preset" value={presetKey} onChange={applyPreset} options={presets.map((preset) => ({ value: preset.key, label: preset.label }))} />
         <Select label="Voice mode" value={config.voiceMode} onChange={(value) => update("voiceMode", value)} options={VOICE_MODES} />
         <Select label="Intensity" value={config.intensity} onChange={(value) => update("intensity", value)} options={INTENSITY_LEVELS} />
         <Select label="Length" value={config.length} onChange={(value) => update("length", value)} options={LENGTH_OPTIONS} />
-        <Select label="Format" value={config.format} onChange={(value) => update("format", value)} options={FORMAT_OPTIONS} />
-        <Select label="Audience" value={config.audience} onChange={(value) => update("audience", value)} options={AUDIENCE_OPTIONS} />
       </div>
 
       <div className="mt-4">
-        <p className="text-sm font-black">Coverage focus</p>
+        <p className="text-sm font-black">What should the draft care about?</p>
         <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
           {COVERAGE_FOCUS_OPTIONS.map((option) => (
             <label
@@ -130,11 +130,24 @@ export function PromptConfigPicker({ defaultPreset = "official_session_recap", o
         </div>
       </div>
 
-      <div className="mt-4 grid gap-4 md:grid-cols-2">
-        <TextArea label="Must mention" value={listText(config.mustMention)} onChange={(value) => update("mustMention", value)} />
-        <TextArea label="Avoid" value={listText(config.avoid)} onChange={(value) => update("avoid", value)} />
-        <TextArea className="md:col-span-2" label="Custom instruction" rows={3} value={config.customInstruction} onChange={(value) => update("customInstruction", value)} />
-      </div>
+      <TextArea
+        className="mt-4"
+        label="Editor note"
+        rows={3}
+        value={config.customInstruction}
+        onChange={(value) => update("customInstruction", value)}
+        placeholder="Example: Make this feel like a shareable player card, not a database summary."
+      />
+
+      <details className="mt-4 rounded-md border border-zinc-200 bg-zinc-50 p-3">
+        <summary className="cursor-pointer text-sm font-black">Advanced direction</summary>
+        <div className="mt-4 grid gap-4 md:grid-cols-2">
+          <Select label="Format" value={config.format} onChange={(value) => update("format", value)} options={FORMAT_OPTIONS} />
+          <Select label="Audience" value={config.audience} onChange={(value) => update("audience", value)} options={AUDIENCE_OPTIONS} />
+          <TextArea label="Must mention" value={listText(config.mustMention)} onChange={(value) => update("mustMention", value)} />
+          <TextArea label="Avoid" value={listText(config.avoid)} onChange={(value) => update("avoid", value)} />
+        </div>
+      </details>
 
       <details className="mt-4 rounded-md border border-zinc-200 bg-zinc-50 p-3">
         <summary className="cursor-pointer text-sm font-black">JSON preview</summary>
@@ -164,11 +177,17 @@ function Select({ label, value, onChange, options }) {
   );
 }
 
-function TextArea({ label, value, onChange, rows = 2, className = "" }) {
+function TextArea({ label, value, onChange, rows = 2, className = "", placeholder = "" }) {
   return (
     <label className={`grid gap-2 text-sm font-bold ${className}`}>
       {label}
-      <textarea className="rounded-md border border-zinc-300 p-2.5 text-sm leading-6" rows={rows} value={value} onChange={(event) => onChange(event.target.value)} />
+      <textarea
+        className="rounded-md border border-zinc-300 p-2.5 text-sm leading-6"
+        rows={rows}
+        value={value}
+        placeholder={placeholder}
+        onChange={(event) => onChange(event.target.value)}
+      />
     </label>
   );
 }
