@@ -168,40 +168,34 @@ src/lib/newsroom/upcomingEvents.js
 When the game-site schedule feed is ready, replace the internals of that
 repository without changing the homepage module or admin presentation contract.
 
-## ParaPoker Completed-Session Package Imports
+## Raw Hand-History CSV Imports
 
-The package importer lives at:
-
-```text
-/admin/imports/parapoker
-```
-
-It is separate from the raw hand-history/CSV importer. The package importer is
-for completed-session JSON exports from `parapoker-official-client` using
-`para-completed-session-v1`.
-
-Before committing packages, apply this SQL in Supabase:
+The active import lane lives at:
 
 ```text
-sql/20260713_game_session_imports.sql
+/admin/imports
 ```
 
-The migration creates:
+Use it to upload a raw hand-history CSV, preview parsed sessions/hands/actions,
+and commit the result to Supabase as live evidence. Public pages and newsroom
+generation then read the imported rows through the existing session, player,
+moment, and hand-history view models.
 
-- `game_session_imports` for durable raw-package/audit storage
-- `commit_parapoker_session_import(uuid, jsonb)` for transactional commits
-- a unique idempotency index on `source_app` + `source_match_id`
+The CSV importer can accept either:
+
+- a raw line column such as `raw_entry`, `raw`, `line`, `log_entry`, or `entry`
+- normalized columns such as `hand_no`, `player_name`, `action`, `amount`,
+  `street`, `board`, and explicit order fields
 
 The admin flow is:
 
-1. Upload or paste package JSON.
-2. Validate checksum, schema, events, participants, cards, and privacy
-   exclusions server-side.
-3. Confirm participant mapping. NPCs remain NPC evidence and do not become
-   league player profiles.
-4. Preview derived sessions, hands, actions, results, stats, and notable hands.
-5. Commit explicitly. Public pages then read the imported session through the
-   existing session and hand-history view models.
+1. Upload a CSV or paste fallback PokerNow-style hand history.
+2. Preview parsed hands, actions, players, and notable-hand candidates.
+3. Confirm the session code, season, date, table name, and replace behavior.
+4. Commit explicitly. The commit writes `sessions`, `players`, `hands`,
+   `actions`, `notable_hands`, and basic `player_session_stats`.
+5. Public pages then show the story layer plus the imported evidence layer.
 
-Local/private browser packages default to archive-only exhibition evidence.
-The importer does not recalculate standings or publish recaps.
+The older completed-session JSON package route is no longer part of the active
+admin workflow. Keep historical SQL migrations in place, but new operational
+imports should use the CSV-first control room.
