@@ -91,7 +91,7 @@ export function RawHandImportPanel({ initialSeasonCode = "S0" }) {
       <div className="mt-5 grid gap-4 md:grid-cols-3">
         <Input label="Session code" value={form.sessionCode} onChange={(value) => update("sessionCode", value)} placeholder="S0-002" />
         <Input label="Season" value={form.seasonCode} onChange={(value) => update("seasonCode", value)} />
-        <Input label="Session number" value={form.sessionNumber} onChange={(value) => update("sessionNumber", value)} placeholder="2" />
+        <Input label="Session number (optional)" value={form.sessionNumber} onChange={(value) => update("sessionNumber", value)} placeholder="Auto" />
         <Input label="Table name" value={form.tableName} onChange={(value) => update("tableName", value)} />
         <Input label="Format" value={form.format} onChange={(value) => update("format", value)} />
         <label className="grid gap-2">
@@ -99,6 +99,7 @@ export function RawHandImportPanel({ initialSeasonCode = "S0" }) {
           <input type="datetime-local" value={form.playedAt} onChange={(event) => update("playedAt", event.target.value)} className="rounded-md border border-zinc-300 px-3 py-2 text-sm" />
         </label>
       </div>
+      <p className="mt-2 text-xs text-zinc-500">Leave session number blank to have it assigned automatically within the selected season.</p>
 
       <label className="mt-4 flex items-center gap-2 text-sm font-bold text-zinc-700">
         <input type="checkbox" checked={form.replaceExisting} onChange={(event) => update("replaceExisting", event.target.checked)} />

@@ -69,6 +69,7 @@ const commitRoute = read("src/app/api/admin/imports/raw-hands/commit/route.js");
 const handHistory = read("src/lib/poker/handHistory.js");
 const handHistoryUi = read("src/components/poker/HandActionLog.jsx");
 const adminRoutes = read("src/lib/newsroom/adminRoutes.js");
+const { nextSessionNumber, positiveSessionNumber } = await import("../src/lib/imports/sessionNumber.js");
 
 assert.match(rawPanel, /accept="\.csv,text\/csv"/, "Import panel must accept CSV uploads.");
 assert.match(rawPanel, /fetch\("\/api\/admin\/imports\/raw-hands\/preview"/, "Import panel must preview through the raw-hand API.");
@@ -85,6 +86,14 @@ assert.match(rawRepository, /\.from\("hands"\)\.insert/s, "Raw import repository
 assert.match(rawRepository, /\.from\("actions"\)\.insert/s, "Raw import repository must write chronological actions through Supabase.");
 assert.match(rawRepository, /\.from\("notable_hands"\)\.insert/s, "Raw import repository must write detected moment candidates through Supabase.");
 assert.match(rawRepository, /player_session_stats/, "Raw import repository must create basic player-session stats.");
+assert.match(rawRepository, /resolveSessionNumber/, "Raw imports must resolve a non-null session number before writing sessions.");
+assert.match(rawPanel, /assigned automatically within the selected season/i, "The import UI must explain automatic session numbering.");
+
+assert.equal(positiveSessionNumber("12"), 12, "Explicit positive session numbers must be preserved.");
+assert.equal(positiveSessionNumber(""), null, "Blank session numbers must request automatic allocation.");
+assert.equal(positiveSessionNumber("0"), null, "Zero is not a valid session number.");
+assert.equal(nextSessionNumber([]), 1, "The first session in a season must be numbered 1.");
+assert.equal(nextSessionNumber([{ session_number: 4 }, { session_number: 9 }]), 10, "Automatic numbering must follow the current season maximum.");
 
 assert.match(rawParser, /chronologicalCsvRows/, "Raw hand CSV imports must normalize chronological row order.");
 assert.match(rawParser, /rowSortValue/, "Raw hand CSV imports must sort by explicit order values when present.");

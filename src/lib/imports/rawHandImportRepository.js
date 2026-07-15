@@ -1,4 +1,5 @@
 import { parseHandHistoryInput } from "@/lib/imports/rawHandHistoryParser";
+import { nextSessionNumber, positiveSessionNumber } from "@/lib/imports/sessionNumber";
 import { cleanName, getSessionByIdOrCode, safeQuery, supabase, text } from "@/lib/newsroom/data";
 
 function slugFor(name = "") {
@@ -50,15 +51,34 @@ async function getOrCreatePlayers(playerRows = []) {
   return resolved;
 }
 
+async function resolveSessionNumber(metadata = {}, existing = null) {
+  const explicit = positiveSessionNumber(metadata.sessionNumber);
+  if (explicit !== null) return explicit;
+
+  const existingNumber = positiveSessionNumber(existing?.session_number);
+  if (existingNumber !== null) return existingNumber;
+
+  const seasonCode = text(metadata.seasonCode, "S0");
+  const { data, error } = await supabase
+    .from("sessions")
+    .select("session_number")
+    .eq("season_code", seasonCode)
+    .order("session_number", { ascending: false })
+    .limit(1);
+  if (error) throw new Error(`Could not allocate a session number: ${error.message}`);
+  return nextSessionNumber(data || []);
+}
+
 async function upsertSession(metadata = {}, parsed) {
   const sessionCode = text(metadata.sessionCode, `IMPORT-${Date.now()}`);
   const existing = await getSessionByIdOrCode(sessionCode);
+  const sessionNumber = await resolveSessionNumber(metadata, existing);
   if (existing) {
     const { data, error } = await supabase
       .from("sessions")
       .update({
         season_code: text(metadata.seasonCode, existing.season_code || "S0"),
-        session_number: Number(metadata.sessionNumber || existing.session_number || 0) || null,
+        session_number: sessionNumber,
         played_at: isoDate(metadata.playedAt || existing.played_at),
         table_name: text(metadata.tableName, existing.table_name || "Imported Table"),
         format: text(metadata.format, existing.format || "Imported hand history"),
@@ -78,7 +98,7 @@ async function upsertSession(metadata = {}, parsed) {
     .from("sessions")
     .insert({
       season_code: text(metadata.seasonCode, "S0"),
-      session_number: Number(metadata.sessionNumber || 0) || null,
+      session_number: sessionNumber,
       session_code: sessionCode,
       played_at: isoDate(metadata.playedAt),
       table_name: text(metadata.tableName, "Imported Table"),
