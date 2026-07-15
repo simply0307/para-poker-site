@@ -9,7 +9,8 @@
     "lint": "eslint",
     "validate:training": "node scripts/validate-training-capture.mjs",
     "validate:homepage": "node scripts/validate-homepage-settings.mjs",
-    "validate:parapoker-import": "node scripts/validate-parapoker-import.mjs"
+    "validate:parapoker-import": "node scripts/validate-parapoker-import.mjs",
+    "validate:stats": "node scripts/validate-stats.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.108.2",

@@ -1,6 +1,7 @@
 import { parseHandHistoryInput } from "@/lib/imports/rawHandHistoryParser";
 import { nextSessionNumber, positiveSessionNumber } from "@/lib/imports/sessionNumber";
 import { cleanName, getSessionByIdOrCode, safeQuery, supabase, text } from "@/lib/newsroom/data";
+import { recalculateCareerStats, recalculatePlayerSessionStats, recalculateSeasonStats } from "@/lib/stats/statRepository";
 
 function slugFor(name = "") {
   return cleanName(name, "player")
@@ -297,7 +298,11 @@ export async function commitRawHandImport(input = {}) {
   if (input.replaceExisting) await clearImportedRows(session.id);
   const hands = await insertHandsAndActions(session, parsed, playersByRawName);
   const notableHands = await insertNotableHands(session, parsed);
-  const playerStats = await upsertBasicPlayerStats(session, parsed, playersByRawName);
+  const playerStats = await recalculatePlayerSessionStats(session.id);
+  if (input.replaceExisting) {
+    await recalculateSeasonStats(session.season_code || metadata.seasonCode || "S0");
+    await recalculateCareerStats();
+  }
 
   return {
     session,
@@ -305,7 +310,7 @@ export async function commitRawHandImport(input = {}) {
       ...parsed.totals,
       insertedHands: hands.length,
       insertedNotableHands: notableHands.length,
-      insertedPlayerStats: playerStats.length,
+      insertedPlayerStats: playerStats.stats.length,
     },
     warnings: parsed.warnings,
   };
@@ -343,11 +348,14 @@ export async function updateImportedSession(sessionIdOrCode, patch = {}) {
 export async function deleteImportedSession(sessionIdOrCode) {
   const session = await getSessionByIdOrCode(sessionIdOrCode);
   if (!session) throw new Error("Session not found.");
+  const seasonCode = session.season_code || "S0";
 
   await clearImportedRows(session.id);
   await supabase.from("recap_drafts").delete().eq("scope", "session").eq("source_session_id", session.id);
   const { error } = await supabase.from("sessions").delete().eq("id", session.id);
   if (error) throw new Error(`Could not delete session import: ${error.message}`);
+  await recalculateSeasonStats(seasonCode);
+  await recalculateCareerStats();
 
   return {
     deleted: true,

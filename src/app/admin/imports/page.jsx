@@ -2,6 +2,7 @@ import Link from "next/link";
 import { AdminShell, AdminStat } from "@/components/admin-newsroom/AdminShell";
 import { ImportSessionManager } from "@/components/admin-newsroom/ImportSessionManager";
 import { RawHandImportPanel } from "@/components/admin-newsroom/RawHandImportPanel";
+import { SessionResultReviewPanel } from "@/components/admin-newsroom/SessionResultReviewPanel";
 import { buildImportHealthViewModel } from "@/lib/newsroom/importHealth";
 import { formatNumber } from "@/lib/newsroom/data";
 import { readSeasonSettings } from "@/lib/newsroom/seasonSettings";
@@ -24,6 +25,7 @@ export default async function AdminImportsPage() {
     >
       <RawHandImportPanel initialSeasonCode={seasonSettings.activeSeasonCode} existingSessions={health.sessions} />
       <ImportSessionManager sessions={health.sessions} />
+      <SessionResultReviewPanel sessions={health.sessions} />
 
       <section className="mt-8 grid gap-4 md:grid-cols-3 lg:grid-cols-6">
         <AdminStat label="Sessions" value={formatNumber(health.totals.sessions)} />

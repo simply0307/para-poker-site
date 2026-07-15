@@ -140,7 +140,7 @@ export async function getPlayerNewsroomData(playerIdOrSlug, seasonCode = "S0") {
   const playerName = cleanName(player.display_name || player.pokernow_name);
   const normalized = normalizePlayerName(playerName);
 
-  const [standingsRows, sessionStatsRows, sessionResultsRows, momentsRows, players] = await Promise.all([
+  const [standingsRows, seasonStatsRows, careerStatsRows, sessionStatsRows, sessionResultsRows, momentsRows, players] = await Promise.all([
     safeQuery(
       supabase
         .from("standings")
@@ -148,6 +148,23 @@ export async function getPlayerNewsroomData(playerIdOrSlug, seasonCode = "S0") {
         .eq("season_code", seasonCode || "S0")
         .order("rank", { ascending: true })
         .limit(100),
+      []
+    ),
+    safeQuery(
+      supabase
+        .from("player_season_stats")
+        .select("*")
+        .eq("season_code", seasonCode || "S0")
+        .order("total_points", { ascending: false })
+        .limit(500),
+      []
+    ),
+    safeQuery(
+      supabase
+        .from("player_career_stats")
+        .select("*")
+        .order("total_points", { ascending: false })
+        .limit(500),
       []
     ),
     safeQuery(
@@ -192,6 +209,8 @@ export async function getPlayerNewsroomData(playerIdOrSlug, seasonCode = "S0") {
 
   const momentsWithActions = attachActionsToHands(momentsRows || [], actionRows || []);
   const standings = (standingsRows || []).filter((row) => rowMentionsPlayer(row, player) || normalizePlayerName(row.player_name) === normalized);
+  const seasonStats = (seasonStatsRows || []).filter((row) => rowMentionsPlayer(row, player) || normalizePlayerName(row.player_name) === normalized);
+  const careerStats = (careerStatsRows || []).filter((row) => rowMentionsPlayer(row, player) || normalizePlayerName(row.player_name) === normalized);
   const sessionStats = (sessionStatsRows || []).filter((row) => rowMentionsPlayer(row, player) || normalizePlayerName(row.player_name) === normalized);
   const sessionResults = (sessionResultsRows || []).filter((row) => rowMentionsPlayer(row, player) || normalizePlayerName(row.player_name) === normalized);
   const wonMoments = (momentsWithActions || []).filter((row) => rowWinnerMatchesPlayer(row, player));
@@ -201,6 +220,8 @@ export async function getPlayerNewsroomData(playerIdOrSlug, seasonCode = "S0") {
     player,
     players: players || [],
     standings: standings || [],
+    seasonStats: seasonStats || [],
+    careerStats: careerStats || [],
     sessionStats: sessionStats || [],
     sessionResults: sessionResults || [],
     moments: (wonMoments || []).map((row) => ({ ...normalizeHandRow(row), player_moment_role: "winner" })),

@@ -1,5 +1,6 @@
 import { safeQuery, supabase, text } from "@/lib/newsroom/data";
 import { DEFAULT_LEAGUE_RULES } from "@/lib/league/rulesConstants";
+import { recalculateCareerStats, recalculateSeasonStats } from "@/lib/stats/statRepository";
 
 export { DEFAULT_LEAGUE_RULES };
 
@@ -225,18 +226,9 @@ export async function previewStandingsFromRules(rulesInput = {}) {
 
 export async function applyLeagueRules(input = {}) {
   const saved = await saveLeagueRules(input);
+  await recalculateSeasonStats(saved.rules.seasonCode);
+  await recalculateCareerStats();
   const standings = await previewStandingsFromRules(saved.rules);
-  await supabase.from("standings").delete().eq("season_code", saved.rules.seasonCode);
-
-  if (standings.length) {
-    const rows = standings.map(({ finishes, ...row }) => ({
-      ...row,
-      updated_at: new Date().toISOString(),
-    }));
-    const { error } = await supabase.from("standings").insert(rows);
-    if (error) throw new Error(`Session result points were saved, but standings recalculation failed: ${error.message}`);
-  }
-
   const stored = await saveLeagueRulesRecord(saved.rules, { applied: true });
   return {
     ...saved,

@@ -3,16 +3,23 @@ import { cleanName, formatNumber, getPublishedDraft, getStandingsRows, text } fr
 import { getPageHero } from "@/lib/newsroom/pageHeroSettings";
 import { draftHeadline, draftHtml, draftParagraphs, draftSubheadline, waitingCopy } from "@/lib/newsroom/rendering";
 import { readSeasonSettings } from "@/lib/newsroom/seasonSettings";
+import { readPlayerSeasonStats } from "@/lib/stats/statRepository";
 
 export const revalidate = 60;
 
 export default async function StandingsPage() {
   const seasonSettings = await readSeasonSettings();
-  const [published, standings, hero] = await Promise.all([
+  const [published, standingsRows, seasonStats, hero] = await Promise.all([
     getPublishedDraft({ scope: "season", seasonCode: seasonSettings.activeSeasonCode }),
     getStandingsRows(seasonSettings.activeSeasonCode),
+    readPlayerSeasonStats(seasonSettings.activeSeasonCode),
     getPageHero("standings"),
   ]);
+  const seasonStatsByPlayer = new Map((seasonStats || []).map((row) => [String(row.player_id || row.player_name), row]));
+  const standings = (standingsRows || []).map((row) => ({
+    ...seasonStatsByPlayer.get(String(row.player_id || row.player_name)),
+    ...row,
+  }));
   const leader = standings[0] || {};
 
   return (
@@ -36,7 +43,7 @@ export default async function StandingsPage() {
       <div className="mt-8">
         <DataTableShell
           title="Standings Table"
-          columns={["Rank", "Player", "Points"]}
+          columns={["Rank", "Player", "Points", "Sessions", "Best", "Big Pot"]}
           rows={standings}
           empty="No standings rows are available yet."
           renderRow={(row, index) => (
@@ -44,6 +51,9 @@ export default async function StandingsPage() {
               <td className="border-b border-white/10 px-3 py-3 font-black text-amber-200">{text(row.rank || row.current_rank, "-")}</td>
               <td className="border-b border-white/10 px-3 py-3 text-white">{cleanName(row.player_name || row.display_name, "Player")}</td>
               <td className="border-b border-white/10 px-3 py-3 text-stone-300">{formatNumber(row.points || row.league_points || row.total_points, "-")}</td>
+              <td className="border-b border-white/10 px-3 py-3 text-stone-300">{formatNumber(row.sessions_played, "-")}</td>
+              <td className="border-b border-white/10 px-3 py-3 text-stone-300">{row.best_finish ? `#${row.best_finish}` : "-"}</td>
+              <td className="border-b border-white/10 px-3 py-3 text-stone-300">{formatNumber(row.biggest_pot_won, "-")}</td>
             </tr>
           )}
         />

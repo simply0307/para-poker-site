@@ -34,7 +34,31 @@ function playerImage(player) {
   return firstPresent(player.avatar_url, player.image_url, player.photo_url, player.profile_image_url, player.headshot_url);
 }
 
-function buildPlayerPokerStats(player, sessionStats = [], sessionResults = [], notableHands = [], standings = null) {
+function buildPlayerPokerStats(player, sessionStats = [], sessionResults = [], notableHands = [], standings = null, seasonStats = null, careerStats = null) {
+  if (seasonStats) {
+    return {
+      hands: seasonStats.hands || null,
+      vpip: seasonStats.vpip_pct || seasonStats.vpip || null,
+      pfr: seasonStats.pfr_pct || seasonStats.pfr || null,
+      vpipSource: seasonStats.vpip_pct || seasonStats.vpip ? "season" : "unavailable",
+      pfrSource: seasonStats.pfr_pct || seasonStats.pfr ? "season" : "unavailable",
+      sessions: standings?.sessions_played || seasonStats.sessions_played || null,
+      points: standings?.total_points || standings?.points || standings?.league_points || seasonStats.total_points || null,
+      bestFinish: standings?.best_finish || seasonStats.best_finish || null,
+      biggestPot: seasonStats.biggest_pot_won || null,
+      wins: standings?.wins || seasonStats.wins || null,
+      topFinishes: standings?.top_3s || standings?.top_4s || seasonStats.top_3s || seasonStats.top_4s || null,
+      totalCollected: seasonStats.total_collected || null,
+      folds: seasonStats.folds || null,
+      foldPct: seasonStats.fold_pct || null,
+      career: careerStats || null,
+      source: {
+        vpip: seasonStats.vpip_pct || seasonStats.vpip ? "season" : "missing",
+        pfr: seasonStats.pfr_pct || seasonStats.pfr ? "season" : "missing",
+      },
+    };
+  }
+
   const latestWithVpip = sessionStats.find((row) => present(row.vpip_pct) || present(row.vpip));
   const latestWithPfr = sessionStats.find((row) => present(row.pfr_pct) || present(row.pfr));
   const totalHands = sumNumber(sessionStats, ["hands", "hands_played", "hand_count"]);
@@ -56,6 +80,10 @@ function buildPlayerPokerStats(player, sessionStats = [], sessionResults = [], n
     biggestPot: biggestPot || null,
     wins: standings?.wins || null,
     topFinishes: standings?.top_3s || standings?.top_4s || null,
+    totalCollected: sumNumber(sessionStats, ["total_collected"]),
+    folds: sumNumber(sessionStats, ["folds"]),
+    foldPct: null,
+    career: careerStats || null,
     source: {
       vpip: latestWithVpip ? "stored" : "missing",
       pfr: latestWithPfr ? "stored" : "missing",
@@ -76,6 +104,8 @@ export async function buildPlayerViewModel(playerIdOrSlug, options = {}) {
   const contestedMomentsOverride = applyOverridesToList(playerData.contestedMoments || [], "moment", overrides);
   const player = playerOverride.value;
   const standings = standingsOverride.value;
+  const seasonStats = playerData.seasonStats || [];
+  const careerStats = playerData.careerStats || [];
   const sessionStats = statsOverride.value;
   const sessionResults = resultsOverride.value;
   const moments = momentsOverride.value;
@@ -93,7 +123,9 @@ export async function buildPlayerViewModel(playerIdOrSlug, options = {}) {
     getPlayerSessionMap(),
   ]);
   const standing = standings[0] || {};
-  const pokerStats = buildPlayerPokerStats(player, sessionStats, sessionResults, moments, standing);
+  const seasonStat = seasonStats[0] || null;
+  const careerStat = careerStats[0] || null;
+  const pokerStats = buildPlayerPokerStats(player, sessionStats, sessionResults, moments, standing, seasonStat, careerStat);
   const displayName = cleanName(player.display_name || player.pokernow_name || player.slug);
   const statCards = [
     ["Rank", firstPresent(standing.rank, standing.current_rank)],
@@ -118,6 +150,10 @@ export async function buildPlayerViewModel(playerIdOrSlug, options = {}) {
     image: playerImage(player),
     publishedDraft,
     standings,
+    seasonStats,
+    seasonStat,
+    careerStats,
+    careerStat,
     standing,
     rank: firstPresent(standing.rank, standing.current_rank),
     points: firstPresent(standing.points, standing.league_points, standing.total_points, pokerStats.points),

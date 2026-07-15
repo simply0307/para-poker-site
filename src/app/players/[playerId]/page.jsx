@@ -109,11 +109,12 @@ export default async function PlayerPage({ params }) {
               <PokerStatGrid
                 stats={[
                   { label: "Hands", value: pokerStats?.hands ? formatNumber(pokerStats.hands) : "", empty: "Hands not tracked yet" },
-                  { label: "VPIP", value: formatPokerPercent(pokerStats?.vpip), empty: "VPIP not tracked yet" },
-                  { label: "PFR", value: formatPokerPercent(pokerStats?.pfr), empty: "PFR not tracked yet" },
-                  { label: "Wins", value: pokerStats?.wins || "", empty: "Wins not tracked yet" },
-                  { label: "Top Finishes", value: pokerStats?.topFinishes || "", empty: "Top finishes not tracked yet" },
+                  { label: "VPIP", value: formatPokerPercent(pokerStats?.vpip), empty: "Advanced stat pending" },
+                  { label: "PFR", value: formatPokerPercent(pokerStats?.pfr), empty: "Advanced stat pending" },
+                  { label: "Wins", value: pokerStats?.wins || "", empty: "Official results pending" },
+                  { label: "Top Finishes", value: pokerStats?.topFinishes || "", empty: "Official results pending" },
                   { label: "Biggest Pot", value: pokerStats?.biggestPot ? `${formatNumber(pokerStats.biggestPot)} chips` : "", empty: "Biggest pot not tracked yet" },
+                  { label: "Collected", value: pokerStats?.totalCollected ? `${formatNumber(pokerStats.totalCollected)} chips` : "", empty: "Collection total pending" },
                 ]}
               />
             </EvidencePanel>
