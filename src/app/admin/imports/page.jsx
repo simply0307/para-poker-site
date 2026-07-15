@@ -94,9 +94,6 @@ export default async function AdminImportsPage() {
                       <Link className="text-amber-700 hover:text-amber-900" href={`/admin/sessions/${encodeURIComponent(session.sessionCode)}`}>
                         Draft desk
                       </Link>
-                      <Link className="text-zinc-600 hover:text-zinc-950" href={`/admin/debug/session/${encodeURIComponent(session.sessionCode)}`}>
-                        Debug data
-                      </Link>
                       <Link className="text-zinc-600 hover:text-zinc-950" href={`/sessions/${encodeURIComponent(session.sessionCode)}`}>
                         Public page
                       </Link>
