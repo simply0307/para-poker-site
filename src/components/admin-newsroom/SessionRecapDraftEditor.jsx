@@ -203,18 +203,14 @@ export function SessionRecapDraftEditor({ sessionKey, initialDraft, variationOpt
       {variationOptions.length ? (
         <section className={styles.variationPanel}>
           <span>Draft variation</span>
-          <div className={styles.variationButtons}>
-            {variationOptions.map((option) => (
-              <button
-                key={option.key}
-                type="button"
-                className={selectedVariation === option.key ? styles.variationActive : ""}
-                onClick={() => setSelectedVariation(option.key)}
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
+          <label className={styles.selectField}>
+            Story angle
+            <select value={selectedVariation} onChange={(event) => setSelectedVariation(event.target.value)}>
+              {variationOptions.map((option) => (
+                <option key={option.key} value={option.key}>{option.label}</option>
+              ))}
+            </select>
+          </label>
           <p className={styles.activeVariationNote}>
             {variationOptions.find((option) => option.key === selectedVariation)?.instruction || "Choose the strongest angle for this session."}
           </p>

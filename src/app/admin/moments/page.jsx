@@ -1,7 +1,7 @@
 import { GenericDraftWorkspace } from "@/components/admin-newsroom/GenericDraftWorkspace";
 import { MomentCurationPanel } from "@/components/admin-newsroom/MomentCurationPanel";
 import { MomentVideoManager } from "@/components/admin-newsroom/MomentVideoManager";
-import { text } from "@/lib/newsroom/data";
+import { cleanName, text } from "@/lib/newsroom/data";
 import { listNewsroomDrafts } from "@/lib/newsroom/drafts";
 import { readMomentCurationSettings } from "@/lib/newsroom/momentCurationSettings";
 import { buildMomentsViewModel } from "@/lib/newsroom/viewModels/moments";
@@ -26,13 +26,13 @@ export default async function AdminMomentsPage() {
       const options = [
         {
           id: `${momentId}-winner`,
-          label: `${baseLabel} / Cover winner: ${moment.playerName || moment.winner_name || "Winner"}`,
+          label: `${baseLabel} / Cover winner: ${cleanName(moment.playerName || moment.winner_name, "Winner")}`,
           description,
           patch: {
             momentId,
             coverageTarget: {
               role: "winner",
-              playerName: text(moment.winner_name || moment.playerName),
+              playerName: cleanName(moment.winner_name || moment.playerName, ""),
             },
           },
         },
@@ -40,13 +40,13 @@ export default async function AdminMomentsPage() {
       for (const contender of contenderNames) {
         options.push({
           id: `${momentId}-contender-${contender}`,
-          label: `${baseLabel} / Cover contender: ${contender}`,
+          label: `${baseLabel} / Cover contender: ${cleanName(contender, "Contender")}`,
           description,
           patch: {
             momentId,
             coverageTarget: {
               role: "contender",
-              playerName: contender,
+              playerName: cleanName(contender, ""),
             },
           },
         });
@@ -59,7 +59,7 @@ export default async function AdminMomentsPage() {
       const momentId = text(moment.id || moment.hand_id || moment.momentId);
       return {
         id: momentId,
-        label: `${moment.hand_no ? `Hand #${moment.hand_no}` : "Moment"}${moment.playerName ? ` / ${moment.playerName}` : ""}`,
+        label: `${moment.hand_no ? `Hand #${moment.hand_no}` : "Moment"}${moment.playerName ? ` / ${cleanName(moment.playerName)}` : ""}`,
         description: [moment.sessionCode, moment.potText, moment.detectionReason].filter(Boolean).join(" / "),
         video: moment.video || null,
       };
@@ -74,7 +74,7 @@ export default async function AdminMomentsPage() {
         momentId: text(firstMoment.id || firstMoment.hand_id || firstMoment.momentId),
         coverageTarget: {
           role: "winner",
-          playerName: text(firstMoment.winner_name || firstMoment.playerName),
+          playerName: cleanName(firstMoment.winner_name || firstMoment.playerName, ""),
         },
         variation: "pressure_moment",
         editorialNotes: "",

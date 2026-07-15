@@ -13,6 +13,7 @@ import { HandHistoryBlock } from "@/components/poker/HandActionLog";
 import { cleanName, formatDate, formatNumber, present, text } from "@/lib/newsroom/data";
 import { draftHeadline, draftHtml, draftParagraphs, draftSubheadline, waitingCopy } from "@/lib/newsroom/rendering";
 import { buildMomentViewModel } from "@/lib/newsroom/viewModels/moments";
+import { stripPlayerHandlesFromText } from "@/lib/playerNames";
 
 export const revalidate = 60;
 
@@ -33,7 +34,7 @@ export default async function MomentDetailPage({ params }) {
       <LeagueHero
         eyebrow={`${moment.typeLabel} / ${moment.statusLabels.join(" / ")}`}
         title={moment.hand_no ? `Hand #${moment.hand_no}` : "Moment"}
-        dek={text(moment.displaySummary, "Verified hand marker from the Para League archive.")}
+        dek={stripPlayerHandlesFromText(text(moment.displaySummary, "Verified hand marker from the Para League archive."))}
         aside={
           <div>
             <FactLine label="Winner" value={cleanName(moment.winner_name, "")} />
@@ -114,7 +115,7 @@ function FactLine({ label, value }) {
   if (!present(value)) return null;
   return (
     <p className="mt-2 text-sm leading-6 text-stone-300">
-      <span className="font-bold text-stone-400">{label}:</span> {typeof value === "number" ? formatNumber(value) : text(value)}
+      <span className="font-bold text-stone-400">{label}:</span> {typeof value === "number" ? formatNumber(value) : stripPlayerHandlesFromText(text(value))}
     </p>
   );
 }
@@ -124,7 +125,7 @@ function FactBox({ label, value }) {
   return (
     <div className="rounded-md border border-white/10 bg-white/[0.03] p-3">
       <p className="text-xs font-black uppercase tracking-[0.14em] text-stone-500">{label}</p>
-      <p className="mt-1 text-sm leading-6 text-stone-200">{typeof value === "number" ? formatNumber(value) : text(value)}</p>
+      <p className="mt-1 text-sm leading-6 text-stone-200">{typeof value === "number" ? formatNumber(value) : stripPlayerHandlesFromText(text(value))}</p>
     </div>
   );
 }
@@ -133,7 +134,7 @@ function LinkCard({ href, title, body }) {
   return (
     <Link href={href} className="rounded-md border border-white/10 bg-white/[0.03] p-3 hover:border-amber-300/50">
       <p className="font-black text-white">{title}</p>
-      <p className="mt-1 text-sm text-stone-400">{body}</p>
+      <p className="mt-1 text-sm text-stone-400">{stripPlayerHandlesFromText(text(body))}</p>
     </Link>
   );
 }

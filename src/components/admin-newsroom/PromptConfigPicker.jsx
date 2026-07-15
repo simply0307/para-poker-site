@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   AUDIENCE_OPTIONS,
-  COVERAGE_FOCUS_OPTIONS,
   FORMAT_OPTIONS,
   INTENSITY_LEVELS,
   LENGTH_OPTIONS,

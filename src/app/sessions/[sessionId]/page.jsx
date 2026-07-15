@@ -83,7 +83,7 @@ export default async function SessionPage({ params }) {
         rail={
           <>
             <EvidencePanel title="Session Pulse" eyebrow="Official record" empty="Session pulse is waiting on imported data.">
-              <FactPill label="Winner" value={sessionResults.find((row) => Number(row.finish) === 1)?.player_name || participants[0]?.name} />
+              <FactPill label="Winner" value={cleanName(sessionResults.find((row) => Number(row.finish) === 1)?.player_name || participants[0]?.name, "")} />
               <FactPill label="Biggest Pot" value={biggestPot?.pot_collected ? chipValue(biggestPot.pot_collected) : ""} />
               <FactPill label="Hands Logged" value={session.hands_count || displayHands.length} />
               <FactPill label="Action Coverage" value={hasFullActionLogs ? "Street-by-street" : "Summary only"} />

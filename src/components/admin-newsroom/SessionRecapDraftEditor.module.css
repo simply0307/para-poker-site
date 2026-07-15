@@ -81,27 +81,24 @@
   text-transform: uppercase;
 }
 
-.variationButtons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+.selectField {
+  display: grid;
+  gap: 7px;
   margin-top: 10px;
+  color: #27272a;
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
 }
 
-.variationButtons button {
+.selectField select {
   border: 1px solid #d4d4d8;
   border-radius: 6px;
   background: #fff;
-  color: #27272a;
-  cursor: pointer;
-  font-weight: 800;
-  padding: 8px 10px;
-}
-
-.variationButtons .variationActive {
-  border-color: #18181b;
-  background: #18181b;
-  color: #fff;
+  color: #18181b;
+  font: inherit;
+  padding: 10px 12px;
+  text-transform: none;
 }
 
 .variationNotes {

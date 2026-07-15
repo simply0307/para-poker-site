@@ -1,6 +1,12 @@
 import Link from "next/link";
 import Image from "next/image";
 import { PublicNav } from "@/components/newsroom/PublicNav";
+import { stripPlayerHandlesFromText } from "@/lib/playerNames";
+
+function publicText(value) {
+  if (value === null || value === undefined) return value;
+  return stripPlayerHandlesFromText(String(value));
+}
 
 export function NewsroomShell({ children }) {
   return (
@@ -36,9 +42,9 @@ export function LeagueHero({ eyebrow, title, dek, children, aside }) {
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#d8c087] to-transparent" />
       <div className="relative grid gap-6 p-5 md:p-8 lg:grid-cols-[minmax(0,1fr)_340px]">
         <div>
-          {eyebrow ? <p className="text-xs font-bold uppercase tracking-[0.24em] text-[#d8c087]">{eyebrow}</p> : null}
-          <h1 className="mt-3 max-w-4xl text-4xl font-black leading-[0.98] text-white drop-shadow-[0_2px_22px_rgba(0,0,0,0.65)] md:text-6xl">{title}</h1>
-          {dek ? <p className="mt-5 max-w-3xl text-lg leading-8 text-stone-300">{dek}</p> : null}
+          {eyebrow ? <p className="text-xs font-bold uppercase tracking-[0.24em] text-[#d8c087]">{publicText(eyebrow)}</p> : null}
+          <h1 className="mt-3 max-w-4xl text-4xl font-black leading-[0.98] text-white drop-shadow-[0_2px_22px_rgba(0,0,0,0.65)] md:text-6xl">{publicText(title)}</h1>
+          {dek ? <p className="mt-5 max-w-3xl text-lg leading-8 text-stone-300">{publicText(dek)}</p> : null}
           {children ? <div className="mt-6">{children}</div> : null}
         </div>
         {aside ? <aside className="rounded-md border border-[#d8c087]/20 bg-black/35 p-4 shadow-inner shadow-black/45">{aside}</aside> : null}
@@ -65,9 +71,9 @@ export function StatCard({ label, value, detail }) {
   if (value === null || value === undefined || value === "") return null;
   return (
     <div className="rounded-md border border-[#d8c087]/16 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.025))] p-4 shadow-lg shadow-black/25">
-      <p className="text-xs font-bold uppercase tracking-[0.16em] text-stone-400">{label}</p>
-      <strong className="mt-2 block text-2xl font-black text-[#fff1bf]">{value}</strong>
-      {detail ? <p className="mt-2 text-sm leading-6 text-stone-400">{detail}</p> : null}
+      <p className="text-xs font-bold uppercase tracking-[0.16em] text-stone-400">{publicText(label)}</p>
+      <strong className="mt-2 block text-2xl font-black text-[#fff1bf]">{publicText(value)}</strong>
+      {detail ? <p className="mt-2 text-sm leading-6 text-stone-400">{publicText(detail)}</p> : null}
     </div>
   );
 }
@@ -85,8 +91,8 @@ export function SectionHeader({ eyebrow, title, children }) {
   return (
     <header className="mb-4 flex flex-col gap-2 border-b border-white/10 pb-4 md:flex-row md:items-end md:justify-between">
       <div>
-        {eyebrow ? <p className="text-xs font-bold uppercase tracking-[0.18em] text-amber-300">{eyebrow}</p> : null}
-        <h2 className="text-2xl font-bold text-white md:text-3xl">{title}</h2>
+        {eyebrow ? <p className="text-xs font-bold uppercase tracking-[0.18em] text-amber-300">{publicText(eyebrow)}</p> : null}
+        <h2 className="text-2xl font-bold text-white md:text-3xl">{publicText(title)}</h2>
       </div>
       {children ? <div className="max-w-xl text-sm leading-6 text-stone-400">{children}</div> : null}
     </header>
@@ -98,7 +104,7 @@ export function EvidencePanel({ title, eyebrow, empty, children, className = "" 
   return (
     <section className={`rounded-md border border-[#d8c087]/16 bg-[#08111a]/78 p-5 shadow-lg shadow-black/25 ${className}`}>
       <SectionHeader eyebrow={eyebrow} title={title} />
-      <div className="grid gap-3">{items.length ? items : <p className="leading-7 text-stone-300">{empty}</p>}</div>
+      <div className="grid gap-3">{items.length ? items : <p className="leading-7 text-stone-300">{publicText(empty)}</p>}</div>
     </section>
   );
 }
@@ -131,10 +137,10 @@ export function MomentCard({ title, meta, pot, children, href }) {
     <article className="rounded-md border border-[#d8c087]/15 bg-black/35 p-4 transition hover:border-[#d8c087]/55 hover:bg-[#0c1822]/70">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          {meta ? <p className="text-xs font-bold uppercase tracking-[0.16em] text-stone-400">{meta}</p> : null}
-          <h3 className="mt-1 text-xl font-bold text-white">{title}</h3>
+          {meta ? <p className="text-xs font-bold uppercase tracking-[0.16em] text-stone-400">{publicText(meta)}</p> : null}
+          <h3 className="mt-1 text-xl font-bold text-white">{publicText(title)}</h3>
         </div>
-        {pot ? <strong className="rounded-sm bg-[#d8c087] px-3 py-1 text-sm text-[#061019]">{pot}</strong> : null}
+        {pot ? <strong className="rounded-sm bg-[#d8c087] px-3 py-1 text-sm text-[#061019]">{publicText(pot)}</strong> : null}
       </div>
       {children ? <div className="mt-3 text-sm leading-6 text-stone-300">{children}</div> : null}
     </article>
@@ -143,13 +149,14 @@ export function MomentCard({ title, meta, pot, children, href }) {
 }
 
 export function PlayerCard({ name, meta, href, children }) {
-  const initial = String(name || "P").slice(0, 1).toUpperCase();
+  const clean = publicText(name || "P");
+  const initial = String(clean || "P").slice(0, 1).toUpperCase();
   const content = (
     <article className="flex h-full gap-4 rounded-md border border-[#d8c087]/15 bg-[#08111a]/78 p-4 transition hover:border-[#d8c087]/55">
       <div className="grid h-12 w-12 shrink-0 place-items-center rounded-sm border border-[#d8c087]/35 bg-[#d8c087]/10 text-xl font-black text-[#fff1bf]">{initial}</div>
       <div>
-        {meta ? <p className="text-xs font-bold uppercase tracking-[0.14em] text-stone-400">{meta}</p> : null}
-        <h2 className="text-2xl font-bold text-white">{name}</h2>
+        {meta ? <p className="text-xs font-bold uppercase tracking-[0.14em] text-stone-400">{publicText(meta)}</p> : null}
+        <h2 className="text-2xl font-bold text-white">{clean}</h2>
         {children ? <div className="mt-2 text-sm leading-6 text-stone-300">{children}</div> : null}
       </div>
     </article>
@@ -160,8 +167,8 @@ export function PlayerCard({ name, meta, href, children }) {
 export function SessionCard({ title, meta, href, children }) {
   const content = (
     <article className="h-full rounded-md border border-[#d8c087]/16 bg-[linear-gradient(135deg,rgba(216,192,135,0.12),rgba(255,255,255,0.035)_45%,rgba(94,22,22,0.14))] p-5 transition hover:border-[#d8c087]/55">
-      {meta ? <p className="text-xs font-bold uppercase tracking-[0.16em] text-stone-400">{meta}</p> : null}
-      <h2 className="mt-2 text-3xl font-black text-white">{title}</h2>
+      {meta ? <p className="text-xs font-bold uppercase tracking-[0.16em] text-stone-400">{publicText(meta)}</p> : null}
+      <h2 className="mt-2 text-3xl font-black text-white">{publicText(title)}</h2>
       {children ? <div className="mt-4 text-sm leading-6 text-stone-300">{children}</div> : null}
     </article>
   );
@@ -183,13 +190,13 @@ export function NewsroomCard({ title, meta, href, children }) {
 export function PublishedArticle({ title, subheadline, paragraphs, html = "", placeholder, compact = false }) {
   return (
     <article className={`rounded-md border border-[#d8c087]/16 bg-[#061019]/82 p-5 shadow-lg shadow-black/25 md:p-7 ${compact ? "" : "max-w-4xl"}`}>
-      <h1 className={`${compact ? "text-3xl md:text-4xl" : "text-4xl md:text-6xl"} font-black leading-tight text-white`}>{title}</h1>
-      {subheadline ? <p className="mt-5 text-xl leading-8 text-stone-300">{subheadline}</p> : null}
+      <h1 className={`${compact ? "text-3xl md:text-4xl" : "text-4xl md:text-6xl"} font-black leading-tight text-white`}>{publicText(title)}</h1>
+      {subheadline ? <p className="mt-5 text-xl leading-8 text-stone-300">{publicText(subheadline)}</p> : null}
       {html ? (
         <div className="richTextBody mt-8 text-lg leading-9 text-stone-200" dangerouslySetInnerHTML={{ __html: html }} />
       ) : (
         <div className="mt-8 space-y-5 text-lg leading-9 text-stone-200">
-          {paragraphs.length ? paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>) : <p>{placeholder}</p>}
+          {paragraphs.length ? paragraphs.map((paragraph) => <p key={paragraph}>{publicText(paragraph)}</p>) : <p>{publicText(placeholder)}</p>}
         </div>
       )}
     </article>

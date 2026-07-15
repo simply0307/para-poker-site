@@ -13,6 +13,7 @@ import {
 import { cleanName, formatNumber, text } from "@/lib/newsroom/data";
 import { getPageHero } from "@/lib/newsroom/pageHeroSettings";
 import { buildMomentsViewModel } from "@/lib/newsroom/viewModels/moments";
+import { stripPlayerHandlesFromText } from "@/lib/playerNames";
 
 export const revalidate = 60;
 
@@ -41,13 +42,13 @@ function MomentArchiveCard({ moment, featured = false }) {
       pot={moment.potText}
     >
       <StatusRow labels={moment.statusLabels} />
-      {moment.video ? (
+        {moment.video ? (
         <span className="mt-3 inline-block rounded-sm bg-amber-300 px-2 py-1 text-xs font-black uppercase tracking-[0.1em] text-[#061019]">
           Video attached
         </span>
       ) : null}
       <p className={featured ? "mt-4 text-base leading-7" : ""}>
-        {text(moment.displaySummary, "Approved moment copy is attached to this archive entry.")}
+        {stripPlayerHandlesFromText(text(moment.displaySummary, "Approved moment copy is attached to this archive entry."))}
       </p>
       <FactLine label="Winner" value={cleanName(moment.winner_name, "")} />
       <FactLine label="Board" value={moment.board} />
@@ -142,7 +143,7 @@ export default async function MomentsPage() {
               {publicMoments.filter((moment) => moment.publishedDraft).slice(0, 6).map((moment) => (
                 <Link key={`published-${moment.momentId}`} href={moment.detailHref} className="rounded-md border border-white/10 bg-white/[0.03] p-3 hover:border-amber-300/50">
                   <p className="font-black text-white">{moment.hand_no ? `Hand #${moment.hand_no}` : "Published moment"}</p>
-                  <p className="mt-1 text-sm leading-6 text-stone-400">{text(moment.publishedSummary).slice(0, 140)}</p>
+                  <p className="mt-1 text-sm leading-6 text-stone-400">{stripPlayerHandlesFromText(text(moment.publishedSummary)).slice(0, 140)}</p>
                 </Link>
               ))}
             </EvidencePanel>
@@ -157,7 +158,7 @@ function FactLine({ label, value }) {
   if (!value) return null;
   return (
     <p className="mt-2 text-sm leading-6 text-stone-300">
-      <span className="font-bold text-stone-400">{label}:</span> {typeof value === "number" ? formatNumber(value) : text(value)}
+      <span className="font-bold text-stone-400">{label}:</span> {typeof value === "number" ? formatNumber(value) : stripPlayerHandlesFromText(text(value))}
     </p>
   );
 }
