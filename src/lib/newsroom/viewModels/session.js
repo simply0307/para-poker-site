@@ -1,4 +1,5 @@
 import { normalizeHandRow } from "@/lib/poker/handHistory";
+import { formatPotWithBb } from "@/lib/poker/potUnits";
 import { applyOverridesToEntity, applyOverridesToList, readActiveDataOverrides } from "@/lib/newsroom/applyDataOverrides";
 import { getPublishedDraft } from "@/lib/newsroom/repositories/draftRepository";
 import { getSessionNewsroomData } from "@/lib/newsroom/repositories/sessionRepository";
@@ -36,7 +37,7 @@ export async function buildSessionViewModel(sessionIdOrCode) {
   ];
   const biggestPot = [...handHistory, ...notableHands]
     .filter((hand) => hand?.pot_collected)
-    .sort((left, right) => numberValue(right.pot_collected) - numberValue(left.pot_collected))[0] || null;
+    .sort((left, right) => numberValue(right.pot_bb || right.pot_collected) - numberValue(left.pot_bb || left.pot_collected))[0] || null;
   const publishedDraft = await getPublishedDraft({ scope: "session", sourceSessionId: data.session.id });
   const keyMoments = Array.isArray(publishedDraft?.draft?.key_moments) ? publishedDraft.draft.key_moments.slice(0, 4) : [];
   const hasFullActionLogs = handHistory.some((hand) => hand?.actionLog?.kind === "action_log" || hand?.hasChronologicalAction);
@@ -63,6 +64,7 @@ export async function buildSessionViewModel(sessionIdOrCode) {
       hands: session.hands_count || handHistory.length,
       moments: notableHands.length,
       biggestPot: biggestPot?.pot_collected || null,
+      biggestPotText: biggestPot ? formatPotWithBb({ pot: biggestPot.pot_collected, potBb: biggestPot.pot_bb, bigBlind: biggestPot.big_blind }) : null,
     },
   };
 }

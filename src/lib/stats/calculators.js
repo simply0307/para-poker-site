@@ -1,3 +1,5 @@
+import { detectBigBlindFromActions, potBb } from "../poker/potUnits.js";
+
 function text(value, fallback = "") {
   if (value === null || value === undefined || value === "") return fallback;
   return String(value);
@@ -77,7 +79,9 @@ function emptySessionStat(row = {}) {
     threeBetHands: new Set(),
     hands_won: 0,
     total_collected: 0,
+    total_collected_bb: 0,
     biggest_pot_won: 0,
+    biggest_pot_won_bb: 0,
     all_ins: 0,
     preflop_all_ins: 0,
     folds: 0,
@@ -103,7 +107,9 @@ function finalizeSessionStat(stat) {
     hands_won: stat.hands_won,
     hand_win_pct,
     total_collected: stat.total_collected,
+    total_collected_bb: stat.total_collected_bb ? Number(stat.total_collected_bb.toFixed(2)) : null,
     biggest_pot_won: stat.biggest_pot_won,
+    biggest_pot_won_bb: stat.biggest_pot_won_bb ? Number(stat.biggest_pot_won_bb.toFixed(2)) : null,
     all_ins: stat.all_ins,
     folds: stat.folds,
     fold_pct: fold_pct || 0,
@@ -126,6 +132,14 @@ function finalizeSessionStat(stat) {
 export function derivePlayerSessionStatsFromRows({ session, hands = [], actions = [] } = {}) {
   const byPlayer = new Map();
   const sessionId = session?.id || hands[0]?.session_id || actions[0]?.session_id || null;
+  const actionsByHand = new Map();
+
+  for (const action of actions || []) {
+    const key = handKey(action);
+    if (!key) continue;
+    if (!actionsByHand.has(key)) actionsByHand.set(key, []);
+    actionsByHand.get(key).push(action);
+  }
 
   function statFor(row = {}) {
     const key = playerKey(row);
@@ -166,9 +180,16 @@ export function derivePlayerSessionStatsFromRows({ session, hands = [], actions 
     });
     if (!winnerStat) continue;
     addHand(winnerStat.handsSet, hand);
+    const handActions = actionsByHand.get(handKey(hand)) || [];
+    const bigBlind = numberValue(hand.big_blind) || detectBigBlindFromActions(handActions);
+    const normalizedPot = numberValue(hand.pot_bb) || potBb(hand.pot_collected, bigBlind);
     winnerStat.hands_won += 1;
     winnerStat.total_collected += numberValue(hand.pot_collected);
     winnerStat.biggest_pot_won = Math.max(winnerStat.biggest_pot_won, numberValue(hand.pot_collected));
+    if (normalizedPot) {
+      winnerStat.total_collected_bb += normalizedPot;
+      winnerStat.biggest_pot_won_bb = Math.max(winnerStat.biggest_pot_won_bb, normalizedPot);
+    }
     if (hand.showdown) {
       addHand(winnerStat.showdownHands, hand);
       addHand(winnerStat.wonShowdownHands, hand);
@@ -237,7 +258,9 @@ export function aggregatePlayerStats({ seasonCode = "S0", sessionStats = [], ses
         hands: 0,
         hands_won: 0,
         total_collected: 0,
+        total_collected_bb: 0,
         biggest_pot_won: 0,
+        biggest_pot_won_bb: 0,
         all_ins: 0,
         folds: 0,
         preflop_all_ins: 0,
@@ -257,7 +280,9 @@ export function aggregatePlayerStats({ seasonCode = "S0", sessionStats = [], ses
     row.hands += numberValue(stat.hands);
     row.hands_won += numberValue(stat.hands_won);
     row.total_collected += numberValue(stat.total_collected);
+    row.total_collected_bb += numberValue(stat.total_collected_bb);
     row.biggest_pot_won = Math.max(row.biggest_pot_won, numberValue(stat.biggest_pot_won));
+    row.biggest_pot_won_bb = Math.max(row.biggest_pot_won_bb, numberValue(stat.biggest_pot_won_bb));
     row.all_ins += numberValue(stat.all_ins);
     row.folds += numberValue(stat.folds);
     row.preflop_all_ins += numberValue(stat.preflop_all_ins);
@@ -281,7 +306,9 @@ export function aggregatePlayerStats({ seasonCode = "S0", sessionStats = [], ses
         hands: 0,
         hands_won: 0,
         total_collected: 0,
+        total_collected_bb: 0,
         biggest_pot_won: 0,
+        biggest_pot_won_bb: 0,
         all_ins: 0,
         folds: 0,
         preflop_all_ins: 0,

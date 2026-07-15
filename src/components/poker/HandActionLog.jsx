@@ -1,5 +1,6 @@
 import { present, text } from "@/lib/newsroom/data";
 import { normalizeHandActionLog } from "@/lib/poker/handHistory";
+import { formatPotWithBb } from "@/lib/poker/potUnits";
 import { stripPlayerHandlesFromText } from "@/lib/playerNames";
 import Link from "next/link";
 
@@ -90,7 +91,7 @@ export function HandHistoryBlock({ hand, compact = false, detailHref = "", ancho
         <h3 className="text-lg font-black text-white">{title}</h3>
         <div className="flex flex-wrap items-center gap-3">
           {detailHref ? <Link href={detailHref} className="text-xs font-black uppercase tracking-[0.12em] text-amber-200 hover:text-amber-100">Moment detail</Link> : null}
-          {present(hand.pot_collected) ? <strong className="text-amber-200">{Number(hand.pot_collected).toLocaleString("en-US")} chips</strong> : null}
+          {present(hand.pot_collected) ? <strong className="text-amber-200">{formatPotWithBb({ pot: hand.pot_collected, potBb: hand.pot_bb, bigBlind: hand.big_blind })}</strong> : null}
         </div>
       </div>
       <div className={compact ? "mt-3 grid gap-x-5 md:grid-cols-3" : "mt-3 grid gap-x-5 md:grid-cols-2"}>

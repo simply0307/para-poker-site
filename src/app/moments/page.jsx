@@ -14,11 +14,12 @@ import { cleanName, formatNumber, text } from "@/lib/newsroom/data";
 import { getPageHero } from "@/lib/newsroom/pageHeroSettings";
 import { buildMomentsViewModel } from "@/lib/newsroom/viewModels/moments";
 import { stripPlayerHandlesFromText } from "@/lib/playerNames";
+import { formatPotWithBb } from "@/lib/poker/potUnits";
 
 export const revalidate = 60;
 
-function potText(value) {
-  return value ? `${formatNumber(value)} chips` : "";
+function potText(value, moment = {}) {
+  return formatPotWithBb({ pot: value, potBb: moment.pot_bb, bigBlind: moment.big_blind }) || (value ? `${formatNumber(value)} chips` : "");
 }
 
 function StatusRow({ labels = [] }) {
@@ -77,7 +78,7 @@ export default async function MomentsPage() {
             <p className="text-xs font-black uppercase tracking-[0.18em] text-amber-300">Featured moment</p>
             <h2 className="mt-2 text-2xl font-black text-white">{featured.hand_no ? `Hand #${featured.hand_no}` : "Moment"}</h2>
             <FactLine label="Winner" value={cleanName(featured.winner_name, "")} />
-            <FactLine label="Pot" value={potText(featured.pot_collected)} />
+            <FactLine label="Pot" value={potText(featured.pot_collected, featured)} />
             <FactLine label="Session" value={featured.sessionCode} />
             {featured.detailHref ? <Link href={featured.detailHref} className="mt-4 inline-flex font-black text-amber-200 hover:text-amber-100">Open moment</Link> : null}
           </div>
@@ -90,7 +91,7 @@ export default async function MomentsPage() {
         <StatCard label="Public moments" value={viewModel.stats.publicMoments} />
         <StatCard label="Published blurbs" value={viewModel.stats.publishedMoments} />
         <StatCard label="Featured / Major" value={viewModel.stats.featuredOrMajorMoments} />
-        <StatCard label="Biggest public pot" value={potText(viewModel.stats.biggestListedPot) || "-"} />
+        <StatCard label="Biggest public pot" value={viewModel.stats.biggestListedPotText || potText(viewModel.stats.biggestListedPot) || "-"} />
       </StatStrip>
 
       <StatStrip>
@@ -133,7 +134,7 @@ export default async function MomentsPage() {
                 <Link key={moment.momentId} href={moment.detailHref} className="rounded-md border border-white/10 bg-white/[0.03] p-3 hover:border-amber-300/50">
                   <div className="flex items-center justify-between gap-3">
                     <span className="font-black text-white">#{index + 1} {moment.hand_no ? `Hand ${moment.hand_no}` : "Moment"}</span>
-                    <span className="text-sm font-black text-amber-200">{potText(moment.pot_collected)}</span>
+                    <span className="text-sm font-black text-amber-200">{potText(moment.pot_collected, moment)}</span>
                   </div>
                   <p className="mt-1 text-sm text-stone-400">{cleanName(moment.winner_name, "Winner pending")} / {moment.sessionCode || "Session pending"}</p>
                 </Link>

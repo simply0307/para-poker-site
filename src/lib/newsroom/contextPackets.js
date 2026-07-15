@@ -5,6 +5,7 @@ import { normalizeArticleContextSelection } from "@/lib/newsroom/articleContextS
 import { getContentAssignment, getSelectedVariation, getVariationOptions } from "./contentAssignments";
 import { buildPromptConfigContext } from "./promptConfigs";
 import { stripPlayerHandlesFromText } from "@/lib/playerNames";
+import { formatPotWithBb } from "@/lib/poker/potUnits";
 import { loadNewsroomEditorialDocs, loadProseStyleExamples, loadSessionRecapMagicGuide, loadTaskGuide } from "./editorialDocs";
 import {
   buildSessionStoryPlan,
@@ -108,7 +109,9 @@ function publicHandMoment(moment) {
     hand_no: text(moment.hand_no),
     winner_name: cleanName(moment.winner_name, ""),
     pot_collected: moment.pot_collected ? Number(moment.pot_collected) : null,
-    pot_text: moment.pot_collected ? `${formatNumber(moment.pot_collected)} chips` : "",
+    pot_bb: moment.pot_bb ? Number(moment.pot_bb) : null,
+    big_blind: moment.big_blind ? Number(moment.big_blind) : null,
+    pot_text: formatPotWithBb({ pot: moment.pot_collected, potBb: moment.pot_bb, bigBlind: moment.big_blind }),
     board: text(moment.board),
     winning_hand: text(moment.winning_hand),
     tags: Array.isArray(moment.tags) ? moment.tags.map(String) : [],
@@ -254,7 +257,7 @@ export async function buildSessionRecapInputPacket(sessionIdOrCode, options = {}
       })),
       biggest_pots: (hands?.length ? hands : notableHands || [])
         .filter((hand) => hand?.pot_collected)
-        .sort((left, right) => Number(right.pot_collected || 0) - Number(left.pot_collected || 0))
+        .sort((left, right) => Number(right.pot_bb || right.pot_collected || 0) - Number(left.pot_bb || left.pot_collected || 0))
         .slice(0, 8)
         .map(publicHandMoment),
       source_facts_summary: [
@@ -344,7 +347,7 @@ export async function buildPlayerRecapInputPacket(playerIdOrSlug, options = {}) 
         note: "Player won these moments. Use these as source facts only, not style examples.",
         hand_no: text(moment.hand_no),
         winner_name: cleanName(moment.winner_name, ""),
-        pot_text: moment.pot_collected ? `${formatNumber(moment.pot_collected)} chips` : "",
+        pot_text: formatPotWithBb({ pot: moment.pot_collected, potBb: moment.pot_bb, bigBlind: moment.big_blind }),
         board: text(moment.board),
         winning_hand: text(moment.winning_hand),
       })),
@@ -352,7 +355,7 @@ export async function buildPlayerRecapInputPacket(playerIdOrSlug, options = {}) 
         note: "Player was involved but did not win this moment. Treat it as resistance, pressure, or context only when supported.",
         hand_no: text(moment.hand_no),
         winner_name: cleanName(moment.winner_name, ""),
-        pot_text: moment.pot_collected ? `${formatNumber(moment.pot_collected)} chips` : "",
+        pot_text: formatPotWithBb({ pot: moment.pot_collected, potBb: moment.pot_bb, bigBlind: moment.big_blind }),
         board: text(moment.board),
         winning_hand: text(moment.winning_hand),
       })),
@@ -734,7 +737,7 @@ export async function buildSocialCaptionInputPacket(captionRequest = {}) {
       session_results: cleanPlayerReferences(resultsOverride.value),
       biggest_pots: (handsOverride.value?.length ? handsOverride.value : momentsOverride.value || [])
         .filter((hand) => hand?.pot_collected)
-        .sort((left, right) => Number(right.pot_collected || 0) - Number(left.pot_collected || 0))
+        .sort((left, right) => Number(right.pot_bb || right.pot_collected || 0) - Number(left.pot_bb || left.pot_collected || 0))
         .slice(0, 5)
         .map(publicHandMoment),
       moment_source_facts: momentsOverride.value.slice(0, 5).map(publicHandMoment),

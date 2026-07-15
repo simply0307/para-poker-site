@@ -90,9 +90,10 @@ assert.match(sessionImportRoute, /updateImportedSession/, "Imported sessions mus
 assert.match(sessionImportRoute, /deleteImportedSession/, "Imported sessions must be deletable through an admin API.");
 assert.match(importManager, /Delete Imported Session/, "Import manager must expose a clear imported-session delete action.");
 assert.match(rawRepository, /\.from\("sessions"\)/, "Raw import repository must write sessions through Supabase.");
-assert.match(rawRepository, /\.from\("hands"\)\.insert/s, "Raw import repository must write hands through Supabase.");
+assert.match(rawRepository, /insertWithOptionalColumns\("hands"/s, "Raw import repository must write hands through Supabase with optional normalized pot columns.");
 assert.match(rawRepository, /\.from\("actions"\)\.insert/s, "Raw import repository must write chronological actions through Supabase.");
-assert.match(rawRepository, /\.from\("notable_hands"\)\.insert/s, "Raw import repository must write detected moment candidates through Supabase.");
+assert.match(rawRepository, /insertWithOptionalColumns\("notable_hands"/s, "Raw import repository must write detected moment candidates through Supabase with optional normalized pot columns.");
+assert.match(rawRepository, /pot_bb/s, "Raw import repository must preserve normalized pot size when schema supports it.");
 assert.match(rawRepository, /player_session_stats/, "Raw import repository must create basic player-session stats.");
 assert.match(rawRepository, /resolveSessionNumber/, "Raw imports must resolve a non-null session number before writing sessions.");
 assert.match(rawPanel, /assigned automatically within the selected season/i, "The import UI must explain automatic session numbering.");

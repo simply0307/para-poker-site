@@ -70,8 +70,7 @@ export async function recalculatePlayerSessionStats(sessionIdOrCode) {
   const result = await derivePlayerSessionStats(sessionIdOrCode);
   await supabase.from("player_session_stats").delete().eq("session_id", result.session.id);
   if (result.stats.length) {
-    const { error } = await supabase.from("player_session_stats").insert(result.stats);
-    if (error) throw new Error(`Could not save player session stats: ${error.message}`);
+    await maybeInsert("player_session_stats", result.stats);
   }
   await logStatRun({
     scope: "session",
@@ -219,7 +218,9 @@ export async function recalculateCareerStats() {
         hands: 0,
         hands_won: 0,
         total_collected: 0,
+        total_collected_bb: 0,
         biggest_pot_won: 0,
+        biggest_pot_won_bb: 0,
         all_ins: 0,
         folds: 0,
         wins: 0,
@@ -237,7 +238,9 @@ export async function recalculateCareerStats() {
     next.hands += Number(row.hands || 0);
     next.hands_won += Number(row.hands_won || 0);
     next.total_collected += Number(row.total_collected || 0);
+    next.total_collected_bb += Number(row.total_collected_bb || 0);
     next.biggest_pot_won = Math.max(next.biggest_pot_won, Number(row.biggest_pot_won || 0));
+    next.biggest_pot_won_bb = Math.max(next.biggest_pot_won_bb, Number(row.biggest_pot_won_bb || 0));
     next.all_ins += Number(row.all_ins || 0);
     next.folds += Number(row.folds || 0);
     next.wins += Number(row.wins || 0);

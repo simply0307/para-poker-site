@@ -14,14 +14,18 @@ export default async function AdminMomentsPage() {
   const firstMoment = detectedMoments[0] || {};
   const momentDrafts = await listNewsroomDrafts({ table: "moment_blurb_drafts", fallbackScope: "moment" });
   const payloadOptions = detectedMoments
-    .slice(0, 24)
+    .sort((left, right) =>
+      text(right.sessionCode).localeCompare(text(left.sessionCode)) ||
+      Number(right.pot_bb || 0) - Number(left.pot_bb || 0) ||
+      Number(right.pot_collected || 0) - Number(left.pot_collected || 0)
+    )
     .flatMap((moment) => {
       const momentId = text(moment.id || moment.hand_id || moment.momentId);
       if (!momentId) return [];
       const contenderNames = Array.isArray(moment.involved_players)
         ? moment.involved_players.filter((name) => text(name) && text(name) !== text(moment.winner_name))
         : [];
-      const baseLabel = `${moment.hand_no ? `Hand #${moment.hand_no}` : "Moment"}${moment.potText ? ` / ${moment.potText}` : ""}`;
+      const baseLabel = `${moment.sessionCode ? `${moment.sessionCode} / ` : ""}${moment.hand_no ? `Hand #${moment.hand_no}` : "Moment"}${moment.potText ? ` / ${moment.potText}` : ""}`;
       const description = [moment.sessionCode, moment.detectionReason].filter(Boolean).join(" / ");
       const options = [
         {

@@ -147,13 +147,16 @@ async function insertHandsAndActions(session, parsed, playersByRawName) {
       winner_player_id: winner?.id || null,
       winner_name: hand.winner_name,
       pot_collected: hand.pot_collected || 0,
+      pot_bb: hand.pot_bb || null,
+      big_blind: hand.big_blind || null,
+      small_blind: hand.small_blind || null,
       winning_hand: hand.winning_hand || "",
       showdown: Boolean(hand.showdown),
       raw_result: hand.raw_result || "",
     };
   });
 
-  const { data: hands, error: handError } = await supabase.from("hands").insert(handInserts).select("*");
+  const { data: hands, error: handError } = await insertWithOptionalColumns("hands", handInserts, ["pot_bb", "big_blind", "small_blind"]);
   if (handError) throw new Error(`Could not insert hands: ${handError.message}`);
 
   const handByNo = new Map((hands || []).map((hand) => [Number(hand.hand_no), hand]));
@@ -195,6 +198,9 @@ async function insertNotableHands(session, parsed) {
     tags: moment.tags,
     winner_name: moment.winner_name,
     pot_collected: moment.pot_collected || 0,
+    pot_bb: moment.pot_bb || null,
+    big_blind: moment.big_blind || null,
+    small_blind: moment.small_blind || null,
     winning_hand: moment.winning_hand || "",
     board: moment.board || "",
     involved_players: moment.involved_players || [],
@@ -203,9 +209,35 @@ async function insertNotableHands(session, parsed) {
   }));
 
   if (!rows.length) return [];
-  const { data, error } = await supabase.from("notable_hands").insert(rows).select("*");
+  const { data, error } = await insertWithOptionalColumns("notable_hands", rows, ["pot_bb", "big_blind", "small_blind"]);
   if (error) throw new Error(`Could not insert notable hands: ${error.message}`);
   return data || [];
+}
+
+function missingSchemaColumn(error) {
+  const value = `${error?.code || ""} ${error?.message || ""}`.toLowerCase();
+  if (!value.includes("pgrst204") && !value.includes("schema cache")) return "";
+  const match = String(error?.message || "").match(/'([^']+)'\s+column/i);
+  return match?.[1] || "";
+}
+
+async function insertWithOptionalColumns(table, rows, optionalColumns = []) {
+  let payload = rows.map((row) => ({ ...row }));
+  for (let attempt = 0; attempt <= optionalColumns.length; attempt += 1) {
+    const result = await supabase.from(table).insert(payload).select("*");
+    if (!result.error) return result;
+    const column = missingSchemaColumn(result.error);
+    if (column && optionalColumns.includes(column)) {
+      payload = payload.map((row) => {
+        const next = { ...row };
+        delete next[column];
+        return next;
+      });
+      continue;
+    }
+    return result;
+  }
+  return supabase.from(table).insert(payload).select("*");
 }
 
 async function upsertBasicPlayerStats(session, parsed, playersByRawName) {

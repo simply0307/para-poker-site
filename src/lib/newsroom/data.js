@@ -238,22 +238,20 @@ export async function getMomentsIndex() {
   );
   if (Array.isArray(byCreatedAt)) return byCreatedAt;
 
-  const byPot = await safeQuery(
+  const byPot = await safeQueryAll(
     supabase
       .from("notable_hands")
       .select("*")
-      .order("pot_collected", { ascending: false })
-      .limit(40),
-    null
+      .order("pot_collected", { ascending: false }),
+    []
   );
-  if (Array.isArray(byPot)) return byPot;
+  if (Array.isArray(byPot) && byPot.length) return byPot;
 
-  return safeQuery(
+  return safeQueryAll(
     supabase
       .from("notable_hands")
       .select("*")
-      .order("hand_no", { ascending: true })
-      .limit(40),
+      .order("hand_no", { ascending: true }),
     []
   );
 }

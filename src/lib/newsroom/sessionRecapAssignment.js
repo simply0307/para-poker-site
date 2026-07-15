@@ -1,4 +1,5 @@
 import { stripPlayerHandle } from "@/lib/playerNames";
+import { formatPotWithBb } from "@/lib/poker/potUnits";
 
 export const sessionRecapAssignment = {
   id: "para-session-recap-assignment-v1",
@@ -91,7 +92,7 @@ function handLabel(hand) {
 }
 
 function potText(hand) {
-  return hand?.pot_collected ? `${formatNumber(hand.pot_collected)} chips` : "an unlisted pot";
+  return hand?.pot_collected ? formatPotWithBb({ pot: hand.pot_collected, potBb: hand.pot_bb, bigBlind: hand.big_blind }) : "an unlisted pot";
 }
 
 export function buildSessionStoryPlan({ session, sessionResults = [], playerSessionStats = [], notableHands = [], hands = [] }) {
@@ -105,10 +106,10 @@ export function buildSessionStoryPlan({ session, sessionResults = [], playerSess
     .sort((left, right) => numberValue(left.hand_no, 9999) - numberValue(right.hand_no, 9999));
   const biggestPot = [...allHands]
     .filter((hand) => hand.pot_collected)
-    .sort((left, right) => numberValue(right.pot_collected) - numberValue(left.pot_collected))[0] || null;
+    .sort((left, right) => numberValue(right.pot_bb || right.pot_collected) - numberValue(left.pot_bb || left.pot_collected))[0] || null;
   const lateHand = [...allHands]
     .filter((hand) => hand.hand_no && numberValue(hand.hand_no) >= Math.max(1, numberValue(session?.hands_count) - 10))
-    .sort((left, right) => numberValue(right.pot_collected) - numberValue(left.pot_collected))[0] || null;
+    .sort((left, right) => numberValue(right.pot_bb || right.pot_collected) - numberValue(left.pot_bb || left.pot_collected))[0] || null;
   const winnerName = cleanName(winner?.player_name, "");
   const nonWinnerName = cleanName(strongestNonWinner?.player_name, "");
   const sessionCode = text(session?.session_code, "the session");

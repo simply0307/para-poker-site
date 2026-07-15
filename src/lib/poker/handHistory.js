@@ -1,4 +1,5 @@
 import { stripPlayerHandle, stripPlayerHandlesFromText } from "@/lib/playerNames";
+import { enrichHandWithPotUnits } from "@/lib/poker/potUnits";
 
 function text(value, fallback = "") {
   if (value === null || value === undefined || value === "") return fallback;
@@ -159,7 +160,7 @@ export function attachActionsToHands(hands = [], actions = []) {
     const actionRows = handKeyCandidates(hand).flatMap((key) => actionsByKey.get(key) || []);
     const deduped = [...new Map(actionRows.map((action) => [String(action.id || action.log_order || JSON.stringify(action)), action])).values()];
     return {
-      ...hand,
+      ...enrichHandWithPotUnits(hand, deduped),
       actionRows: deduped.sort((left, right) => Number(left.log_order || left.id || 0) - Number(right.log_order || right.id || 0)),
     };
   });
@@ -222,9 +223,10 @@ export function normalizeHandActionLog(hand = {}) {
 export const extractHandActionLog = normalizeHandActionLog;
 
 export function normalizeHandRow(hand = {}) {
+  const enriched = enrichHandWithPotUnits(hand, hand.actionRows || []);
   const actionLog = normalizeHandActionLog(hand);
   return {
-    ...hand,
+    ...enriched,
     actionLog,
     displayLabel: actionLog.kind === "action_log" ? "Hand History" : "Hand Summary",
     hasChronologicalAction: actionLog.kind === "action_log",

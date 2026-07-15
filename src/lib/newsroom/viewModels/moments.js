@@ -10,10 +10,12 @@ import {
   normalizePlayerName,
   resolvePlayerIdentity,
   safeQuery,
+  safeQueryAll,
   supabase,
   text,
 } from "@/lib/newsroom/data";
 import { normalizeHandRow } from "@/lib/poker/handHistory";
+import { enrichHandWithPotUnits, formatPotWithBb } from "@/lib/poker/potUnits";
 import { readMomentCurationSettings } from "@/lib/newsroom/momentCurationSettings";
 import { getMomentVideoAttachments } from "@/lib/newsroom/momentVideoAttachments";
 
@@ -97,7 +99,7 @@ function detectMomentTypes(moment = {}, topPotCutoff = 0, session = null) {
   const sessionHands = numberValue(session?.hands_count, null);
   const types = [];
 
-  if (numberValue(moment.pot_collected) >= topPotCutoff && numberValue(moment.pot_collected) > 0) types.push("biggest_pot");
+  if (momentPotRankValue(moment) >= topPotCutoff && momentPotRankValue(moment) > 0) types.push("biggest_pot");
   if (moment.showdown || moment.board || moment.winning_hand) types.push("showdown");
   if (moment.winner_name || moment.winner_player_id) types.push("player_marker");
   if (sessionHands && handNo && handNo >= Math.max(1, Math.floor(sessionHands * 0.75))) types.push("late_hand");
@@ -105,6 +107,10 @@ function detectMomentTypes(moment = {}, topPotCutoff = 0, session = null) {
   if (!types.length) types.push("archive_marker");
 
   return [...new Set(types)];
+}
+
+function momentPotRankValue(moment = {}) {
+  return numberValue(moment.pot_bb) || numberValue(moment.pot_collected);
 }
 
 function isExplicitlyFeatured(moment = {}, curationSettings = {}) {
@@ -173,9 +179,9 @@ function enrichMoment(moment, { session, player, publishedDraft, featuredId, top
     publishedDraft,
     publishedSummary: publishedDraft ? draftSummary(publishedDraft) : "",
     displaySummary: text(draftSummary(publishedDraft) || moment.public_summary || moment.summary || moment.description || moment.winning_hand || moment.board),
-    potText: moment.pot_collected ? `${formatNumber(moment.pot_collected)} chips` : "",
+    potText: formatPotWithBb({ pot: moment.pot_collected, potBb: moment.pot_bb, bigBlind: moment.big_blind }),
     detectionReason: [
-      numberValue(moment.pot_collected) > 0 ? `Pot: ${formatNumber(moment.pot_collected)} chips` : "",
+      formatPotWithBb({ pot: moment.pot_collected, potBb: moment.pot_bb, bigBlind: moment.big_blind }) ? `Pot: ${formatPotWithBb({ pot: moment.pot_collected, potBb: moment.pot_bb, bigBlind: moment.big_blind })}` : "",
       moment.winner_name ? `Winner: ${cleanName(moment.winner_name)}` : "",
       moment.board ? "Board stored" : "",
       moment.winning_hand ? "Winning hand stored" : "",
@@ -188,27 +194,45 @@ function uniqueCount(values = []) {
   return new Set(values.map(text).filter(Boolean)).size;
 }
 
+function actionKey(action = {}) {
+  return `${text(action.session_id)}:${text(action.hand_no)}`;
+}
+
+function actionsByMomentKey(actions = []) {
+  const groups = new Map();
+  for (const action of actions || []) {
+    const key = actionKey(action);
+    if (key === ":") continue;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(action);
+  }
+  return groups;
+}
+
 export async function buildMomentsViewModel() {
-  const [rawMoments, sessions, players, publishedMomentDrafts, overrides, curationSettings] = await Promise.all([
+  const [rawMoments, sessions, players, publishedMomentDrafts, overrides, curationSettings, actionRows] = await Promise.all([
     getMomentsIndex(),
     getSessionsIndex(),
     getPlayersIndex(),
     getPublishedMomentDraftRows(),
     readActiveDataOverrides(),
     readMomentCurationSettings(),
+    safeQueryAll(supabase.from("actions").select("session_id, hand_no, action, amount, raw_entry").order("log_order", { ascending: true }), []),
   ]);
 
   const momentsOverride = applyOverridesToList(rawMoments || [], "moment", overrides);
   const moments = momentsOverride.value;
   const sessionsById = sessionMaps(sessions || []);
+  const actionMap = actionsByMomentKey(actionRows || []);
   const draftByMoment = new Map(publishedMomentDrafts.map((draft) => [draftMomentKey(draft), draft]).filter(([key]) => key));
-  const sortedByPot = [...moments].filter((moment) => numberValue(moment.pot_collected) > 0).sort((left, right) => numberValue(right.pot_collected) - numberValue(left.pot_collected));
-  const topPotCutoff = numberValue(sortedByPot[Math.min(4, sortedByPot.length - 1)]?.pot_collected, 0);
+  const sortedByPot = [...moments].filter((moment) => momentPotRankValue(moment) > 0).sort((left, right) => momentPotRankValue(right) - momentPotRankValue(left));
+  const topPotCutoff = momentPotRankValue(sortedByPot[Math.min(4, sortedByPot.length - 1)] || {});
   const explicitFeatured = moments.find((moment) => isExplicitlyFeatured(moment, curationSettings));
   const featuredSource = explicitFeatured || null;
   const featuredId = text(featuredSource?.id || featuredSource?.hand_id || featuredSource?.momentId);
 
-  const enriched = moments.map((moment) => {
+  const enriched = moments.map((rawMoment) => {
+    const moment = enrichHandWithPotUnits(rawMoment, actionMap.get(`${text(rawMoment.session_id)}:${text(rawMoment.hand_no)}`) || []);
     const session = sessionsById.get(String(moment.session_id)) || sessionsById.get(String(moment.session_code)) || null;
     const player = resolvePlayerIdentity(moment, players || []);
     return enrichMoment(moment, {
@@ -231,7 +255,7 @@ export async function buildMomentsViewModel() {
   });
 
   const publicMoments = enrichedWithVideo.filter((moment) => moment.isPublic);
-  const biggestPots = [...publicMoments].filter((moment) => numberValue(moment.pot_collected) > 0).sort((left, right) => numberValue(right.pot_collected) - numberValue(left.pot_collected)).slice(0, 5);
+  const biggestPots = [...publicMoments].filter((moment) => momentPotRankValue(moment) > 0).sort((left, right) => momentPotRankValue(right) - momentPotRankValue(left)).slice(0, 5);
   const recentMoments = [...publicMoments].sort((left, right) => dateValue(right) - dateValue(left) || numberValue(right.hand_no) - numberValue(left.hand_no)).slice(0, 12);
   const featuredMoment = publicMoments.find((moment) => text(moment.momentId) === featuredId) || publicMoments.find((moment) => moment.statuses.includes("published")) || publicMoments[0] || null;
   const momentTypes = ["biggest_pot", "turning_point", "player_marker", "showdown", "archive_marker", "late_hand"].map((type) => ({
@@ -260,7 +284,8 @@ export async function buildMomentsViewModel() {
       publicMoments: publicMoments.length,
       publishedMoments: publicMoments.filter((moment) => moment.statuses.includes("published")).length,
       featuredOrMajorMoments: publicMoments.filter((moment) => moment.statuses.includes("featured") || moment.statuses.includes("major")).length,
-      biggestListedPot: biggestPots[0]?.pot_collected || null,
+      biggestListedPot: biggestPots[0]?.pot_bb || biggestPots[0]?.pot_collected || null,
+      biggestListedPotText: biggestPots[0] ? formatPotWithBb({ pot: biggestPots[0].pot_collected, potBb: biggestPots[0].pot_bb, bigBlind: biggestPots[0].big_blind }) : "",
       videosAttached: enrichedWithVideo.filter((moment) => moment.video).length,
       sessionsRepresented: uniqueCount(enrichedWithVideo.map((moment) => moment.session_id || moment.sessionCode)),
       playersRepresented: uniqueCount(enrichedWithVideo.map((moment) => normalizePlayerName(moment.winner_name))),

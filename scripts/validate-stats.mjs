@@ -23,7 +23,7 @@ const actions = [
   { session_id: session.id, hand_no: 2, hand_id: "hand-2", log_order: 14, street: "showdown", player_name: "You", action: "collected", amount: 33, raw_entry: "\"You\" collected 33 from pot" },
 ];
 const hands = [
-  { session_id: session.id, hand_no: 1, hand_id: "hand-1", winner_name: "Maven", pot_collected: 66, showdown: true },
+  { session_id: session.id, hand_no: 1, hand_id: "hand-1", winner_name: "Maven", pot_collected: 66, big_blind: 2, showdown: true },
   { session_id: session.id, hand_no: 2, hand_id: "hand-2", winner_name: "You", pot_collected: 33, showdown: false },
 ];
 const stats = derivePlayerSessionStatsFromRows({ session, hands, actions });
@@ -35,6 +35,8 @@ assert.ok(you, "You stats must be derived from action evidence.");
 assert.equal(maven.hands, 2, "Maven should have two tracked hands.");
 assert.equal(maven.hands_won, 1, "Maven should have one hand win.");
 assert.equal(maven.biggest_pot_won, 66, "Maven biggest pot should be the 66-chip hand.");
+assert.equal(maven.biggest_pot_won_bb, 33, "Maven biggest normalized pot should be 33 BB.");
+assert.equal(maven.total_collected_bb, 33, "Maven normalized collected total should be stored in BB.");
 assert.equal(maven.vpip_pct, 100, "Maven voluntarily entered both fixture hands.");
 assert.equal(you.pfr_pct, 100, "You raised preflop in both fixture hands.");
 

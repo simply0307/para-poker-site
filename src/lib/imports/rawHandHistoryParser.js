@@ -1,4 +1,5 @@
 import { cleanName, text } from "@/lib/newsroom/data";
+import { detectBigBlindFromActions, enrichHandWithPotUnits, potBb } from "../poker/potUnits";
 
 function numberValue(value, fallback = 0) {
   const match = String(value || "").replace(/,/g, "").match(/-?\d+(\.\d+)?/);
@@ -171,14 +172,18 @@ function finalizeHand(hand) {
   const winner = collected[collected.length - 1] || winners[winners.length - 1] || null;
   const showdown = hand.actions.some((action) => action.action === "shows") || Boolean(hand.board);
 
-  return {
+  const bigBlind = detectBigBlindFromActions(hand.actions);
+  return enrichHandWithPotUnits({
     ...hand,
     winner_name: winner?.player_name || "",
     pot_collected: winner?.amount || 0,
+    pot_bb: potBb(winner?.amount || 0, bigBlind),
+    big_blind: bigBlind,
+    small_blind: bigBlind ? bigBlind / 2 : null,
     winning_hand: hand.winning_hand || winner?.winning_hand || "",
     raw_result: winner?.raw_entry || "",
     showdown,
-  };
+  }, hand.actions);
 }
 
 function winningHandName(line = "") {
@@ -267,10 +272,13 @@ export function parseRawHandHistory(rawText = "") {
       tags: [hand.showdown ? "Showdown" : "", hand.pot_collected ? "Detected Pot" : ""].filter(Boolean),
       winner_name: hand.winner_name,
       pot_collected: hand.pot_collected,
+      pot_bb: hand.pot_bb,
+      big_blind: hand.big_blind,
+      small_blind: hand.small_blind,
       winning_hand: hand.winning_hand,
       board: hand.board,
       involved_players: [...new Set(hand.actions.map((action) => action.player_name).filter(Boolean))],
-      summary: `Hand #${hand.hand_no}: ${text(hand.winner_name, "Winner pending")} won ${hand.pot_collected || 0} chips.`,
+      summary: `Hand #${hand.hand_no}: ${text(hand.winner_name, "Winner pending")} won ${hand.pot_bb ? `${hand.pot_bb} BB` : `${hand.pot_collected || 0} chips`}.`,
       raw_result: hand.raw_result,
     }));
 
