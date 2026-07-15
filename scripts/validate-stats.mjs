@@ -38,6 +38,19 @@ assert.equal(maven.biggest_pot_won, 66, "Maven biggest pot should be the 66-chip
 assert.equal(maven.vpip_pct, 100, "Maven voluntarily entered both fixture hands.");
 assert.equal(you.pfr_pct, 100, "You raised preflop in both fixture hands.");
 
+const mixedStoredIdStats = derivePlayerSessionStatsFromRows({
+  session,
+  hands: [
+    { session_id: session.id, id: "stored-hand-1", hand_no: 1, hand_id: "source-hand-1", winner_name: "Maven", pot_collected: 66, showdown: true },
+  ],
+  actions: [
+    { session_id: session.id, hand_id: "stored-hand-1", hand_no: 1, log_order: 1, street: "preflop", player_name: "Maven", action: "calls", amount: 1 },
+    { session_id: session.id, hand_id: "stored-hand-1", hand_no: 1, log_order: 2, street: "showdown", player_name: "Maven", action: "collected", amount: 66 },
+  ],
+});
+const mixedMaven = mixedStoredIdStats.find((row) => row.player_name === "Maven");
+assert.equal(mixedMaven.hands, 1, "Stats must not double-count a hand when action rows and hand rows use different stored/source ids.");
+
 const suggestions = deriveSessionResultSuggestionsFromRows({ session, sessionStats: stats, actions });
 assert.equal(suggestions[0].player_name, "Maven", "Match winner line should make Maven the first suggested finisher.");
 

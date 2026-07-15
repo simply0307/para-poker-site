@@ -29,6 +29,17 @@ export async function safeQuery(query, fallback = null) {
   return data;
 }
 
+async function fetchAllRows(query, { pageSize = 1000 } = {}) {
+  const rows = [];
+  for (let from = 0; ; from += pageSize) {
+    const { data, error } = await query.range(from, from + pageSize - 1);
+    if (error) throw new Error(error.message);
+    rows.push(...(data || []));
+    if (!data || data.length < pageSize) break;
+  }
+  return rows;
+}
+
 async function getSession(sessionIdOrCode) {
   const key = text(sessionIdOrCode).trim();
   if (!key) return null;
@@ -43,8 +54,8 @@ export async function derivePlayerSessionStats(sessionIdOrCode) {
   if (!session) throw new Error("Session not found.");
 
   const [hands, actions] = await Promise.all([
-    safeQuery(supabase.from("hands").select("*").eq("session_id", session.id).order("hand_no", { ascending: true }).limit(10000), []),
-    safeQuery(supabase.from("actions").select("*").eq("session_id", session.id).order("log_order", { ascending: true }).limit(50000), []),
+    fetchAllRows(supabase.from("hands").select("*").eq("session_id", session.id).order("hand_no", { ascending: true })),
+    fetchAllRows(supabase.from("actions").select("*").eq("session_id", session.id).order("log_order", { ascending: true })),
   ]);
 
   return {

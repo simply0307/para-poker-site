@@ -64,6 +64,21 @@ export async function safeQuery(query, fallback = null) {
   return data;
 }
 
+export async function safeQueryAll(query, fallback = [], { pageSize = 1000 } = {}) {
+  try {
+    const rows = [];
+    for (let from = 0; ; from += pageSize) {
+      const { data, error } = await query.range(from, from + pageSize - 1);
+      if (error) return fallback;
+      rows.push(...(data || []));
+      if (!data || data.length < pageSize) break;
+    }
+    return rows;
+  } catch {
+    return fallback;
+  }
+}
+
 export async function getSessionByIdOrCode(sessionIdOrCode) {
   const key = text(sessionIdOrCode).trim();
   if (!key) return null;
@@ -414,14 +429,8 @@ export async function getSessionHandHistory(sessionIdOrCode) {
   if (!session) return [];
 
   const [hands, actions] = await Promise.all([
-    safeQuery(
-    supabase.from("hands").select("*").eq("session_id", session.id).order("hand_no", { ascending: true }).limit(300),
-    []
-    ),
-    safeQuery(
-      supabase.from("actions").select("*").eq("session_id", session.id).order("log_order", { ascending: true }).limit(5000),
-      []
-    ),
+    safeQueryAll(supabase.from("hands").select("*").eq("session_id", session.id).order("hand_no", { ascending: true }), []),
+    safeQueryAll(supabase.from("actions").select("*").eq("session_id", session.id).order("log_order", { ascending: true }), []),
   ]);
 
   return attachActionsToHands(hands || [], actions || []).map(normalizeHandRow);
@@ -509,8 +518,8 @@ export async function getSessionNewsroomData(sessionIdOrCode) {
     safeQuery(supabase.from("session_results").select("*").eq("session_id", session.id).order("finish", { ascending: true }), []),
     safeQuery(supabase.from("player_session_stats").select("*").eq("session_id", session.id).order("player_name", { ascending: true }), []),
     safeQuery(supabase.from("notable_hands").select("*").eq("session_id", session.id).order("pot_collected", { ascending: false }).limit(25), []),
-    safeQuery(supabase.from("hands").select("*").eq("session_id", session.id).order("hand_no", { ascending: true }).limit(200), []),
-    safeQuery(supabase.from("actions").select("*").eq("session_id", session.id).order("log_order", { ascending: true }).limit(5000), []),
+    safeQueryAll(supabase.from("hands").select("*").eq("session_id", session.id).order("hand_no", { ascending: true }), []),
+    safeQueryAll(supabase.from("actions").select("*").eq("session_id", session.id).order("log_order", { ascending: true }), []),
     getStandingsRows(text(session.season_code, "S0")),
     getPlayersIndex(),
   ]);

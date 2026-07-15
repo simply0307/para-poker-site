@@ -53,7 +53,9 @@ function isAllIn(action = {}) {
 }
 
 function handKey(row = {}) {
-  return text(row.hand_id || row.hand_no || row.id).trim();
+  if (row.session_id && row.hand_no) return `session:${row.session_id}:hand_no:${row.hand_no}`;
+  if (row.hand_no) return `hand_no:${row.hand_no}`;
+  return text(row.hand_id || row.id).trim();
 }
 
 function addHand(set, hand) {
