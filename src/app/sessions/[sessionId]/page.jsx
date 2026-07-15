@@ -142,7 +142,13 @@ export default async function SessionPage({ params }) {
               <article key={`${row.player_id || row.player_name || "stat"}-${index}`} className="rounded-md border border-white/10 bg-white/[0.03] p-4">
                 <h3 className="text-lg font-black text-white">{cleanName(participant.name || row.player_name)}</h3>
                 <FactLine label="Hands" value={firstPresent(row.hands, row.hands_played, row.hand_count)} />
-                <FactLine label="Biggest pot won" value={row.biggest_pot_won_bb ? `${row.biggest_pot_won_bb} BB` : chipValue(firstPresent(row.biggest_pot_won, row.biggest_pot, row.largest_pot))} />
+                <FactLine
+                  label="Biggest pot won"
+                  value={formatPotWithBb({
+                    pot: firstPresent(row.biggest_pot_won, row.biggest_pot, row.largest_pot),
+                    potBb: row.biggest_pot_won_bb,
+                  }) || chipValue(firstPresent(row.biggest_pot_won, row.biggest_pot, row.largest_pot))}
+                />
                 <FactLine label="VPIP" value={firstPresent(row.vpip, row.vpip_pct)} />
                 <FactLine label="PFR" value={firstPresent(row.pfr, row.pfr_pct)} />
               </article>

@@ -21,6 +21,7 @@ import { draftHeadline, draftHtml, draftParagraphs, draftSubheadline, waitingCop
 import { readSeasonSettings } from "@/lib/newsroom/seasonSettings";
 import { PokerStatGrid } from "@/components/poker/PokerStatGrid";
 import { HandHistoryBlock } from "@/components/poker/HandActionLog";
+import { formatBb } from "@/lib/poker/potUnits";
 
 export const revalidate = 60;
 
@@ -36,6 +37,11 @@ function handDetailHref(hand = {}) {
   const sessionId = hand.session_code || hand.session_id;
   if (!sessionId) return "";
   return `/sessions/${encodeURIComponent(text(sessionId))}${hand.hand_no ? `#hand-${hand.hand_no}` : ""}`;
+}
+
+function potRecordText({ bb, chips } = {}) {
+  if (present(bb)) return `${formatBb(bb)}${present(chips) ? ` / ${formatNumber(chips)} chips` : ""}`;
+  return present(chips) ? `${formatNumber(chips)} chips` : "";
 }
 
 export default async function PlayerPage({ params }) {
@@ -83,7 +89,7 @@ export default async function PlayerPage({ params }) {
         <StatCard label="Points" value={pokerStats?.points || cardMap.get("Points") || ""} />
         <StatCard label="Sessions" value={pokerStats?.sessions || cardMap.get("Sessions") || ""} />
         <StatCard label="Best Finish" value={pokerStats?.bestFinish ? `#${pokerStats.bestFinish}` : cardMap.get("Best result") || ""} />
-        <StatCard label="Biggest Pot" value={pokerStats?.biggestPot ? formatNumber(pokerStats.biggestPot) : cardMap.get("Biggest pot") ? formatNumber(cardMap.get("Biggest pot")) : ""} />
+        <StatCard label="Biggest Pot" value={potRecordText({ bb: pokerStats?.biggestPotBb, chips: pokerStats?.biggestPot }) || cardMap.get("Biggest pot") || ""} />
       </StatStrip>
 
       <ContentRail
@@ -113,10 +119,15 @@ export default async function PlayerPage({ params }) {
                   { label: "PFR", value: formatPokerPercent(pokerStats?.pfr), empty: "Advanced stat pending" },
                   { label: "Wins", value: pokerStats?.wins || "", empty: "Official results pending" },
                   { label: "Top Finishes", value: pokerStats?.topFinishes || "", empty: "Official results pending" },
-                  { label: "Biggest Pot", value: pokerStats?.biggestPot ? `${formatNumber(pokerStats.biggestPot)} chips` : "", empty: "Biggest pot not tracked yet" },
-                  { label: "Collected", value: pokerStats?.totalCollected ? `${formatNumber(pokerStats.totalCollected)} chips` : "", empty: "Collection total pending" },
+                  { label: "Biggest Pot", value: potRecordText({ bb: pokerStats?.biggestPotBb, chips: pokerStats?.biggestPot }), empty: "Biggest pot not tracked yet" },
+                  { label: "Collected", value: potRecordText({ bb: pokerStats?.totalCollectedBb, chips: pokerStats?.totalCollected }), empty: "Collection total pending" },
                 ]}
               />
+              {pokerStats?.biggestPotBb || pokerStats?.totalCollectedBb ? (
+                <p className="mt-3 rounded-md border border-amber-300/15 bg-amber-300/10 p-3 text-xs leading-5 text-amber-100">
+                  BB totals normalize pots across changing blind levels. Chip counts remain attached to the hand evidence below.
+                </p>
+              ) : null}
             </EvidencePanel>
           </div>
         }
@@ -145,7 +156,7 @@ export default async function PlayerPage({ params }) {
                 <StatLine label="Finish" value={result.finish ? `#${result.finish}` : ""} />
                 <StatLine label="Points" value={firstPresent(result.league_points, result.points)} />
                 <StatLine label="Hands" value={firstPresent(row.hands, row.hands_played, row.hand_count)} />
-                <StatLine label="Biggest pot" value={firstPresent(row.biggest_pot_won, row.biggest_pot, row.largest_pot)} />
+                <StatLine label="Biggest pot" value={potRecordText({ bb: row.biggest_pot_won_bb, chips: firstPresent(row.biggest_pot_won, row.biggest_pot, row.largest_pot) })} />
               </article>
             );
           })}

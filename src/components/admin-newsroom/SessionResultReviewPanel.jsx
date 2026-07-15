@@ -85,9 +85,19 @@ export function SessionResultReviewPanel({ sessions = [] }) {
       setBusy("");
       return;
     }
-    setMessage(action === "recalculate_season"
-      ? "Session, season, career stats, and standings were recalculated."
-      : "Session player stats were recalculated from hands/actions.");
+    if (action === "backfill_bb") {
+      const summary = payload.summary || {};
+      setMessage([
+        `BB normalization checked ${summary.hands || 0} hands (${summary.coveragePct || 0}% with BB).`,
+        summary.storedHands !== undefined ? `${summary.storedHands} hand rows stored.` : "",
+        summary.storedNotables !== undefined ? `${summary.storedNotables} moment rows stored.` : "",
+        payload.warning ? `Warning: ${payload.warning}` : "",
+      ].filter(Boolean).join(" "));
+    } else {
+      setMessage(action === "recalculate_season"
+        ? "Session, season, career stats, and standings were recalculated."
+        : "Session player stats were recalculated from hands/actions.");
+    }
     await loadReview(selectedId);
     setBusy("");
   }
@@ -139,6 +149,9 @@ export function SessionResultReviewPanel({ sessions = [] }) {
           <button type="button" onClick={() => recalculate("recalculate_session")} disabled={Boolean(busy)} className="rounded-md border border-zinc-300 px-3 py-2 text-sm font-black disabled:opacity-50">
             {busy === "recalculate_session" ? "Recalculating..." : "Recalc Session Stats"}
           </button>
+          <button type="button" onClick={() => recalculate("backfill_bb")} disabled={Boolean(busy)} className="rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm font-black text-amber-800 disabled:opacity-50">
+            {busy === "backfill_bb" ? "Backfilling..." : "Backfill BB Fields"}
+          </button>
           <button type="button" onClick={() => recalculate("recalculate_season")} disabled={Boolean(busy)} className="rounded-md bg-zinc-950 px-3 py-2 text-sm font-black text-white disabled:opacity-50">
             {busy === "recalculate_season" ? "Recalculating..." : "Recalc Season + Career"}
           </button>
@@ -183,7 +196,7 @@ export function SessionResultReviewPanel({ sessions = [] }) {
                 <div key={stat.player_id || stat.player_name} className="rounded-md bg-white p-3">
                   <p className="font-black text-zinc-950">{stat.player_name}</p>
                   <p>{stat.hands} hands / {stat.hands_won} won / {stat.biggest_pot_won_bb ? `${stat.biggest_pot_won_bb} BB` : stat.biggest_pot_won} biggest pot</p>
-                  {stat.total_collected_bb ? <p>{Number(stat.total_collected_bb).toFixed(1)} BB collected</p> : null}
+                  {stat.total_collected_bb ? <p>{Number(stat.total_collected_bb).toFixed(1)} BB collected across winning hands</p> : null}
                   <p>VPIP {stat.vpip_pct ?? "pending"} / PFR {stat.pfr_pct ?? "pending"}</p>
                 </div>
               ))}

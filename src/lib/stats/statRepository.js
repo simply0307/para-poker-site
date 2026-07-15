@@ -1,5 +1,10 @@
 import { supabase } from "@/lib/supabase";
 import {
+  enrichHandWithPotUnits,
+  formatBb,
+  formatPotWithBb,
+} from "@/lib/poker/potUnits";
+import {
   aggregatePlayerStats,
   derivePlayerSessionStatsFromRows,
   deriveSessionResultSuggestionsFromRows,
@@ -49,6 +54,77 @@ async function getSession(sessionIdOrCode) {
   );
 }
 
+function rowKeyCandidates(row = {}) {
+  return [
+    row.id,
+    row.hand_id,
+    row.hand_no ? `hand_no:${row.hand_no}` : "",
+  ].map((value) => text(value).trim()).filter(Boolean);
+}
+
+function groupActionsByHand(actions = []) {
+  const byKey = new Map();
+  for (const action of actions || []) {
+    for (const key of rowKeyCandidates(action)) {
+      if (!byKey.has(key)) byKey.set(key, []);
+      byKey.get(key).push(action);
+    }
+  }
+  return byKey;
+}
+
+function actionsForHand(hand = {}, actionsByHand = new Map()) {
+  const seen = new Set();
+  const rows = [];
+  for (const key of rowKeyCandidates(hand)) {
+    for (const action of actionsByHand.get(key) || []) {
+      const actionKey = action.id || `${action.hand_id || action.hand_no}-${action.log_order || action.raw_entry}`;
+      if (seen.has(actionKey)) continue;
+      seen.add(actionKey);
+      rows.push(action);
+    }
+  }
+  return rows.sort((left, right) => Number(left.log_order || left.action_order || left.order || 0) - Number(right.log_order || right.action_order || right.order || 0));
+}
+
+function potUnitPayload(hand = {}) {
+  return {
+    small_blind: hand.small_blind || null,
+    big_blind: hand.big_blind || null,
+    pot_bb: hand.pot_bb || null,
+  };
+}
+
+async function updatePotUnitRow(table, row, payload) {
+  if (!row?.id) return { updated: false };
+  const { error } = await supabase.from(table).update(payload).eq("id", row.id);
+  if (!error) return { updated: true };
+  const column = missingSchemaColumn(error);
+  if (column) {
+    return {
+      updated: false,
+      warning: `The ${table}.${column} column is not available through the Supabase schema cache. Run the BB normalization migration and reload the schema before storing normalized pots.`,
+    };
+  }
+  if (missingTable(error)) return { updated: false, warning: `${table} is unavailable.` };
+  throw new Error(`Could not update ${table} pot units: ${error.message}`);
+}
+
+function normalizationSummary(hands = []) {
+  const withBb = hands.filter((hand) => Number(hand.pot_bb || 0) > 0).length;
+  const blindLevels = [...new Set(hands.map((hand) => Number(hand.big_blind || 0)).filter(Boolean))].sort((left, right) => left - right);
+  const biggest = hands
+    .filter((hand) => Number(hand.pot_bb || 0) > 0)
+    .sort((left, right) => Number(right.pot_bb || 0) - Number(left.pot_bb || 0))[0] || null;
+  return {
+    hands: hands.length,
+    handsWithBb: withBb,
+    coveragePct: hands.length ? Math.round((withBb / hands.length) * 100) : 0,
+    blindLevels,
+    biggestPotText: biggest ? formatPotWithBb({ pot: biggest.pot_collected, potBb: biggest.pot_bb, bigBlind: biggest.big_blind }) : "",
+  };
+}
+
 export async function derivePlayerSessionStats(sessionIdOrCode) {
   const session = await getSession(sessionIdOrCode);
   if (!session) throw new Error("Session not found.");
@@ -80,6 +156,72 @@ export async function recalculatePlayerSessionStats(sessionIdOrCode) {
     summary,
   });
   return { ...result, summary };
+}
+
+export async function backfillSessionPotNormalization(sessionIdOrCode) {
+  const session = await getSession(sessionIdOrCode);
+  if (!session) throw new Error("Session not found.");
+
+  const [hands, notableHands, actions] = await Promise.all([
+    fetchAllRows(supabase.from("hands").select("*").eq("session_id", session.id).order("hand_no", { ascending: true })),
+    fetchAllRows(supabase.from("notable_hands").select("*").eq("session_id", session.id).order("hand_no", { ascending: true })),
+    fetchAllRows(supabase.from("actions").select("*").eq("session_id", session.id).order("log_order", { ascending: true })),
+  ]);
+  const actionsByHand = groupActionsByHand(actions || []);
+  const enrichedHands = (hands || []).map((hand) => enrichHandWithPotUnits(hand, actionsForHand(hand, actionsByHand)));
+  const enrichedNotables = (notableHands || []).map((hand) => enrichHandWithPotUnits(hand, actionsForHand(hand, actionsByHand)));
+
+  let storedHands = 0;
+  let storedNotables = 0;
+  let warning = "";
+
+  for (const hand of enrichedHands) {
+    const result = await updatePotUnitRow("hands", hand, potUnitPayload(hand));
+    if (result.warning) {
+      warning = result.warning;
+      break;
+    }
+    if (result.updated) storedHands += 1;
+  }
+
+  if (!warning) {
+    for (const hand of enrichedNotables) {
+      const result = await updatePotUnitRow("notable_hands", hand, potUnitPayload(hand));
+      if (result.warning) {
+        warning = result.warning;
+        break;
+      }
+      if (result.updated) storedNotables += 1;
+    }
+  }
+
+  const sessionStats = await recalculatePlayerSessionStats(session.id);
+  const seasonStats = await recalculateSeasonStats(session.season_code || "S0");
+  const careerStats = await recalculateCareerStats();
+  const summary = {
+    ...normalizationSummary(enrichedHands),
+    sessionCode: session.session_code || session.id,
+    storedHands,
+    storedNotables,
+    statsPlayers: sessionStats.stats.length,
+    seasonPlayers: seasonStats.length,
+    careerPlayers: careerStats.length,
+    biggestPotBbText: enrichedHands.length
+      ? formatBb(Math.max(0, ...enrichedHands.map((hand) => Number(hand.pot_bb || 0))), "")
+      : "",
+    warning,
+  };
+
+  await logStatRun({
+    scope: "session",
+    seasonCode: session.season_code,
+    sessionId: session.id,
+    source: "admin_bb_backfill",
+    status: warning ? "completed_with_warning" : "completed",
+    summary,
+  });
+
+  return { session, summary };
 }
 
 export async function getSessionResultReview(sessionIdOrCode) {

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { readLeagueRules } from "@/lib/league/rulesRepository";
 import {
+  backfillSessionPotNormalization,
   getSessionResultReview,
   recalculateCareerStats,
   recalculatePlayerSessionStats,
@@ -62,6 +63,16 @@ export async function PUT(request, { params }) {
         sessionSummary: sessionStats.summary,
         seasonSummary: { seasonCode: review.session.season_code || "S0", players: seasonStats.length },
         careerSummary: { players: careerStats.length },
+      });
+    }
+
+    if (action === "backfill_bb") {
+      const result = await backfillSessionPotNormalization(sessionId);
+      return NextResponse.json({
+        action,
+        session: result.session,
+        summary: result.summary,
+        warning: result.summary.warning || "",
       });
     }
 
