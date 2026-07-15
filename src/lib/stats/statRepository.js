@@ -13,7 +13,14 @@ function text(value, fallback = "") {
 
 function missingTable(error) {
   const value = `${error?.code || ""} ${error?.message || ""}`.toLowerCase();
-  return value.includes("pgrst205") || value.includes("42p01") || value.includes("does not exist") || value.includes("schema cache");
+  return value.includes("pgrst205") || value.includes("42p01") || (value.includes("does not exist") && value.includes("table"));
+}
+
+function missingSchemaColumn(error) {
+  const value = `${error?.code || ""} ${error?.message || ""}`.toLowerCase();
+  if (!value.includes("pgrst204") && !value.includes("schema cache")) return "";
+  const match = String(error?.message || "").match(/'([^']+)'\s+column/i);
+  return match?.[1] || "";
 }
 
 export async function safeQuery(query, fallback = null) {
@@ -133,24 +140,28 @@ export async function saveConfirmedSessionResults(sessionIdOrCode, results = [],
 }
 
 export async function readPlayerSeasonStats(seasonCode = "S0") {
-  return safeQuery(
+  const ordered = await safeQuery(
     supabase
       .from("player_season_stats")
       .select("*")
       .eq("season_code", seasonCode)
       .order("total_points", { ascending: false }),
-    []
+    null
   );
+  if (ordered) return ordered;
+  return safeQuery(supabase.from("player_season_stats").select("*").eq("season_code", seasonCode), []);
 }
 
 export async function readPlayerCareerStats() {
-  return safeQuery(
+  const ordered = await safeQuery(
     supabase
       .from("player_career_stats")
       .select("*")
       .order("total_points", { ascending: false }),
-    []
+    null
   );
+  if (ordered) return ordered;
+  return safeQuery(supabase.from("player_career_stats").select("*"), []);
 }
 
 async function fetchSeasonInputs(seasonCode = "S0") {
@@ -282,8 +293,32 @@ async function rebuildStandingsFromSeasonStats(seasonCode, seasonRows = []) {
 }
 
 async function maybeInsert(table, rows) {
-  const { error } = await supabase.from(table).insert(rows);
-  if (error && !missingTable(error)) throw new Error(`Could not insert ${table}: ${error.message}`);
+  let payload = rows.map((row) => ({ ...row }));
+  const removedColumns = [];
+
+  for (let attempt = 0; attempt < 24; attempt += 1) {
+    const { error } = await supabase.from(table).insert(payload);
+    if (!error) {
+      if (removedColumns.length) {
+        console.warn("[stats] aggregate insert dropped missing columns", { table, removedColumns });
+      }
+      return;
+    }
+    if (missingTable(error)) return;
+    const column = missingSchemaColumn(error);
+    if (column && payload.some((row) => column in row)) {
+      removedColumns.push(column);
+      payload = payload.map((row) => {
+        const next = { ...row };
+        delete next[column];
+        return next;
+      });
+      continue;
+    }
+    throw new Error(`Could not insert ${table}: ${error.message}`);
+  }
+
+  throw new Error(`Could not insert ${table}: schema cache kept rejecting aggregate columns.`);
 }
 
 async function maybeDelete(table, column, value) {
