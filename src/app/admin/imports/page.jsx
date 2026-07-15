@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AdminShell, AdminStat } from "@/components/admin-newsroom/AdminShell";
+import { ImportSessionManager } from "@/components/admin-newsroom/ImportSessionManager";
 import { RawHandImportPanel } from "@/components/admin-newsroom/RawHandImportPanel";
 import { buildImportHealthViewModel } from "@/lib/newsroom/importHealth";
 import { formatNumber } from "@/lib/newsroom/data";
@@ -21,7 +22,8 @@ export default async function AdminImportsPage() {
       title="Import control room"
       description="Import raw hand-history CSV files into Supabase, then audit session, hand, action, moment, result, and player-stat coverage before generating or publishing coverage."
     >
-      <RawHandImportPanel initialSeasonCode={seasonSettings.activeSeasonCode} />
+      <RawHandImportPanel initialSeasonCode={seasonSettings.activeSeasonCode} existingSessions={health.sessions} />
+      <ImportSessionManager sessions={health.sessions} />
 
       <section className="mt-8 grid gap-4 md:grid-cols-3 lg:grid-cols-6">
         <AdminStat label="Sessions" value={formatNumber(health.totals.sessions)} />

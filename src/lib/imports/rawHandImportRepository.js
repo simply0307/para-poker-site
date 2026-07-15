@@ -117,6 +117,8 @@ async function upsertSession(metadata = {}, parsed) {
 async function clearImportedRows(sessionId) {
   await supabase.from("actions").delete().eq("session_id", sessionId);
   await supabase.from("notable_hands").delete().eq("session_id", sessionId);
+  await supabase.from("player_session_stats").delete().eq("session_id", sessionId);
+  await supabase.from("session_results").delete().eq("session_id", sessionId);
   await supabase.from("hands").delete().eq("session_id", sessionId);
 }
 
@@ -290,10 +292,9 @@ export async function commitRawHandImport(input = {}) {
     rawLogRows: (csvText || rawText).split(/\r?\n/u).filter(Boolean).length,
   };
 
+  const playersByRawName = await getOrCreatePlayers(parsed.players);
   const session = await upsertSession(metadata, parsed);
   if (input.replaceExisting) await clearImportedRows(session.id);
-
-  const playersByRawName = await getOrCreatePlayers(parsed.players);
   const hands = await insertHandsAndActions(session, parsed, playersByRawName);
   const notableHands = await insertNotableHands(session, parsed);
   const playerStats = await upsertBasicPlayerStats(session, parsed, playersByRawName);
@@ -307,5 +308,50 @@ export async function commitRawHandImport(input = {}) {
       insertedPlayerStats: playerStats.length,
     },
     warnings: parsed.warnings,
+  };
+}
+
+export async function updateImportedSession(sessionIdOrCode, patch = {}) {
+  const session = await getSessionByIdOrCode(sessionIdOrCode);
+  if (!session) throw new Error("Session not found.");
+
+  const nextSessionCode = text(patch.sessionCode || patch.session_code, session.session_code).trim();
+  if (nextSessionCode && nextSessionCode.toLowerCase() !== text(session.session_code).toLowerCase()) {
+    const existingCode = await getSessionByIdOrCode(nextSessionCode);
+    if (existingCode && existingCode.id !== session.id) {
+      throw new Error("Another session already uses that session code.");
+    }
+  }
+
+  const update = {
+    season_code: text(patch.seasonCode || patch.season_code, session.season_code || "S0"),
+    session_number: positiveSessionNumber(patch.sessionNumber || patch.session_number) ?? session.session_number,
+    session_code: nextSessionCode || session.session_code,
+    played_at: isoDate(patch.playedAt || patch.played_at || session.played_at),
+    table_name: text(patch.tableName || patch.table_name, session.table_name || "Imported Table"),
+    format: text(patch.format, session.format || "Imported hand history"),
+    status: text(patch.status, session.status || "processed"),
+    hands_count: Number(patch.handsCount || patch.hands_count || session.hands_count || 0),
+    players_count: Number(patch.playersCount || patch.players_count || session.players_count || 0),
+  };
+
+  const { data, error } = await supabase.from("sessions").update(update).eq("id", session.id).select("*").single();
+  if (error) throw new Error(`Could not update session import: ${error.message}`);
+  return data;
+}
+
+export async function deleteImportedSession(sessionIdOrCode) {
+  const session = await getSessionByIdOrCode(sessionIdOrCode);
+  if (!session) throw new Error("Session not found.");
+
+  await clearImportedRows(session.id);
+  await supabase.from("recap_drafts").delete().eq("scope", "session").eq("source_session_id", session.id);
+  const { error } = await supabase.from("sessions").delete().eq("id", session.id);
+  if (error) throw new Error(`Could not delete session import: ${error.message}`);
+
+  return {
+    deleted: true,
+    sessionId: session.id,
+    sessionCode: session.session_code,
   };
 }

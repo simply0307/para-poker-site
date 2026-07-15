@@ -58,7 +58,7 @@ export async function buildImportHealthViewModel() {
     safeQuery(
       supabase
         .from("sessions")
-        .select("id, session_code, season_code, session_number, played_at, table_name, status, hands_count")
+        .select("id, session_code, season_code, session_number, played_at, table_name, format, status, hands_count, players_count")
         .order("session_number", { ascending: false }),
       []
     ),
@@ -85,10 +85,13 @@ export async function buildImportHealthViewModel() {
       id: sessionId,
       sessionCode: text(session.session_code || session.id, "Session"),
       seasonCode: text(session.season_code, "S0"),
+      sessionNumber: session.session_number,
       playedAt: session.played_at,
       playedAtLabel: formatDate(session.played_at),
       tableName: text(session.table_name, "Table pending"),
+      format: text(session.format, "Imported hand history"),
       status: text(session.status, "unknown"),
+      playersCount: session.players_count,
       declaredHands,
       handsImported,
       handsWithActions,

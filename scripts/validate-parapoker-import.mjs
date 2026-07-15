@@ -63,9 +63,11 @@ function chronologicalCsvRows(rows = []) {
 const rawParser = read("src/lib/imports/rawHandHistoryParser.js");
 const rawRepository = read("src/lib/imports/rawHandImportRepository.js");
 const rawPanel = read("src/components/admin-newsroom/RawHandImportPanel.jsx");
+const importManager = read("src/components/admin-newsroom/ImportSessionManager.jsx");
 const adminPage = read("src/app/admin/imports/page.jsx");
 const previewRoute = read("src/app/api/admin/imports/raw-hands/preview/route.js");
 const commitRoute = read("src/app/api/admin/imports/raw-hands/commit/route.js");
+const sessionImportRoute = read("src/app/api/admin/imports/sessions/[sessionId]/route.js");
 const handHistory = read("src/lib/poker/handHistory.js");
 const handHistoryUi = read("src/components/poker/HandActionLog.jsx");
 const adminRoutes = read("src/lib/newsroom/adminRoutes.js");
@@ -74,13 +76,19 @@ const { nextSessionNumber, positiveSessionNumber } = await import("../src/lib/im
 assert.match(rawPanel, /accept="\.csv,text\/csv"/, "Import panel must accept CSV uploads.");
 assert.match(rawPanel, /fetch\("\/api\/admin\/imports\/raw-hands\/preview"/, "Import panel must preview through the raw-hand API.");
 assert.match(rawPanel, /fetch\("\/api\/admin\/imports\/raw-hands\/commit"/, "Import panel must commit through the raw-hand API.");
-assert.match(rawPanel, /Commit Live/, "Import panel must make live Supabase commit explicit.");
+assert.match(rawPanel, /Commit New Session/, "Import panel must make new live Supabase commits explicit.");
+assert.match(rawPanel, /Replace Live Session/, "Import panel must make replacement explicit.");
+assert.match(rawPanel, /matchingSession.*!form\.replaceExisting/s, "Import panel must block duplicate session-code commits unless replacement is explicit.");
 assert.match(adminPage, /RawHandImportPanel/, "Import control room must center the raw hand CSV import panel.");
+assert.match(adminPage, /ImportSessionManager/, "Import control room must expose session import edit/delete controls.");
 assert.doesNotMatch(adminPage, /\/admin\/imports\/parapoker/, "Import control room must not promote the legacy package importer.");
 assert.doesNotMatch(adminRoutes, /\/admin\/imports\/parapoker/, "Admin navigation must not expose the legacy package importer.");
 
 assert.match(previewRoute, /previewRawHandImport/, "Preview route must use server-side raw hand parsing.");
 assert.match(commitRoute, /commitRawHandImport/, "Commit route must use server-side Supabase commit.");
+assert.match(sessionImportRoute, /updateImportedSession/, "Imported sessions must be editable through an admin API.");
+assert.match(sessionImportRoute, /deleteImportedSession/, "Imported sessions must be deletable through an admin API.");
+assert.match(importManager, /Delete Imported Session/, "Import manager must expose a clear imported-session delete action.");
 assert.match(rawRepository, /\.from\("sessions"\)/, "Raw import repository must write sessions through Supabase.");
 assert.match(rawRepository, /\.from\("hands"\)\.insert/s, "Raw import repository must write hands through Supabase.");
 assert.match(rawRepository, /\.from\("actions"\)\.insert/s, "Raw import repository must write chronological actions through Supabase.");

@@ -9,6 +9,7 @@ const eslintConfig = defineConfig([
     ".next/**",
     "out/**",
     "build/**",
+    "gauntlet-online/**",
     "next-env.d.ts",
   ]),
 ]);
