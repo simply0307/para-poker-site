@@ -14,6 +14,7 @@ import {
   text,
 } from "@/lib/newsroom/data";
 import { normalizeHandRow } from "@/lib/poker/handHistory";
+import { readMomentCurationSettings } from "@/lib/newsroom/momentCurationSettings";
 import { getMomentVideoAttachments } from "@/lib/newsroom/momentVideoAttachments";
 
 function numberValue(value, fallback = 0) {
@@ -106,19 +107,21 @@ function detectMomentTypes(moment = {}, topPotCutoff = 0, session = null) {
   return [...new Set(types)];
 }
 
-function isExplicitlyFeatured(moment = {}) {
-  return truthy(moment.featured) || truthy(moment.is_featured) || truthy(moment.pinned) || truthy(moment.is_pinned);
+function isExplicitlyFeatured(moment = {}, curationSettings = {}) {
+  const momentId = text(moment.id || moment.hand_id || moment.momentId);
+  return text(curationSettings.featuredMomentId) === momentId || truthy(moment.featured) || truthy(moment.is_featured) || truthy(moment.pinned) || truthy(moment.is_pinned);
 }
 
-function isExplicitlyMajor(moment = {}) {
-  return truthy(moment.major) || truthy(moment.is_major) || rowTags(moment).some((tag) => tag.toLowerCase() === "major");
+function isExplicitlyMajor(moment = {}, curationSettings = {}) {
+  const momentId = text(moment.id || moment.hand_id || moment.momentId);
+  return (curationSettings.majorMomentIds || []).map(text).includes(momentId) || truthy(moment.major) || truthy(moment.is_major) || rowTags(moment).some((tag) => tag.toLowerCase() === "major");
 }
 
-function statusFor(moment = {}, publishedDraft = null) {
+function statusFor(moment = {}, publishedDraft = null, curationSettings = {}) {
   const statuses = ["detected"];
-  if (isExplicitlyFeatured(moment)) statuses.push("featured");
+  if (isExplicitlyFeatured(moment, curationSettings)) statuses.push("featured");
   if (publishedDraft) statuses.push("published");
-  if (isExplicitlyMajor(moment)) statuses.push("major");
+  if (isExplicitlyMajor(moment, curationSettings)) statuses.push("major");
   return statuses;
 }
 
@@ -142,11 +145,11 @@ function statusLabel(status) {
   }[status] || status;
 }
 
-function enrichMoment(moment, { session, player, publishedDraft, featuredId, topPotCutoff }) {
+function enrichMoment(moment, { session, player, publishedDraft, featuredId, topPotCutoff, curationSettings }) {
   const types = detectMomentTypes(moment, topPotCutoff, session);
-  const isFeatured = text(moment.id) === text(featuredId);
-  const statuses = statusFor(moment, publishedDraft);
   const momentId = text(moment.id || moment.hand_id || `${moment.session_id || "moment"}-${moment.hand_no}`);
+  const isFeatured = momentId === text(featuredId);
+  const statuses = statusFor(moment, publishedDraft, curationSettings);
 
   return {
     ...moment,
@@ -186,12 +189,13 @@ function uniqueCount(values = []) {
 }
 
 export async function buildMomentsViewModel() {
-  const [rawMoments, sessions, players, publishedMomentDrafts, overrides] = await Promise.all([
+  const [rawMoments, sessions, players, publishedMomentDrafts, overrides, curationSettings] = await Promise.all([
     getMomentsIndex(),
     getSessionsIndex(),
     getPlayersIndex(),
     getPublishedMomentDraftRows(),
     readActiveDataOverrides(),
+    readMomentCurationSettings(),
   ]);
 
   const momentsOverride = applyOverridesToList(rawMoments || [], "moment", overrides);
@@ -200,9 +204,9 @@ export async function buildMomentsViewModel() {
   const draftByMoment = new Map(publishedMomentDrafts.map((draft) => [draftMomentKey(draft), draft]).filter(([key]) => key));
   const sortedByPot = [...moments].filter((moment) => numberValue(moment.pot_collected) > 0).sort((left, right) => numberValue(right.pot_collected) - numberValue(left.pot_collected));
   const topPotCutoff = numberValue(sortedByPot[Math.min(4, sortedByPot.length - 1)]?.pot_collected, 0);
-  const explicitFeatured = moments.find(isExplicitlyFeatured);
+  const explicitFeatured = moments.find((moment) => isExplicitlyFeatured(moment, curationSettings));
   const featuredSource = explicitFeatured || null;
-  const featuredId = text(featuredSource?.id);
+  const featuredId = text(featuredSource?.id || featuredSource?.hand_id || featuredSource?.momentId);
 
   const enriched = moments.map((moment) => {
     const session = sessionsById.get(String(moment.session_id)) || sessionsById.get(String(moment.session_code)) || null;
@@ -213,6 +217,7 @@ export async function buildMomentsViewModel() {
       publishedDraft: draftByMoment.get(text(moment.id)) || null,
       featuredId,
       topPotCutoff,
+      curationSettings,
     });
   });
 
@@ -228,7 +233,7 @@ export async function buildMomentsViewModel() {
   const publicMoments = enrichedWithVideo.filter((moment) => moment.isPublic);
   const biggestPots = [...publicMoments].filter((moment) => numberValue(moment.pot_collected) > 0).sort((left, right) => numberValue(right.pot_collected) - numberValue(left.pot_collected)).slice(0, 5);
   const recentMoments = [...publicMoments].sort((left, right) => dateValue(right) - dateValue(left) || numberValue(right.hand_no) - numberValue(left.hand_no)).slice(0, 12);
-  const featuredMoment = publicMoments.find((moment) => text(moment.id) === featuredId) || publicMoments.find((moment) => moment.statuses.includes("published")) || publicMoments[0] || null;
+  const featuredMoment = publicMoments.find((moment) => text(moment.momentId) === featuredId) || publicMoments.find((moment) => moment.statuses.includes("published")) || publicMoments[0] || null;
   const momentTypes = ["biggest_pot", "turning_point", "player_marker", "showdown", "archive_marker", "late_hand"].map((type) => ({
     type,
     label: labelForType(type),
@@ -248,6 +253,7 @@ export async function buildMomentsViewModel() {
     recentMoments,
     momentTypes,
     publishedMomentDrafts,
+    curationSettings,
     appliedOverrides: momentsOverride.appliedOverrides,
     stats: {
       totalMoments: enrichedWithVideo.length,

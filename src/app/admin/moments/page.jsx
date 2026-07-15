@@ -1,13 +1,15 @@
 import { GenericDraftWorkspace } from "@/components/admin-newsroom/GenericDraftWorkspace";
+import { MomentCurationPanel } from "@/components/admin-newsroom/MomentCurationPanel";
 import { MomentVideoManager } from "@/components/admin-newsroom/MomentVideoManager";
 import { text } from "@/lib/newsroom/data";
 import { listNewsroomDrafts } from "@/lib/newsroom/drafts";
+import { readMomentCurationSettings } from "@/lib/newsroom/momentCurationSettings";
 import { buildMomentsViewModel } from "@/lib/newsroom/viewModels/moments";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminMomentsPage() {
-  const viewModel = await buildMomentsViewModel();
+  const [viewModel, curationSettings] = await Promise.all([buildMomentsViewModel(), readMomentCurationSettings()]);
   const detectedMoments = viewModel.detectedMoments || viewModel.moments || [];
   const firstMoment = detectedMoments[0] || {};
   const momentDrafts = await listNewsroomDrafts({ table: "moment_blurb_drafts", fallbackScope: "moment" });
@@ -92,7 +94,12 @@ export default async function AdminMomentsPage() {
       existingDrafts={momentDrafts}
       existingDraftsTitle="Moment drafts"
       initialDraft={momentDrafts[0] || null}
-      preface={<MomentVideoManager moments={videoMomentOptions} />}
+      preface={
+        <div className="grid gap-6">
+          <MomentCurationPanel moments={videoMomentOptions} initialSettings={curationSettings} />
+          <MomentVideoManager moments={videoMomentOptions} />
+        </div>
+      }
       payloadOptions={payloadOptions}
       payloadOptionsTitle="Select a detected moment to draft"
     />

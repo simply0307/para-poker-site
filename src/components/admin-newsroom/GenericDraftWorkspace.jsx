@@ -605,6 +605,14 @@ export function GenericDraftWorkspace({
                 value={currentPayload.articleRequest?.displayDate || currentPayload.articleRequest?.display_date || ""}
                 onChange={updateDisplayDate}
               />
+              <TextInput
+                label="Article slug"
+                value={currentPayload.articleRequest?.slug || currentDraft.slug || ""}
+                onChange={(value) => {
+                  updateDraftField("slug", value);
+                  updateArticleRequestField("slug", value);
+                }}
+              />
             </>
           ) : null}
         </div>
