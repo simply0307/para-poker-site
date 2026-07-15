@@ -1,5 +1,4 @@
 import { GenericDraftWorkspace } from "@/components/admin-newsroom/GenericDraftWorkspace";
-import { getVariationOptions } from "@/lib/newsroom/contentAssignments";
 import { getPlayersIndex, getSessionsIndex, text } from "@/lib/newsroom/data";
 import { listNewsroomDrafts } from "@/lib/newsroom/drafts";
 
@@ -13,12 +12,12 @@ export default async function AdminPlayerSessionRecapsPage() {
 
   return (
     <GenericDraftWorkspace
+      draftType="player_session_recap"
       title="Player-session recap draft desk"
-      endpoint="/api/player-session-recaps/generate"
       defaultPayload={{
         playerId: text(player.slug || player.id),
         sessionId: text(session.session_code || session.id, "S0-001"),
-        variation: "moment_led",
+        variation: "pressure_spot_note",
         editorialNotes: "",
         promptConfig: {
           draftType: "player_session_recap",
@@ -33,8 +32,6 @@ export default async function AdminPlayerSessionRecapsPage() {
           customInstruction: "Make the player's session lane feel public, dignified, and specific.",
         },
       }}
-      variationOptions={getVariationOptions("player_session_recap")}
-      defaultPromptPreset="player_dossier"
       existingDrafts={playerSessionDrafts}
       existingDraftsTitle="Player-session drafts"
       initialDraft={playerSessionDrafts[0] || null}

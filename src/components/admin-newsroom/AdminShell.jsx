@@ -6,33 +6,38 @@ import { usePathname } from "next/navigation";
 
 const navGroups = [
   {
-    label: "League Ops",
+    label: "Dashboard",
     links: [
       ["/admin", "Dashboard"],
+      ["/", "Public Site"],
+    ],
+  },
+  {
+    label: "Data Pipeline",
+    links: [
+      ["/admin/imports", "Imports"],
       ["/admin/sessions", "Sessions"],
       ["/admin/players", "Players"],
       ["/admin/standings", "Standings"],
-      ["/admin/moments", "Moments"],
-      ["/admin/events", "Events"],
       ["/admin/rules", "Rules"],
     ],
   },
   {
     label: "Newsroom",
     links: [
-      ["/admin/articles", "Articles"],
       ["/admin/drafts", "Drafts"],
+      ["/admin/articles", "Articles"],
+      ["/admin/moments", "Moments"],
+      ["/admin/social-captions", "Social Captions"],
       ["/admin/prompt-studio", "Prompt Studio"],
       ["/admin/newsroom", "Prompt Library"],
-      ["/admin/social-captions", "Social Captions"],
     ],
   },
   {
-    label: "Pipeline",
+    label: "Presentation",
     links: [
-      ["/admin/imports", "Imports"],
       ["/admin/settings", "Settings"],
-      ["/", "Public Site"],
+      ["/admin/events", "Events"],
     ],
   },
 ];
@@ -69,7 +74,7 @@ export function AdminShell({ children, title, description, eyebrow = "Admin news
             </div>
           </div>
 
-          <nav className="grid gap-3 lg:grid-cols-3">
+          <nav className="grid gap-3 lg:grid-cols-4">
             {navGroups.map((group) => (
               <section key={group.label} className="rounded-md border border-white/10 bg-white/[0.04] p-3">
                 <p className="mb-2 text-[0.65rem] font-black uppercase tracking-[0.2em] text-amber-200/80">{group.label}</p>

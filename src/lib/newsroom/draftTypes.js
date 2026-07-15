@@ -90,6 +90,11 @@ export const draftTypes = {
         instruction: "Summarize who the player is in the league record using only verified history and tendencies.",
       },
       {
+        key: "shareable_profile",
+        label: "Shareable Profile",
+        instruction: "Write the profile like a public player card: rank, points, form, and strongest verified moments first.",
+      },
+      {
         key: "current_form",
         label: "Current Form",
         instruction: "Focus on recent results, visible momentum, and what the latest sample suggests without overclaiming.",
@@ -315,17 +320,17 @@ export const draftTypes = {
     guideFile: "14-league-article-guide.md",
     schemaKey: "articleDraftSchema",
     defaultPromptPreset: "official_session_recap",
-    defaultVariation: "league_newsroom",
+    defaultVariation: "beat_report",
     variations: [
       {
-        key: "league_newsroom",
-        label: "League Newsroom",
-        instruction: "Write the main official article voice: grounded, player-facing, and specific.",
+        key: "beat_report",
+        label: "Beat report",
+        instruction: "Write a current league beat report from the supplied data. Lead with the newest verified development and give it newsroom bite without declaring the race over.",
       },
       {
-        key: "feature_story",
-        label: "Feature Story",
-        instruction: "Use approved history to tell a broader player or session feature without inventing scenes.",
+        key: "feature_angle",
+        label: "Feature angle",
+        instruction: "Write a focused feature-style article around one supplied angle, player, session, or standings thread. Do not invent quotes, motives, rivalries, or completed-season conclusions.",
       },
       {
         key: "preseason_context",
@@ -341,6 +346,11 @@ export const draftTypes = {
         key: "weekly_digest",
         label: "Weekly Digest",
         instruction: "Summarize multiple approved beats in a compact, readable league update.",
+      },
+      {
+        key: "preview_setup",
+        label: "Preview setup",
+        instruction: "Set up an upcoming session, player watch, or standings question using only supplied schedule/context. Do not predict outcomes or imply the race is settled.",
       },
     ],
     publicSlots: [
@@ -444,12 +454,198 @@ export const draftTypes = {
   },
 };
 
+const DRAFT_EDITOR_CONFIGS = {
+  [DRAFT_TYPE_KEYS.SESSION_RECAP]: {
+    titleField: "headline",
+    subtitleField: "subheadline",
+    bodyField: "recap_body",
+    richTextFields: ["recap_body"],
+  },
+  [DRAFT_TYPE_KEYS.PLAYER_PROFILE]: {
+    titleField: "headline",
+    subtitleField: "subheadline",
+    bodyField: "profile_body",
+    richTextFields: ["profile_body"],
+  },
+  [DRAFT_TYPE_KEYS.PLAYER_SESSION_RECAP]: {
+    titleField: "headline",
+    subtitleField: "subheadline",
+    bodyField: "recap_body",
+    richTextFields: ["recap_body"],
+  },
+  [DRAFT_TYPE_KEYS.STANDINGS_SUMMARY]: {
+    titleField: "headline",
+    subtitleField: "subheadline",
+    bodyField: "article_body",
+    richTextFields: ["article_body"],
+  },
+  [DRAFT_TYPE_KEYS.MOMENT_BLURB]: {
+    titleField: "headline",
+    subtitleField: "subheadline",
+    bodyField: "article_body",
+    richTextFields: ["article_body"],
+  },
+  [DRAFT_TYPE_KEYS.LEAGUE_ARTICLE]: {
+    titleField: "headline",
+    subtitleField: "subheadline",
+    bodyField: "article_body",
+    richTextFields: ["article_body"],
+    supportsAuthor: true,
+    supportsDisplayDate: true,
+  },
+  [DRAFT_TYPE_KEYS.SOCIAL_CAPTION]: {
+    titleField: "headline",
+    subtitleField: "subheadline",
+    bodyField: "caption",
+    richTextFields: ["caption"],
+  },
+  [DRAFT_TYPE_KEYS.PRIVATE_NOTE]: {
+    titleField: "headline",
+    subtitleField: "subheadline",
+    bodyField: "body",
+    richTextFields: ["body"],
+    adminOnly: true,
+  },
+};
+
+const DRAFT_DEFAULT_PAYLOADS = {
+  [DRAFT_TYPE_KEYS.SESSION_RECAP]: {
+    sessionId: "S0-001",
+    variation: "turning_point_led",
+    editorialNotes: "",
+  },
+  [DRAFT_TYPE_KEYS.PLAYER_PROFILE]: {
+    playerId: "",
+    variation: "identity_snapshot",
+    editorialNotes: "",
+  },
+  [DRAFT_TYPE_KEYS.PLAYER_SESSION_RECAP]: {
+    playerId: "",
+    sessionId: "S0-001",
+    variation: "pressure_spot_note",
+    editorialNotes: "",
+  },
+  [DRAFT_TYPE_KEYS.STANDINGS_SUMMARY]: {
+    seasonCode: "S0",
+    variation: "table_state",
+    editorialNotes: "",
+  },
+  [DRAFT_TYPE_KEYS.MOMENT_BLURB]: {
+    momentId: "",
+    coverageTarget: {
+      role: "winner",
+      playerName: "",
+    },
+    variation: "pressure_moment",
+    editorialNotes: "",
+  },
+  [DRAFT_TYPE_KEYS.LEAGUE_ARTICLE]: {
+    variation: "beat_report",
+    articleRequest: {
+      topic: "",
+      seasonCode: "S0",
+      seasonPhase: "preseason",
+      seasonStatus: "in_progress",
+      lifecycleNote: "Season 0 is ongoing. Do not write as if the season, preseason, standings race, or player stories are complete.",
+      articleType: "beat_report",
+      authorName: "Para League Desk",
+    },
+  },
+  [DRAFT_TYPE_KEYS.SOCIAL_CAPTION]: {
+    sourceType: "session",
+    sessionId: "S0-001",
+    playerId: "",
+    momentId: "",
+    seasonCode: "S0",
+    variation: "recap_card",
+    editorialNotes: "",
+  },
+  [DRAFT_TYPE_KEYS.PRIVATE_NOTE]: {
+    sourceType: "session",
+    sessionId: "S0-001",
+    playerId: "",
+    momentId: "",
+    seasonCode: "S0",
+    variation: "coach_private",
+    editorialNotes: "",
+  },
+};
+
+const DRAFT_PUBLISH_TARGETS = {
+  [DRAFT_TYPE_KEYS.SESSION_RECAP]: { route: "/sessions/[sessionId]", slot: "session_recap" },
+  [DRAFT_TYPE_KEYS.PLAYER_PROFILE]: { route: "/players/[playerId]", slot: "player_profile" },
+  [DRAFT_TYPE_KEYS.PLAYER_SESSION_RECAP]: { route: "/players/[playerId]", slot: "player_session_recap" },
+  [DRAFT_TYPE_KEYS.STANDINGS_SUMMARY]: { route: "/standings", slot: "standings_summary" },
+  [DRAFT_TYPE_KEYS.MOMENT_BLURB]: { route: "/moments", slot: "moment_blurb" },
+  [DRAFT_TYPE_KEYS.LEAGUE_ARTICLE]: { route: "/articles/[articleId]", slot: "article" },
+  [DRAFT_TYPE_KEYS.SOCIAL_CAPTION]: { route: "admin_only", slot: "social_caption" },
+  [DRAFT_TYPE_KEYS.PRIVATE_NOTE]: { route: "admin_only", slot: "private_note" },
+};
+
+const DRAFT_SOURCE_COLUMNS = {
+  [DRAFT_TYPE_KEYS.SESSION_RECAP]: { sourceSessionId: "source_session_id" },
+  [DRAFT_TYPE_KEYS.PLAYER_PROFILE]: { sourcePlayerId: "player_id" },
+  [DRAFT_TYPE_KEYS.PLAYER_SESSION_RECAP]: { sourcePlayerId: "player_id", sourceSessionId: "session_id" },
+  [DRAFT_TYPE_KEYS.STANDINGS_SUMMARY]: { seasonCode: "season_code" },
+  [DRAFT_TYPE_KEYS.MOMENT_BLURB]: { momentId: "moment_id" },
+  [DRAFT_TYPE_KEYS.LEAGUE_ARTICLE]: { articleRequest: "article_request" },
+  [DRAFT_TYPE_KEYS.SOCIAL_CAPTION]: {
+    sourceSessionId: "session_id",
+    sourcePlayerId: "player_id",
+    seasonCode: "season_code",
+    momentId: "moment_id",
+    articleRequest: "article_request",
+  },
+  [DRAFT_TYPE_KEYS.PRIVATE_NOTE]: {
+    sourceSessionId: "session_id",
+    sourcePlayerId: "player_id",
+    seasonCode: "season_code",
+    momentId: "moment_id",
+    articleRequest: "article_request",
+  },
+};
+
+const SEASON_AWARE_DRAFT_TYPES = new Set([
+  DRAFT_TYPE_KEYS.SESSION_RECAP,
+  DRAFT_TYPE_KEYS.PLAYER_PROFILE,
+  DRAFT_TYPE_KEYS.PLAYER_SESSION_RECAP,
+  DRAFT_TYPE_KEYS.STANDINGS_SUMMARY,
+  DRAFT_TYPE_KEYS.MOMENT_BLURB,
+  DRAFT_TYPE_KEYS.LEAGUE_ARTICLE,
+  DRAFT_TYPE_KEYS.SOCIAL_CAPTION,
+  DRAFT_TYPE_KEYS.PRIVATE_NOTE,
+]);
+
+function mergePayload(base = {}, patch = {}) {
+  const next = { ...(base || {}) };
+  for (const [key, value] of Object.entries(patch || {})) {
+    if (value && typeof value === "object" && !Array.isArray(value) && next[key] && typeof next[key] === "object" && !Array.isArray(next[key])) {
+      next[key] = mergePayload(next[key], value);
+    } else if (value !== undefined) {
+      next[key] = value;
+    }
+  }
+  return next;
+}
+
+function hydrateDraftType(type) {
+  if (!type) return null;
+  return {
+    ...type,
+    editor: DRAFT_EDITOR_CONFIGS[type.key] || {},
+    defaultPayload: DRAFT_DEFAULT_PAYLOADS[type.key] || {},
+    publishTarget: DRAFT_PUBLISH_TARGETS[type.key] || { route: type.publicRoutePattern, slot: type.fallbackScope },
+    sourceColumns: DRAFT_SOURCE_COLUMNS[type.key] || {},
+    seasonAware: SEASON_AWARE_DRAFT_TYPES.has(type.key),
+  };
+}
+
 export function getDraftType(typeKey) {
-  return draftTypes[typeKey] || null;
+  return hydrateDraftType(draftTypes[typeKey]);
 }
 
 export function getDraftTypes() {
-  return Object.values(draftTypes);
+  return Object.values(draftTypes).map(hydrateDraftType);
 }
 
 export function getDraftVariation(typeKey, variationKey = "") {
@@ -482,7 +678,28 @@ export function getDraftTypeOptions() {
     requiredSource: type.requiredSource,
     draftTable: type.draftTable,
     fallbackScope: type.fallbackScope,
+    seasonAware: type.seasonAware,
   }));
+}
+
+export function getDraftEditorConfig(typeKey) {
+  return getDraftType(typeKey)?.editor || {};
+}
+
+export function getDraftDefaultPayload(typeKey, overrides = {}) {
+  return mergePayload(getDraftType(typeKey)?.defaultPayload || {}, overrides);
+}
+
+export function mergeDraftPayload(base = {}, patch = {}) {
+  return mergePayload(base, patch);
+}
+
+export function getDraftTypeByEndpoint(endpoint = "") {
+  return getDraftTypes().find((type) => type.endpoint === endpoint) || null;
+}
+
+export function getDraftTypeByTable(table = "") {
+  return getDraftTypes().find((type) => type.draftTable === table) || null;
 }
 
 export function getDraftTableConfig() {
@@ -495,6 +712,9 @@ export function getDraftTableConfig() {
           table: type.draftTable,
           fallbackScope: type.fallbackScope,
           contentType: type.key,
+          sourceColumns: type.sourceColumns,
+          publishTarget: type.publishTarget,
+          seasonAware: type.seasonAware,
         },
       ])
   );

@@ -1,6 +1,5 @@
 import { GenericDraftWorkspace } from "@/components/admin-newsroom/GenericDraftWorkspace";
 import { MomentVideoManager } from "@/components/admin-newsroom/MomentVideoManager";
-import { getVariationOptions } from "@/lib/newsroom/contentAssignments";
 import { text } from "@/lib/newsroom/data";
 import { listNewsroomDrafts } from "@/lib/newsroom/drafts";
 import { buildMomentsViewModel } from "@/lib/newsroom/viewModels/moments";
@@ -67,15 +66,15 @@ export default async function AdminMomentsPage() {
 
   return (
     <GenericDraftWorkspace
+      draftType="moment_blurb"
       title="Moment blurb draft desk"
-      endpoint="/api/moments/generate"
       defaultPayload={{
         momentId: text(firstMoment.id || firstMoment.hand_id || firstMoment.momentId),
         coverageTarget: {
           role: "winner",
           playerName: text(firstMoment.winner_name || firstMoment.playerName),
         },
-        variation: "impact_blurb",
+        variation: "pressure_moment",
         editorialNotes: "",
         promptConfig: {
           draftType: "moment_blurb",
@@ -90,8 +89,6 @@ export default async function AdminMomentsPage() {
           customInstruction: "Make the moment feel memorable without inflating unsupported facts.",
         },
       }}
-      variationOptions={getVariationOptions("moment_blurb")}
-      defaultPromptPreset="moment_archive_note"
       existingDrafts={momentDrafts}
       existingDraftsTitle="Moment drafts"
       initialDraft={momentDrafts[0] || null}

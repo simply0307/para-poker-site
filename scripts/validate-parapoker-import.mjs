@@ -113,12 +113,37 @@ function validateFixtureEventOrdering(pkg) {
     }
 
     const sequence = numberValue(event.sequenceNumber, 0);
-    const expectedSequence = (previousSequenceByHand.get(handNo) || 0) + 1;
-    if (!sequence) errors.push(`Hand #${handNo} event ${event.eventId || "(missing)"} is missing sequenceNumber ${expectedSequence}.`);
-    else if (sequence !== expectedSequence) errors.push(`Hand #${handNo} event ${event.eventId || "(missing)"} expected sequence ${expectedSequence} but received ${sequence}.`);
+    const previousSequence = previousSequenceByHand.get(handNo) || 0;
+    if (!sequence) errors.push(`Hand #${handNo} event ${event.eventId || "(missing)"} is missing sequenceNumber.`);
+    else if (sequence <= previousSequence) errors.push(`Hand #${handNo} event ${event.eventId || "(missing)"} sequence ${sequence} must be greater than previous public sequence ${previousSequence}.`);
     if (sequence) previousSequenceByHand.set(handNo, sequence);
   }
 
+  return errors;
+}
+
+function validateFixtureHandEvidence(pkg) {
+  const errors = [];
+  const participantSeats = new Set((pkg.participants || []).map((participant) => participant.seatId));
+  for (const hand of pkg.hands || []) {
+    const handNumber = numberValue(hand.handNumber, 0);
+    let initialTotal = 0;
+    let finalTotal = 0;
+    let contributionTotal = 0;
+    for (const seatId of hand.participantSeatIds || []) {
+      if (!participantSeats.has(seatId)) errors.push(`Hand #${handNumber} references unknown participant ${seatId}.`);
+      initialTotal += numberValue(hand.stackCheckpoints?.initial?.[seatId], 0);
+      finalTotal += numberValue(hand.stackCheckpoints?.final?.[seatId], 0);
+      contributionTotal += numberValue(hand.contributions?.[seatId], 0);
+      if (!hand.positions?.[seatId]) errors.push(`Hand #${handNumber} is missing position evidence for ${seatId}.`);
+    }
+    const awardTotal = (hand.potAwards || []).reduce((sum, award) => sum + numberValue(award.amount, 0), 0);
+    const refundTotal = (hand.potSummary?.refunds || []).reduce((sum, refund) => sum + numberValue(refund.amount, 0), 0);
+    if (numberValue(hand.potSummary?.totalContributed) !== contributionTotal) errors.push(`Hand #${handNumber} contribution total does not match pot summary.`);
+    if (numberValue(hand.potSummary?.totalAwarded) !== awardTotal) errors.push(`Hand #${handNumber} award total does not match pot summary.`);
+    if (contributionTotal !== awardTotal + refundTotal) errors.push(`Hand #${handNumber} pot awards and refunds do not conserve contributed chips.`);
+    if (initialTotal - contributionTotal + awardTotal + refundTotal !== finalTotal) errors.push(`Hand #${handNumber} stack checkpoints do not conserve chips.`);
+  }
   return errors;
 }
 
@@ -178,10 +203,17 @@ assert.match(importer, /commit_parapoker_session_import/, "Importer must commit 
 assert.doesNotMatch(importer, /from\("players"\)\.insert/, "Package importer must not auto-create league players.");
 assert.doesNotMatch(importer, /let previousSequence = 0/, "Importer must not validate event sequence as one global counter.");
 assert.match(importer, /previousSequenceByHand/, "Importer must validate event sequence per hand.");
-assert.match(importer, /expected sequence \$\{expectedSequence\}/, "Importer must return hand-specific sequence errors.");
+assert.match(importer, /must be greater than previous public sequence/, "Importer must allow private-event gaps while rejecting duplicate or decreasing public sequences.");
 assert.match(importer, /returns to Hand #/, "Importer must reject earlier hand groups after later hands.");
 assert.match(importer, /numberValue\(left\.sequenceNumber/, "Importer must sort hand events by hand-local sequence.");
 assert.match(importer, /orderedHandsFor/, "Importer must derive records in hand-number order.");
+assert.match(importer, /target_contribution/, "Importer must preserve target contribution for action records.");
+assert.match(importer, /raise_to/, "Importer must preserve raise-to values for raise/all-in records.");
+assert.match(importer, /startedAt/, "Importer must validate per-hand start timestamps.");
+assert.match(importer, /stackCheckpoints/, "Importer must validate per-hand stack checkpoints.");
+assert.match(importer, /potSummary/, "Importer must validate per-hand pot construction evidence.");
+assert.match(importer, /finishOrder/, "Importer must validate package result finish order.");
+assert.match(importer, /stack checkpoints do not conserve chips/, "Importer must reject hand evidence that does not conserve chips.");
 
 assert.match(sql, /create table if not exists public\.game_session_imports/, "Migration must create import audit table.");
 assert.match(sql, /unique index if not exists game_session_imports_source_uidx/, "Migration must enforce source app/match idempotency.");
@@ -197,7 +229,8 @@ assert.match(panel, /Paste package JSON/, "Admin panel must support pasted JSON.
 assert.match(panel, /Participant mapping/, "Admin panel must expose participant mapping.");
 assert.match(panel, /Commit Import/, "Admin panel must require explicit commit.");
 assert.match(panel, /migration\/RPC is not installed/, "Admin panel must explain missing migration state.");
-assert.match(adminPage, /\/admin\/imports\/parapoker/, "Import control room must link to package importer.");
+assert.match(adminPage, /RawHandImportPanel/, "Import control room must center the raw hand CSV import panel.");
+assert.doesNotMatch(adminPage, /\/admin\/imports\/parapoker/, "Import control room must not promote the legacy package importer as the active lane.");
 assert.match(packagePage, /ParaPokerPackageImportPanel/, "Package route must render the package import workspace.");
 assert.match(previewRoute, /previewCompletedSessionPackage/, "Preview route must use server-side validation.");
 assert.match(commitRoute, /commitCompletedSessionPackage/, "Commit route must use server-side commit.");
@@ -216,34 +249,34 @@ assert.equal(fixture.source.app, "parapoker-official-client", "Multi-hand fixtur
 assert.equal(fixture.integrity.eventCount, fixture.orderedPublicEvents.length, "Multi-hand fixture event count must match.");
 assert.equal(fixture.integrity.handCount, fixture.hands.length, "Multi-hand fixture hand count must match.");
 assert.equal(fixture.integrity.checksum, checksum(withoutIntegrity), "Multi-hand fixture checksum must be stable.");
-assert.deepEqual(validateFixtureEventOrdering(fixture), [], "Valid multi-hand package with per-hand sequence restarts must pass.");
+assert.deepEqual(validateFixtureEventOrdering(fixture), [], "Valid multi-hand package with per-hand sequence restarts and private-event gaps must pass.");
+assert.deepEqual(validateFixtureHandEvidence(fixture), [], "Valid multi-hand package must include conserving stack, contribution, award, and refund evidence.");
 assert.equal(fixture.orderedPublicEvents.find((event) => event.handId === 2).sequenceNumber, 1, "Hand 2 must restart at sequence 1.");
 assert.equal(fixture.orderedPublicEvents.find((event) => event.handId === 3).sequenceNumber, 1, "Hand 3 must restart at sequence 1.");
 
 expectOrderingError(
   fixture,
   (copy) => {
-    copy.orderedPublicEvents.find((event) => event.eventId === "hand-2-event-5").sequenceNumber = 4;
+    copy.orderedPublicEvents.find((event) => event.eventId === "hand-2-event-5").sequenceNumber = 6;
   },
-  /Hand #2 event hand-2-event-5 expected sequence 5 but received 4/,
+  /Hand #2 event hand-2-event-5 sequence 6 must be greater than previous public sequence 6/,
   "Duplicate same-hand sequence must fail.",
 );
 
-expectOrderingError(
-  fixture,
-  (copy) => {
-    copy.orderedPublicEvents.find((event) => event.eventId === "hand-2-event-5").sequenceNumber = 6;
-  },
-  /Hand #2 event hand-2-event-5 expected sequence 5 but received 6/,
-  "Skipped same-hand sequence must fail.",
-);
+{
+  const copy = structuredClone(fixture);
+  for (const event of copy.orderedPublicEvents.filter((candidate) => candidate.handId === 2 && candidate.sequenceNumber >= 7)) {
+    event.sequenceNumber += 1;
+  }
+  assert.deepEqual(validateFixtureEventOrdering(copy), [], "Skipped public sequence numbers must pass because private events can occupy hidden slots.");
+}
 
 expectOrderingError(
   fixture,
   (copy) => {
     copy.orderedPublicEvents.find((event) => event.eventId === "hand-2-event-6").sequenceNumber = 3;
   },
-  /Hand #2 event hand-2-event-6 expected sequence 6 but received 3/,
+  /Hand #2 event hand-2-event-6 sequence 3 must be greater than previous public sequence 7/,
   "Decreasing same-hand sequence must fail.",
 );
 
@@ -295,7 +328,7 @@ assert.deepEqual(
 );
 assert.deepEqual(
   derivedActionLogs.filter((action) => action.hand_no === 2).map((action) => action.sequenceNumber),
-  [2, 3, 4, 5, 7, 8, 10, 11, 12, 14, 15],
+  [4, 5, 6, 7, 9, 10, 12, 13, 14, 16, 17],
   "Derived hand 2 actions must preserve chronological hand-local sequence.",
 );
 

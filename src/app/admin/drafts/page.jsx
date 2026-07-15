@@ -1,19 +1,30 @@
 import { AdminCard, AdminPlaceholder, AdminShell } from "@/components/admin-newsroom/AdminShell";
+import { DRAFT_TYPE_KEYS, getDraftTypes } from "@/lib/newsroom/draftTypes";
 
-const draftDesks = [
-  ["/admin/sessions", "Session recaps", "Generate and publish public session recap drafts."],
-  ["/admin/players", "Player profiles", "Generate player dossier/profile drafts."],
-  ["/admin/standings", "Standings summaries", "Generate current board and standings pulse drafts."],
-  ["/admin/moments", "Moment blurbs", "Generate selected moment archive copy."],
-  ["/admin/articles", "League articles", "Generate broader newsroom article drafts."],
-];
+const deskOverrides = {
+  [DRAFT_TYPE_KEYS.SESSION_RECAP]: "/admin/sessions",
+  [DRAFT_TYPE_KEYS.PLAYER_PROFILE]: "/admin/players",
+  [DRAFT_TYPE_KEYS.STANDINGS_SUMMARY]: "/admin/standings",
+  [DRAFT_TYPE_KEYS.MOMENT_BLURB]: "/admin/moments",
+  [DRAFT_TYPE_KEYS.LEAGUE_ARTICLE]: "/admin/articles",
+  [DRAFT_TYPE_KEYS.SOCIAL_CAPTION]: "/admin/social-captions",
+};
+
+const visibleDraftDesks = getDraftTypes()
+  .filter((type) => deskOverrides[type.key])
+  .map((type) => ({
+    href: deskOverrides[type.key],
+    title: type.label,
+    body: type.purpose,
+    meta: type.sourceType,
+  }));
 
 export default function AdminDraftsPage() {
   return (
     <AdminShell title="Draft Studio" description="Unified entry point for Para League draft workflows. Full browse/edit queues can land here later.">
       <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {draftDesks.map(([href, title, body]) => (
-          <AdminCard key={href} href={href} title={title}>
+        {visibleDraftDesks.map(({ href, title, body, meta }) => (
+          <AdminCard key={href} href={href} title={title} meta={meta}>
             <p>{body}</p>
           </AdminCard>
         ))}

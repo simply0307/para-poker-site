@@ -6,13 +6,21 @@
     "sourceMatchId": "fixture-multi-hand-local-sequence",
     "sourceAuthority": "local-browser",
     "gameVisibility": "private",
-    "packageCreatedAt": "2026-07-13T12:00:00.000Z"
+    "packageCreatedAt": "2026-07-13T12:00:00.000Z",
+    "appVersion": "0.0.0",
+    "sourceTableId": "fixture-multi-hand-local-sequence:table",
+    "blueprintId": "fixture-blueprint"
   },
   "rules": {
     "eventSchemaVersion": "poker-event-v1",
-    "smallBlind": 1,
-    "bigBlind": 2,
-    "startingStack": 200
+    "startingStack": 200,
+    "rulesContractVersion": "para-poker-rules-v0",
+    "mode": "heads-up",
+    "format": "freezeout",
+    "blinds": {
+      "smallBlind": 1,
+      "bigBlind": 2
+    }
   },
   "participants": [
     {
@@ -20,7 +28,7 @@
       "displayName": "Riverport",
       "kind": "human",
       "startingStack": 200,
-      "finalStack": 215,
+      "finalStack": 191,
       "position": "button"
     },
     {
@@ -28,7 +36,7 @@
       "displayName": "Stonewire",
       "kind": "human",
       "startingStack": 200,
-      "finalStack": 185,
+      "finalStack": 209,
       "position": "big blind"
     }
   ],
@@ -37,7 +45,10 @@
       "handId": "hand-1",
       "handNumber": 1,
       "dealerSeatId": "seat-1",
-      "participantSeatIds": ["seat-1", "seat-2"],
+      "participantSeatIds": [
+        "seat-1",
+        "seat-2"
+      ],
       "board": [],
       "revealedCards": {},
       "potAwards": [
@@ -46,17 +57,72 @@
           "amount": 3,
           "handName": "Fold"
         }
-      ]
+      ],
+      "startedAt": "2026-07-13T12:01:41.000Z",
+      "endedAt": "2026-07-13T12:01:45.000Z",
+      "blinds": {
+        "smallBlindSeatId": "seat-1",
+        "bigBlindSeatId": "seat-2",
+        "smallBlind": 1,
+        "bigBlind": 2
+      },
+      "positions": {
+        "seat-1": "button",
+        "seat-2": "big blind"
+      },
+      "stackCheckpoints": {
+        "initial": {
+          "seat-1": 200,
+          "seat-2": 200
+        },
+        "final": {
+          "seat-1": 199,
+          "seat-2": 201
+        }
+      },
+      "contributions": {
+        "seat-1": 1,
+        "seat-2": 2
+      },
+      "potSummary": {
+        "totalContributed": 3,
+        "totalAwarded": 3,
+        "pots": [
+          {
+            "amount": 3,
+            "eligibleSeatIds": [
+              "seat-1",
+              "seat-2"
+            ]
+          }
+        ],
+        "refunds": []
+      }
     },
     {
       "handId": "hand-2",
       "handNumber": 2,
       "dealerSeatId": "seat-2",
-      "participantSeatIds": ["seat-1", "seat-2"],
-      "board": ["Ac", "7d", "2s", "Kh", "9c"],
+      "participantSeatIds": [
+        "seat-1",
+        "seat-2"
+      ],
+      "board": [
+        "Ac",
+        "7d",
+        "2s",
+        "Kh",
+        "9c"
+      ],
       "revealedCards": {
-        "seat-1": ["Ah", "Qh"],
-        "seat-2": ["7c", "7s"]
+        "seat-1": [
+          "Ah",
+          "Qh"
+        ],
+        "seat-2": [
+          "7c",
+          "7s"
+        ]
       },
       "potAwards": [
         {
@@ -64,22 +130,114 @@
           "amount": 24,
           "handName": "Three of a Kind"
         }
-      ]
+      ],
+      "startedAt": "2026-07-13T12:03:21.000Z",
+      "endedAt": "2026-07-13T12:03:37.000Z",
+      "blinds": {
+        "smallBlindSeatId": "seat-1",
+        "bigBlindSeatId": "seat-2",
+        "smallBlind": 1,
+        "bigBlind": 2
+      },
+      "positions": {
+        "seat-1": "button",
+        "seat-2": "big blind"
+      },
+      "stackCheckpoints": {
+        "initial": {
+          "seat-1": 199,
+          "seat-2": 201
+        },
+        "final": {
+          "seat-1": 185,
+          "seat-2": 215
+        }
+      },
+      "contributions": {
+        "seat-1": 14,
+        "seat-2": 14
+      },
+      "potSummary": {
+        "totalContributed": 28,
+        "totalAwarded": 24,
+        "pots": [
+          {
+            "amount": 24,
+            "eligibleSeatIds": [
+              "seat-1",
+              "seat-2"
+            ]
+          }
+        ],
+        "refunds": [
+          {
+            "seatId": "seat-2",
+            "amount": 4
+          }
+        ]
+      }
     },
     {
       "handId": "hand-3",
       "handNumber": 3,
       "dealerSeatId": "seat-1",
-      "participantSeatIds": ["seat-1", "seat-2"],
-      "board": ["5c", "6c", "Jd"],
+      "participantSeatIds": [
+        "seat-1",
+        "seat-2"
+      ],
+      "board": [
+        "5c",
+        "6c",
+        "Jd"
+      ],
       "revealedCards": {},
       "potAwards": [
         {
           "seatId": "seat-1",
-          "amount": 42,
+          "amount": 30,
           "handName": "Fold"
         }
-      ]
+      ],
+      "startedAt": "2026-07-13T12:05:01.000Z",
+      "endedAt": "2026-07-13T12:05:09.000Z",
+      "blinds": {
+        "smallBlindSeatId": "seat-1",
+        "bigBlindSeatId": "seat-2",
+        "smallBlind": 1,
+        "bigBlind": 2
+      },
+      "positions": {
+        "seat-1": "button",
+        "seat-2": "big blind"
+      },
+      "stackCheckpoints": {
+        "initial": {
+          "seat-1": 185,
+          "seat-2": 215
+        },
+        "final": {
+          "seat-1": 191,
+          "seat-2": 209
+        }
+      },
+      "contributions": {
+        "seat-1": 24,
+        "seat-2": 6
+      },
+      "potSummary": {
+        "totalContributed": 30,
+        "totalAwarded": 30,
+        "pots": [
+          {
+            "amount": 30,
+            "eligibleSeatIds": [
+              "seat-1",
+              "seat-2"
+            ]
+          }
+        ],
+        "refunds": []
+      }
     }
   ],
   "orderedPublicEvents": [
@@ -93,14 +251,17 @@
       "payload": {
         "handId": 1,
         "dealerSeatId": "seat-1",
-        "participantSeatIds": ["seat-1", "seat-2"]
+        "participantSeatIds": [
+          "seat-1",
+          "seat-2"
+        ]
       }
     },
     {
       "schemaVersion": "poker-event-v1",
       "eventId": "hand-1-event-2",
       "handId": 1,
-      "sequenceNumber": 2,
+      "sequenceNumber": 4,
       "visibility": "public",
       "type": "blindPosted",
       "payload": {
@@ -114,7 +275,7 @@
       "schemaVersion": "poker-event-v1",
       "eventId": "hand-1-event-3",
       "handId": 1,
-      "sequenceNumber": 3,
+      "sequenceNumber": 5,
       "visibility": "public",
       "type": "blindPosted",
       "payload": {
@@ -128,7 +289,7 @@
       "schemaVersion": "poker-event-v1",
       "eventId": "hand-1-event-4",
       "handId": 1,
-      "sequenceNumber": 4,
+      "sequenceNumber": 6,
       "visibility": "public",
       "type": "actionApplied",
       "payload": {
@@ -143,7 +304,7 @@
       "schemaVersion": "poker-event-v1",
       "eventId": "hand-1-event-5",
       "handId": 1,
-      "sequenceNumber": 5,
+      "sequenceNumber": 7,
       "visibility": "public",
       "type": "potAwarded",
       "payload": {
@@ -153,7 +314,17 @@
             "seatId": "seat-2",
             "amount": 3
           }
-        ]
+        ],
+        "pots": [
+          {
+            "amount": 3,
+            "eligibleSeatIds": [
+              "seat-1",
+              "seat-2"
+            ]
+          }
+        ],
+        "refunds": []
       }
     },
     {
@@ -166,14 +337,17 @@
       "payload": {
         "handId": 2,
         "dealerSeatId": "seat-2",
-        "participantSeatIds": ["seat-1", "seat-2"]
+        "participantSeatIds": [
+          "seat-1",
+          "seat-2"
+        ]
       }
     },
     {
       "schemaVersion": "poker-event-v1",
       "eventId": "hand-2-event-2",
       "handId": 2,
-      "sequenceNumber": 2,
+      "sequenceNumber": 4,
       "visibility": "public",
       "type": "blindPosted",
       "payload": {
@@ -187,7 +361,7 @@
       "schemaVersion": "poker-event-v1",
       "eventId": "hand-2-event-3",
       "handId": 2,
-      "sequenceNumber": 3,
+      "sequenceNumber": 5,
       "visibility": "public",
       "type": "blindPosted",
       "payload": {
@@ -201,7 +375,7 @@
       "schemaVersion": "poker-event-v1",
       "eventId": "hand-2-event-4",
       "handId": 2,
-      "sequenceNumber": 4,
+      "sequenceNumber": 6,
       "visibility": "public",
       "type": "actionApplied",
       "payload": {
@@ -216,7 +390,7 @@
       "schemaVersion": "poker-event-v1",
       "eventId": "hand-2-event-5",
       "handId": 2,
-      "sequenceNumber": 5,
+      "sequenceNumber": 7,
       "visibility": "public",
       "type": "actionApplied",
       "payload": {
@@ -231,20 +405,24 @@
       "schemaVersion": "poker-event-v1",
       "eventId": "hand-2-event-6",
       "handId": 2,
-      "sequenceNumber": 6,
+      "sequenceNumber": 8,
       "visibility": "public",
       "type": "streetAdvanced",
       "payload": {
         "handId": 2,
         "street": "flop",
-        "communityCards": ["Ac", "7d", "2s"]
+        "communityCards": [
+          "Ac",
+          "7d",
+          "2s"
+        ]
       }
     },
     {
       "schemaVersion": "poker-event-v1",
       "eventId": "hand-2-event-7",
       "handId": 2,
-      "sequenceNumber": 7,
+      "sequenceNumber": 9,
       "visibility": "public",
       "type": "actionApplied",
       "payload": {
@@ -259,7 +437,7 @@
       "schemaVersion": "poker-event-v1",
       "eventId": "hand-2-event-8",
       "handId": 2,
-      "sequenceNumber": 8,
+      "sequenceNumber": 10,
       "visibility": "public",
       "type": "actionApplied",
       "payload": {
@@ -274,20 +452,25 @@
       "schemaVersion": "poker-event-v1",
       "eventId": "hand-2-event-9",
       "handId": 2,
-      "sequenceNumber": 9,
+      "sequenceNumber": 11,
       "visibility": "public",
       "type": "streetAdvanced",
       "payload": {
         "handId": 2,
         "street": "turn",
-        "communityCards": ["Ac", "7d", "2s", "Kh"]
+        "communityCards": [
+          "Ac",
+          "7d",
+          "2s",
+          "Kh"
+        ]
       }
     },
     {
       "schemaVersion": "poker-event-v1",
       "eventId": "hand-2-event-10",
       "handId": 2,
-      "sequenceNumber": 10,
+      "sequenceNumber": 12,
       "visibility": "public",
       "type": "actionApplied",
       "payload": {
@@ -302,7 +485,7 @@
       "schemaVersion": "poker-event-v1",
       "eventId": "hand-2-event-11",
       "handId": 2,
-      "sequenceNumber": 11,
+      "sequenceNumber": 13,
       "visibility": "public",
       "type": "actionApplied",
       "payload": {
@@ -317,7 +500,7 @@
       "schemaVersion": "poker-event-v1",
       "eventId": "hand-2-event-12",
       "handId": 2,
-      "sequenceNumber": 12,
+      "sequenceNumber": 14,
       "visibility": "public",
       "type": "actionApplied",
       "payload": {
@@ -332,20 +515,26 @@
       "schemaVersion": "poker-event-v1",
       "eventId": "hand-2-event-13",
       "handId": 2,
-      "sequenceNumber": 13,
+      "sequenceNumber": 15,
       "visibility": "public",
       "type": "streetAdvanced",
       "payload": {
         "handId": 2,
         "street": "river",
-        "communityCards": ["Ac", "7d", "2s", "Kh", "9c"]
+        "communityCards": [
+          "Ac",
+          "7d",
+          "2s",
+          "Kh",
+          "9c"
+        ]
       }
     },
     {
       "schemaVersion": "poker-event-v1",
       "eventId": "hand-2-event-14",
       "handId": 2,
-      "sequenceNumber": 14,
+      "sequenceNumber": 16,
       "visibility": "public",
       "type": "actionApplied",
       "payload": {
@@ -360,7 +549,7 @@
       "schemaVersion": "poker-event-v1",
       "eventId": "hand-2-event-15",
       "handId": 2,
-      "sequenceNumber": 15,
+      "sequenceNumber": 17,
       "visibility": "public",
       "type": "actionApplied",
       "payload": {
@@ -375,14 +564,20 @@
       "schemaVersion": "poker-event-v1",
       "eventId": "hand-2-event-16",
       "handId": 2,
-      "sequenceNumber": 16,
+      "sequenceNumber": 18,
       "visibility": "public",
       "type": "showdown",
       "payload": {
         "handId": 2,
         "revealedCards": {
-          "seat-1": ["Ah", "Qh"],
-          "seat-2": ["7c", "7s"]
+          "seat-1": [
+            "Ah",
+            "Qh"
+          ],
+          "seat-2": [
+            "7c",
+            "7s"
+          ]
         }
       }
     },
@@ -390,7 +585,7 @@
       "schemaVersion": "poker-event-v1",
       "eventId": "hand-2-event-17",
       "handId": 2,
-      "sequenceNumber": 17,
+      "sequenceNumber": 19,
       "visibility": "public",
       "type": "potAwarded",
       "payload": {
@@ -399,6 +594,21 @@
           {
             "seatId": "seat-2",
             "amount": 24
+          }
+        ],
+        "pots": [
+          {
+            "amount": 24,
+            "eligibleSeatIds": [
+              "seat-1",
+              "seat-2"
+            ]
+          }
+        ],
+        "refunds": [
+          {
+            "seatId": "seat-2",
+            "amount": 4
           }
         ]
       }
@@ -413,14 +623,17 @@
       "payload": {
         "handId": 3,
         "dealerSeatId": "seat-1",
-        "participantSeatIds": ["seat-1", "seat-2"]
+        "participantSeatIds": [
+          "seat-1",
+          "seat-2"
+        ]
       }
     },
     {
       "schemaVersion": "poker-event-v1",
       "eventId": "hand-3-event-2",
       "handId": 3,
-      "sequenceNumber": 2,
+      "sequenceNumber": 4,
       "visibility": "public",
       "type": "blindPosted",
       "payload": {
@@ -434,7 +647,7 @@
       "schemaVersion": "poker-event-v1",
       "eventId": "hand-3-event-3",
       "handId": 3,
-      "sequenceNumber": 3,
+      "sequenceNumber": 5,
       "visibility": "public",
       "type": "blindPosted",
       "payload": {
@@ -448,7 +661,7 @@
       "schemaVersion": "poker-event-v1",
       "eventId": "hand-3-event-4",
       "handId": 3,
-      "sequenceNumber": 4,
+      "sequenceNumber": 6,
       "visibility": "public",
       "type": "actionApplied",
       "payload": {
@@ -463,7 +676,7 @@
       "schemaVersion": "poker-event-v1",
       "eventId": "hand-3-event-5",
       "handId": 3,
-      "sequenceNumber": 5,
+      "sequenceNumber": 7,
       "visibility": "public",
       "type": "actionApplied",
       "payload": {
@@ -478,20 +691,24 @@
       "schemaVersion": "poker-event-v1",
       "eventId": "hand-3-event-6",
       "handId": 3,
-      "sequenceNumber": 6,
+      "sequenceNumber": 8,
       "visibility": "public",
       "type": "streetAdvanced",
       "payload": {
         "handId": 3,
         "street": "flop",
-        "communityCards": ["5c", "6c", "Jd"]
+        "communityCards": [
+          "5c",
+          "6c",
+          "Jd"
+        ]
       }
     },
     {
       "schemaVersion": "poker-event-v1",
       "eventId": "hand-3-event-7",
       "handId": 3,
-      "sequenceNumber": 7,
+      "sequenceNumber": 9,
       "visibility": "public",
       "type": "actionApplied",
       "payload": {
@@ -506,7 +723,7 @@
       "schemaVersion": "poker-event-v1",
       "eventId": "hand-3-event-8",
       "handId": 3,
-      "sequenceNumber": 8,
+      "sequenceNumber": 10,
       "visibility": "public",
       "type": "actionApplied",
       "payload": {
@@ -521,7 +738,7 @@
       "schemaVersion": "poker-event-v1",
       "eventId": "hand-3-event-9",
       "handId": 3,
-      "sequenceNumber": 9,
+      "sequenceNumber": 11,
       "visibility": "public",
       "type": "potAwarded",
       "payload": {
@@ -529,9 +746,19 @@
         "winners": [
           {
             "seatId": "seat-1",
-            "amount": 42
+            "amount": 30
           }
-        ]
+        ],
+        "pots": [
+          {
+            "amount": 30,
+            "eligibleSeatIds": [
+              "seat-1",
+              "seat-2"
+            ]
+          }
+        ],
+        "refunds": []
       }
     }
   ],
@@ -550,7 +777,8 @@
       "sessionCode": "FIXTURE-MULTI-001",
       "seasonCode": "LOCAL",
       "tableName": "Fixture Table",
-      "format": "Heads-up fixture"
+      "format": "Heads-up fixture",
+      "playedAt": "2026-07-13T12:01:41.000Z"
     },
     "players": [],
     "hands": [],
@@ -563,6 +791,31 @@
   "integrity": {
     "eventCount": 31,
     "handCount": 3,
-    "checksum": "fc27dd0a"
+    "checksum": "508ce855"
+  },
+  "result": {
+    "winnerSeatIds": [
+      "seat-2"
+    ],
+    "finalStacks": {
+      "seat-1": 191,
+      "seat-2": 209
+    },
+    "finishOrder": [
+      {
+        "seatId": "seat-2",
+        "finish": 1,
+        "finalStack": 209
+      },
+      {
+        "seatId": "seat-1",
+        "finish": 2,
+        "finalStack": 191
+      }
+    ],
+    "eliminationOrder": [
+      "seat-1",
+      "seat-2"
+    ]
   }
 }

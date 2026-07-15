@@ -1,24 +1,29 @@
 import { AdminShell } from "@/components/admin-newsroom/AdminShell";
 import { HomepageSettingsForm } from "@/components/admin-newsroom/HomepageSettingsForm";
 import { PageHeroSettingsForm } from "@/components/admin-newsroom/PageHeroSettingsForm";
+import { SeasonSettingsForm } from "@/components/admin-newsroom/SeasonSettingsForm";
 import { getPlayersIndex, getSessionsIndex, formatDate } from "@/lib/newsroom/data";
 import { readHomepageSettings } from "@/lib/newsroom/homepageSettings";
 import { readPageHeroSettings } from "@/lib/newsroom/pageHeroSettings";
+import { readSeasonSettings } from "@/lib/newsroom/seasonSettings";
 import { getPublishedArticlesIndex } from "@/lib/newsroom/repositories/draftRepository";
+import { listNewsroomDrafts } from "@/lib/newsroom/drafts";
 import { readUpcomingEventsSettings } from "@/lib/newsroom/upcomingEvents";
 import { buildMomentsViewModel } from "@/lib/newsroom/viewModels/moments";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminSettingsPage() {
-  const [homepageSettings, pageHeroSettings, eventsSettings, sessions, players, momentModel, articles] = await Promise.all([
+  const [homepageSettings, pageHeroSettings, seasonSettings, eventsSettings, sessions, players, momentModel, articles, socialCaptions] = await Promise.all([
     readHomepageSettings(),
     readPageHeroSettings(),
+    readSeasonSettings(),
     readUpcomingEventsSettings(),
     getSessionsIndex(),
     getPlayersIndex(),
     buildMomentsViewModel(),
     getPublishedArticlesIndex(),
+    listNewsroomDrafts({ table: "social_caption_drafts", fallbackScope: "social_caption", visibility: "published", limit: 50 }),
   ]);
   const moments = momentModel.publicMoments || [];
   const selectionOptions = {
@@ -47,6 +52,11 @@ export default async function AdminSettingsPage() {
       label: event.title || "Future event",
       description: [event.displayDate || (event.startsAt ? formatDate(event.startsAt) : ""), event.venue, event.status].filter(Boolean).join(" / "),
     })),
+    socialCaptions: (socialCaptions || []).map((caption) => ({
+      id: caption.id,
+      label: caption.draft?.headline || caption.draft?.caption || "Social caption",
+      description: caption.draft?.caption || caption.generated_at || "",
+    })),
   };
 
   return (
@@ -55,6 +65,7 @@ export default async function AdminSettingsPage() {
       description="League-wide controls for the public homepage, season status, default prompt configs, and provider diagnostics."
     >
       <div className="grid gap-8">
+        <SeasonSettingsForm initialSettings={seasonSettings} />
         <HomepageSettingsForm initialSettings={homepageSettings} selectionOptions={selectionOptions} />
         <PageHeroSettingsForm initialSettings={pageHeroSettings} />
       </div>

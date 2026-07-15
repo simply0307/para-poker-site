@@ -209,6 +209,7 @@ export function validateCompletedSessionPackage(input) {
   if (pkg.source?.packageCreationVersion !== PACKAGE_SCHEMA_VERSION) errors.push("Package creation version is not supported.");
   if (pkg.rules?.eventSchemaVersion !== EVENT_SCHEMA_VERSION) errors.push(`Unsupported event schema version: ${text(pkg.rules?.eventSchemaVersion, "(missing)")}.`);
   if (!text(pkg.source?.sourceMatchId)) errors.push("Package is missing a stable source match ID.");
+  if (!Number.isFinite(Date.parse(text(pkg.source?.packageCreatedAt)))) errors.push("Package is missing a valid packageCreatedAt timestamp.");
 
   const blocked = walkBlockedKeys(pkg);
   if (blocked.length) errors.push(`Package includes private or executable fields: ${blocked.slice(0, 8).join(", ")}.`);
@@ -246,9 +247,36 @@ export function validateCompletedSessionPackage(input) {
   for (const hand of hands) {
     const handNumber = numberValue(hand.handNumber, 0);
     if (!handNumber) errors.push(`Hand ${text(hand.handId, "(unknown)")} is missing handNumber.`);
+    if (!Number.isFinite(Date.parse(text(hand.startedAt)))) errors.push(`Hand #${handNumber} is missing a valid startedAt timestamp.`);
+    if (!Number.isFinite(Date.parse(text(hand.endedAt)))) errors.push(`Hand #${handNumber} is missing a valid endedAt timestamp.`);
     if (!seatIds.has(text(hand.dealerSeatId))) errors.push(`Hand #${handNumber} has unknown dealer seat ${text(hand.dealerSeatId)}.`);
     for (const seatId of hand.participantSeatIds || []) {
       if (!seatIds.has(text(seatId))) errors.push(`Hand #${handNumber} references unknown participant seat ${text(seatId)}.`);
+    }
+    const stackInitial = hand.stackCheckpoints?.initial || {};
+    const stackFinal = hand.stackCheckpoints?.final || {};
+    let initialTotal = 0;
+    let finalTotal = 0;
+    let contributionTotal = 0;
+    for (const seatId of hand.participantSeatIds || []) {
+      if (!Number.isFinite(Number(stackInitial[seatId]))) errors.push(`Hand #${handNumber} is missing initial stack for ${seatId}.`);
+      if (!Number.isFinite(Number(stackFinal[seatId]))) errors.push(`Hand #${handNumber} is missing final stack for ${seatId}.`);
+      if (!Number.isFinite(Number(hand.contributions?.[seatId]))) errors.push(`Hand #${handNumber} is missing contribution total for ${seatId}.`);
+      if (!text(hand.positions?.[seatId])) errors.push(`Hand #${handNumber} is missing position for ${seatId}.`);
+      initialTotal += numberValue(stackInitial[seatId], 0);
+      finalTotal += numberValue(stackFinal[seatId], 0);
+      contributionTotal += numberValue(hand.contributions?.[seatId], 0);
+    }
+    if (!text(hand.blinds?.smallBlindSeatId) || !text(hand.blinds?.bigBlindSeatId)) errors.push(`Hand #${handNumber} is missing blind seat evidence.`);
+    if (!hand.potSummary || !Number.isFinite(Number(hand.potSummary.totalContributed)) || !Number.isFinite(Number(hand.potSummary.totalAwarded))) {
+      errors.push(`Hand #${handNumber} is missing pot summary evidence.`);
+    } else {
+      const awardTotal = (hand.potAwards || []).reduce((sum, award) => sum + numberValue(award.amount, 0), 0);
+      const refundTotal = (hand.potSummary.refunds || []).reduce((sum, refund) => sum + numberValue(refund.amount, 0), 0);
+      if (numberValue(hand.potSummary.totalContributed) !== contributionTotal) errors.push(`Hand #${handNumber} contribution total does not match pot summary.`);
+      if (numberValue(hand.potSummary.totalAwarded) !== awardTotal) errors.push(`Hand #${handNumber} award total does not match pot summary.`);
+      if (contributionTotal !== awardTotal + refundTotal) errors.push(`Hand #${handNumber} pot awards and refunds do not conserve contributed chips.`);
+      if (initialTotal - contributionTotal + awardTotal + refundTotal !== finalTotal) errors.push(`Hand #${handNumber} stack checkpoints do not conserve chips.`);
     }
     for (const award of hand.potAwards || []) {
       if (!seatIds.has(text(award.seatId))) errors.push(`Hand #${handNumber} awards pot to unknown seat ${text(award.seatId)}.`);
@@ -288,11 +316,11 @@ export function validateCompletedSessionPackage(input) {
       }
 
       const sequence = numberValue(event.sequenceNumber, 0);
-      const expectedSequence = (previousSequenceByHand.get(handNo) || 0) + 1;
+      const previousSequence = previousSequenceByHand.get(handNo) || 0;
       if (!sequence) {
-        errors.push(`Hand #${handNo} event ${text(event.eventId, "(missing)")} is missing sequenceNumber ${expectedSequence}.`);
-      } else if (sequence !== expectedSequence) {
-        errors.push(`Hand #${handNo} event ${text(event.eventId, "(missing)")} expected sequence ${expectedSequence} but received ${sequence}.`);
+        errors.push(`Hand #${handNo} event ${text(event.eventId, "(missing)")} is missing sequenceNumber.`);
+      } else if (sequence <= previousSequence) {
+        errors.push(`Hand #${handNo} event ${text(event.eventId, "(missing)")} sequence ${sequence} must be greater than previous public sequence ${previousSequence}.`);
       }
       if (sequence) previousSequenceByHand.set(handNo, sequence);
     }
@@ -310,6 +338,12 @@ export function validateCompletedSessionPackage(input) {
     else if (numberValue(finalStack) !== numberValue(participant.finalStack)) {
       errors.push(`Final stack mismatch for ${text(participant.displayName, seatId)}.`);
     }
+  }
+  const resultFinishOrder = Array.isArray(pkg.result?.finishOrder) ? pkg.result.finishOrder : [];
+  if (!resultFinishOrder.length) errors.push("Package result is missing finish order.");
+  for (const entry of resultFinishOrder) {
+    if (!seatIds.has(text(entry.seatId))) errors.push(`Result finish order references unknown seat ${text(entry.seatId)}.`);
+    if (!Number.isFinite(Number(entry.finish)) || !Number.isFinite(Number(entry.finalStack))) errors.push(`Result finish order for ${text(entry.seatId)} is incomplete.`);
   }
 
   return {
@@ -349,6 +383,9 @@ function actionName(event) {
 function rawActionEntry(event, participantName, action) {
   const amount = numberValue(event.payload?.amount, 0);
   if (event.type === "blindPosted") return `"${participantName}" ${action} ${amount}`;
+  if ((event.payload?.action === "raise" || event.payload?.action === "allIn") && numberValue(event.payload?.targetContribution, 0)) {
+    return `"${participantName}" ${action} to ${numberValue(event.payload.targetContribution)}`;
+  }
   return `"${participantName}" ${action}${amount ? ` ${amount}` : ""}`;
 }
 
@@ -400,7 +437,7 @@ function deriveRecords(pkg, participantMapping = {}) {
       client_hand_id: text(hand.handId, `hand-${handNumber}`),
       hand_no: handNumber,
       hand_id: text(hand.handId, `hand-${handNumber}`),
-      start_time: pkg.source?.packageCreatedAt || new Date().toISOString(),
+      start_time: hand.startedAt || pkg.source?.packageCreatedAt || new Date().toISOString(),
       board: handBoard,
       winner_player_id: winnerMapping.playerId || null,
       winner_name: winnerName,
@@ -434,6 +471,8 @@ function deriveRecords(pkg, participantMapping = {}) {
         preflop_action_order: street === "preflop" ? globalActionOrder : null,
         action,
         amount: numberValue(event.payload?.amount, 0),
+        target_contribution: numberValue(event.payload?.targetContribution, event.type === "blindPosted" ? event.payload?.amount : 0),
+        raise_to: event.payload?.action === "raise" || event.payload?.action === "allIn" ? numberValue(event.payload?.targetContribution, 0) : null,
         ...actionFlags(event.payload?.action),
         raw_entry: rawActionEntry(event, participantName, action),
       });

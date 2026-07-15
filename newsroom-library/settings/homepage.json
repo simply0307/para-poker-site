@@ -50,6 +50,17 @@
       "showSectionHeader": true
     },
     {
+      "type": "social_caption_block",
+      "enabled": false,
+      "variant": "quote_card",
+      "sourceMode": "latest",
+      "selectedIds": [],
+      "title": "Social Beat",
+      "dek": "Short-form league copy staged by the newsroom.",
+      "itemLimit": 1,
+      "showSectionHeader": true
+    },
+    {
       "type": "current_standings",
       "enabled": true,
       "variant": "compact_board",
@@ -58,6 +69,17 @@
       "title": "Current Board",
       "dek": "Rank and points stay tied to verified standings.",
       "itemLimit": 5,
+      "showSectionHeader": true
+    },
+    {
+      "type": "top_performers",
+      "enabled": true,
+      "variant": "podium",
+      "sourceMode": "automatic",
+      "selectedIds": [],
+      "title": "Top Performers",
+      "dek": "The strongest current lines on the board.",
+      "itemLimit": 3,
       "showSectionHeader": true
     },
     {
@@ -80,6 +102,17 @@
       "title": "Latest Session",
       "dek": "The newest approved table result.",
       "itemLimit": 1,
+      "showSectionHeader": true
+    },
+    {
+      "type": "recent_form",
+      "enabled": true,
+      "variant": "session_trail",
+      "sourceMode": "latest",
+      "selectedIds": [],
+      "title": "Recent Form",
+      "dek": "Fresh table results shaping the current read.",
+      "itemLimit": 3,
       "showSectionHeader": true
     },
     {

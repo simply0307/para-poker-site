@@ -5,7 +5,9 @@ import {
   getStandingsRows,
 } from "@/lib/newsroom/data";
 import { DEFAULT_HOME_SETTINGS, readHomepageSettings } from "@/lib/newsroom/homepageSettings";
+import { listNewsroomDrafts } from "@/lib/newsroom/drafts";
 import { getPublishedArticlesIndex } from "@/lib/newsroom/repositories/draftRepository";
+import { readSeasonSettings } from "@/lib/newsroom/seasonSettings";
 import { getPublicUpcomingEvents } from "@/lib/newsroom/upcomingEvents";
 import { buildMomentsViewModel } from "@/lib/newsroom/viewModels/moments";
 
@@ -134,18 +136,50 @@ function resolveModuleContent(homepageModule, context) {
         : [],
     };
   }
+  if (homepageModule.type === "social_caption_block") {
+    const manual = homepageModule.sourceMode === "manual"
+      ? selectedItems(context.socialCaptions, homepageModule.selectedIds, limit)
+      : [];
+    return {
+      ...homepageModule,
+      resolvedContent: manual.length ? manual : limited(context.socialCaptions, limit),
+      warnings: homepageModule.sourceMode === "manual" && homepageModule.selectedIds?.length && !manual.length
+        ? ["Selected social captions are unavailable; showing latest published captions."]
+        : [],
+    };
+  }
+  if (homepageModule.type === "top_performers") {
+    return {
+      ...homepageModule,
+      resolvedContent: limited(context.standings, limit),
+    };
+  }
+  if (homepageModule.type === "recent_form") {
+    const manual = homepageModule.sourceMode === "manual"
+      ? selectedItems(context.sessions, homepageModule.selectedIds, limit)
+      : [];
+    return {
+      ...homepageModule,
+      resolvedContent: manual.length ? manual : limited(context.sessions, limit),
+      warnings: homepageModule.sourceMode === "manual" && homepageModule.selectedIds?.length && !manual.length
+        ? ["Selected sessions are unavailable; showing latest sessions."]
+        : [],
+    };
+  }
   return { ...homepageModule, resolvedContent: [] };
 }
 
 export async function buildHomeViewModel(moduleConfig = null) {
   const settings = moduleConfig ? { hero: DEFAULT_HOME_SETTINGS.hero, modules: moduleConfig } : await readHomepageSettings();
-  const [sessions, standings, momentModel, players, articles, events] = await Promise.all([
+  const seasonSettings = await readSeasonSettings();
+  const [sessions, standings, momentModel, players, articles, events, socialCaptions] = await Promise.all([
     getSessionsIndex(),
-    getStandingsRows("S0"),
+    getStandingsRows(seasonSettings.activeSeasonCode || "S0"),
     buildMomentsViewModel(),
     getPlayersIndex(),
     getPublishedArticlesIndex(),
     getPublicUpcomingEvents(),
+    listNewsroomDrafts({ table: "social_caption_drafts", fallbackScope: "social_caption", visibility: "published", limit: 6 }),
   ]);
   const moments = momentModel.publicMoments || [];
   const latest = sessions[0] || null;
@@ -162,6 +196,7 @@ export async function buildHomeViewModel(moduleConfig = null) {
     players,
     articles,
     events,
+    socialCaptions,
     latest,
   };
   const modules = settings.modules
@@ -178,8 +213,10 @@ export async function buildHomeViewModel(moduleConfig = null) {
     players,
     articles,
     events,
+    socialCaptions,
     latest,
     latestData,
+    seasonSettings,
     winner,
     biggestPot,
   };

@@ -1,5 +1,4 @@
 import { GenericDraftWorkspace } from "@/components/admin-newsroom/GenericDraftWorkspace";
-import { getVariationOptions } from "@/lib/newsroom/contentAssignments";
 import { listNewsroomDrafts } from "@/lib/newsroom/drafts";
 
 export const dynamic = "force-dynamic";
@@ -9,11 +8,11 @@ export default async function AdminStandingsPage() {
 
   return (
     <GenericDraftWorkspace
+      draftType="standings_summary"
       title="Standings draft desk"
-      endpoint="/api/standings/generate"
       defaultPayload={{
         seasonCode: "S0",
-        variation: "leaderboard_snapshot",
+        variation: "table_state",
         editorialNotes: "",
         promptConfig: {
           draftType: "standings_summary",
@@ -28,8 +27,6 @@ export default async function AdminStandingsPage() {
           customInstruction: "Treat the board as current and alive, not final.",
         },
       }}
-      variationOptions={getVariationOptions("standings_summary")}
-      defaultPromptPreset="standings_pulse"
       existingDrafts={standingsDrafts}
       existingDraftsTitle="Standings drafts"
       initialDraft={standingsDrafts[0] || null}

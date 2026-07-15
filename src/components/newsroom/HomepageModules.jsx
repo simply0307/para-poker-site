@@ -21,6 +21,9 @@ function HomeModule({ module, viewModel }) {
   if (module.type === "featured_players") return <FeaturedPlayersModule module={module} viewModel={viewModel} />;
   if (module.type === "featured_moments") return <FeaturedMomentsModule module={module} />;
   if (module.type === "latest_articles") return <LatestArticlesModule module={module} />;
+  if (module.type === "social_caption_block") return <SocialCaptionModule module={module} />;
+  if (module.type === "top_performers") return <TopPerformersModule module={module} viewModel={viewModel} />;
+  if (module.type === "recent_form") return <RecentFormModule module={module} viewModel={viewModel} />;
   return null;
 }
 
@@ -393,6 +396,73 @@ function LatestArticlesModule({ module }) {
           {articles.map((article) => <ArticleCard key={article.id || article.slug} article={article} />)}
         </div>
       )}
+    </ModuleSection>
+  );
+}
+
+function SocialCaptionModule({ module }) {
+  const captions = module.resolvedContent || [];
+  if (!captions.length) return <EmptyModule module={module} title="Social Beat" message="Published caption copy will appear here once the desk approves it." />;
+  const displayCaptions = captions.slice(0, module.variant === "compact_callout" ? module.itemLimit || 1 : 1);
+
+  return (
+    <ModuleSection module={module} fallbackTitle="Social Beat" fallbackDek="Short-form league copy staged by the newsroom.">
+      <div className={module.variant === "compact_callout" ? "grid gap-3 md:grid-cols-3" : "max-w-3xl"}>
+        {displayCaptions.map((row) => {
+          const caption = row.draft?.caption || row.draft?.body || row.draft?.headline || "Caption pending.";
+          return (
+            <article key={row.id} className="rounded-md border border-[#d8c087]/20 bg-[#08111a]/80 p-5">
+              <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#d8c087]">Share card</p>
+              <p className="mt-3 text-xl font-black leading-8 text-white">{caption}</p>
+            </article>
+          );
+        })}
+      </div>
+    </ModuleSection>
+  );
+}
+
+function TopPerformersModule({ module }) {
+  const rows = module.resolvedContent || [];
+  if (!rows.length) return <EmptyModule module={module} title="Top Performers" message="The first standings row will appear after a verified result." />;
+
+  return (
+    <ModuleSection module={module} fallbackTitle="Top Performers" fallbackDek="The strongest current lines on the board.">
+      <div className={module.variant === "compact_list" ? "grid gap-2" : "grid gap-3 md:grid-cols-3"}>
+        {rows.map((row) => (
+          <Link
+            key={row.id || row.player_id || row.player_name}
+            href={row.player_id ? `/players/${encodeURIComponent(text(row.player_id))}` : "/players"}
+            className="rounded-md border border-[#d8c087]/16 bg-[#08111a]/78 p-4 hover:border-[#d8c087]/45"
+          >
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#d8c087]">Rank {text(row.rank, "-")}</p>
+            <h3 className="mt-2 text-2xl font-black text-white">{cleanName(row.player_name, "Player")}</h3>
+            <p className="mt-2 text-sm text-stone-300">{formatNumber(row.total_points || row.points || row.league_points, "-")} points</p>
+          </Link>
+        ))}
+      </div>
+    </ModuleSection>
+  );
+}
+
+function RecentFormModule({ module, viewModel }) {
+  const sessions = module.resolvedContent || [];
+  if (!sessions.length) return <EmptyModule module={module} title="Recent Form" message="Recent verified sessions will appear here once imported." />;
+
+  return (
+    <ModuleSection module={module} fallbackTitle="Recent Form" fallbackDek="Fresh table results shaping the current read.">
+      <div className={module.variant === "compact_list" ? "grid gap-2" : "grid gap-3 md:grid-cols-3"}>
+        {sessions.map((session) => {
+          const isLatest = String(session.id) === String(viewModel.latest?.id) || String(session.session_code) === String(viewModel.latest?.session_code);
+          const winner = isLatest ? viewModel.winner : null;
+          return (
+            <SessionCard key={session.id || session.session_code} href={sessionHref(session)} title={text(session.session_code, "Session")} meta={formatDate(session.played_at)}>
+              <p>{winner ? `${cleanName(winner.player_name)} owns the newest result line.` : "Open the session for the verified result line."}</p>
+              <p>{session.hands_count ? `${formatNumber(session.hands_count)} tracked hands` : "Hand count pending"}</p>
+            </SessionCard>
+          );
+        })}
+      </div>
     </ModuleSection>
   );
 }

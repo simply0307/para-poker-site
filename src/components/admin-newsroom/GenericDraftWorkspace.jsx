@@ -5,6 +5,15 @@ import { AdminShell } from "@/components/admin-newsroom/AdminShell";
 import { ArticleContextSelector } from "@/components/admin-newsroom/ArticleContextSelector";
 import { PromptConfigPicker } from "@/components/admin-newsroom/PromptConfigPicker";
 import { RichTextEditor } from "@/components/admin-newsroom/RichTextEditor";
+import {
+  getDraftDefaultPayload,
+  getDraftEditorConfig,
+  getDraftType,
+  getDraftTypeByEndpoint,
+  getDraftTypeByTable,
+  getDraftVariationOptions,
+  mergeDraftPayload,
+} from "@/lib/newsroom/draftTypes";
 import { getPromptPreset } from "@/lib/newsroom/promptConfigs";
 
 function pretty(value) {
@@ -19,11 +28,22 @@ function parseJson(value) {
   }
 }
 
-function bodyFieldFor(draft = {}) {
-  return ["recap_body", "profile_body", "article_body", "caption", "long_body", "body"].find((field) => typeof draft?.[field] === "string") || "";
+function bodyFieldFor(draft = {}, editorConfig = {}) {
+  const fields = [
+    editorConfig.bodyField,
+    ...(editorConfig.richTextFields || []),
+    "recap_body",
+    "profile_body",
+    "article_body",
+    "caption",
+    "long_body",
+    "body",
+  ].filter(Boolean);
+  return fields.find((field) => typeof draft?.[field] === "string") || fields[0] || "";
 }
 
-function titleFieldFor(draft = {}) {
+function titleFieldFor(draft = {}, editorConfig = {}) {
+  if (editorConfig.titleField) return editorConfig.titleField;
   if (typeof draft?.headline === "string") return "headline";
   if (typeof draft?.title === "string") return "title";
   return "headline";
@@ -123,11 +143,12 @@ function PayloadSelectionPanel({ title = "Source selector", options = [], payloa
 }
 
 export function GenericDraftWorkspace({
+  draftType = "",
   title,
   endpoint,
   defaultPayload = {},
   variationOptions = [],
-  defaultPromptPreset = "official_session_recap",
+  defaultPromptPreset = "",
   existingDrafts = [],
   existingDraftsTitle = "Existing drafts",
   initialDraft = null,
@@ -136,8 +157,23 @@ export function GenericDraftWorkspace({
   payloadOptions = [],
   payloadOptionsTitle = "Source selector",
 }) {
-  const [payloadText, setPayloadText] = useState(pretty(defaultPayload));
-  const [promptConfig, setPromptConfig] = useState(defaultPayload.promptConfig || defaultPayload.articleRequest?.promptConfig || getPromptPreset(defaultPromptPreset));
+  const endpointDraftType = endpoint ? getDraftTypeByEndpoint(endpoint)?.key : "";
+  const initialTableDraftType = initialDraft?._draft_table ? getDraftTypeByTable(initialDraft._draft_table)?.key : "";
+  const resolvedDraftTypeKey = draftType || endpointDraftType || initialTableDraftType || "";
+  const registry = getDraftType(resolvedDraftTypeKey);
+  const workspaceEndpoint = endpoint || registry?.endpoint;
+  const resolvedDefaultPayload = resolvedDraftTypeKey
+    ? getDraftDefaultPayload(resolvedDraftTypeKey, defaultPayload)
+    : defaultPayload;
+  const editorConfig = getDraftEditorConfig(resolvedDraftTypeKey);
+  const resolvedVariationOptions = variationOptions.length ? variationOptions : getDraftVariationOptions(resolvedDraftTypeKey);
+  const resolvedDefaultPromptPreset = defaultPromptPreset || registry?.defaultPromptPreset || "official_session_recap";
+  const [payloadText, setPayloadText] = useState(pretty(resolvedDefaultPayload));
+  const [promptConfig, setPromptConfig] = useState(
+    resolvedDefaultPayload.promptConfig ||
+      resolvedDefaultPayload.articleRequest?.promptConfig ||
+      getPromptPreset(resolvedDefaultPromptPreset)
+  );
   const [draftRow, setDraftRow] = useState(initialDraft);
   const [draftText, setDraftText] = useState(initialDraft?.draft ? pretty(initialDraft.draft) : "{}");
   const [drafts, setDrafts] = useState(() => {
@@ -149,9 +185,9 @@ export function GenericDraftWorkspace({
   const [error, setError] = useState("");
   const currentPayload = parseJson(payloadText) || {};
   const currentDraft = parseJson(draftText) || {};
-  const bodyField = bodyFieldFor(currentDraft);
-  const titleField = titleFieldFor(currentDraft);
-  const isArticleWorkspace = endpoint === "/api/articles/generate" || draftRow?._draft_table === "article_drafts" || Boolean(currentPayload.articleRequest);
+  const bodyField = bodyFieldFor(currentDraft, editorConfig);
+  const titleField = titleFieldFor(currentDraft, editorConfig);
+  const isArticleWorkspace = editorConfig.supportsAuthor || workspaceEndpoint === "/api/articles/generate" || draftRow?._draft_table === "article_drafts" || Boolean(currentPayload.articleRequest);
   const selectedVariation = currentPayload.variation || currentPayload.variationKey || currentPayload.articleRequest?.variation || "";
 
   function chooseVariation(variationKey) {
@@ -177,7 +213,7 @@ export function GenericDraftWorkspace({
       });
       return pretty(next);
     });
-  }, []);
+  }, [setPayloadText]);
 
   async function generateDraft() {
     const payload = parseJson(payloadText);
@@ -195,7 +231,12 @@ export function GenericDraftWorkspace({
     setError("");
     setMessage("");
 
-    const response = await fetch(endpoint, {
+    if (!workspaceEndpoint) {
+      setError("This draft type does not have a generation endpoint configured.");
+      return;
+    }
+
+    const response = await fetch(workspaceEndpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(requestPayload),
@@ -260,11 +301,10 @@ export function GenericDraftWorkspace({
     setDraftRow(row);
     setDraftText(pretty(row?.draft));
     if (row?.article_request) {
-      setPayloadText(pretty({
-        ...defaultPayload,
+      setPayloadText(pretty(mergeDraftPayload(resolvedDefaultPayload, {
         variation: row.article_request?.variation || defaultPayload.variation || "",
         articleRequest: row.article_request,
-      }));
+      })));
     }
     setMessage(`Loaded draft: ${row?.draft?.headline || row?.draft?.title || row?.id}`);
     setError("");
@@ -497,11 +537,11 @@ export function GenericDraftWorkspace({
         </section>
       ) : null}
 
-      {variationOptions.length ? (
+      {resolvedVariationOptions.length ? (
         <section className="mt-8 rounded-lg border border-zinc-300 bg-white p-4">
           <p className="text-xs font-black uppercase tracking-[0.18em] text-amber-700">Draft variation</p>
           <div className="mt-3 flex flex-wrap gap-2">
-            {variationOptions.map((option) => (
+            {resolvedVariationOptions.map((option) => (
               <button
                 key={option.key}
                 type="button"
@@ -515,7 +555,7 @@ export function GenericDraftWorkspace({
             ))}
           </div>
           <div className="mt-4 grid gap-2 md:grid-cols-2">
-            {variationOptions.map((option) => (
+            {resolvedVariationOptions.map((option) => (
               <p key={option.key} className="rounded-md bg-zinc-100 p-3 text-sm leading-6 text-zinc-700">
                 <strong className="text-zinc-950">{option.label}:</strong> {option.instruction}
               </p>
@@ -525,7 +565,7 @@ export function GenericDraftWorkspace({
       ) : null}
 
       <div className="mt-8">
-        <PromptConfigPicker defaultPreset={defaultPromptPreset} onChange={setPromptConfig} />
+        <PromptConfigPicker defaultPreset={resolvedDefaultPromptPreset} onChange={setPromptConfig} />
       </div>
 
       <section className="mt-8 grid gap-5 lg:grid-cols-2">

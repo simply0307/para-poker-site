@@ -66,6 +66,7 @@ function optionsFor(definition, selectionOptions = {}) {
   if (definition.manualSelectionType === "moments") return selectionOptions.moments || [];
   if (definition.manualSelectionType === "articles") return selectionOptions.articles || [];
   if (definition.manualSelectionType === "events") return selectionOptions.events || [];
+  if (definition.manualSelectionType === "socialCaptions") return selectionOptions.socialCaptions || [];
   return [];
 }
 

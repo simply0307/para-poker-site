@@ -18,24 +18,8 @@ export default async function AdminImportsPage() {
   return (
     <AdminShell
       title="Import control room"
-      description="Import raw hand history into Supabase, then audit session, hand, action, moment, result, and player-stat coverage before generating or publishing coverage."
+      description="Import raw hand-history CSV files into Supabase, then audit session, hand, action, moment, result, and player-stat coverage before generating or publishing coverage."
     >
-      <section className="mb-6 rounded-lg border border-amber-300/40 bg-amber-50 p-5 shadow-sm">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <p className="text-xs font-black uppercase tracking-[0.16em] text-amber-700">Completed-session packages</p>
-            <h2 className="mt-1 text-2xl font-black">Import official ParaPoker JSON packages</h2>
-            <p className="mt-2 max-w-3xl text-sm leading-6 text-amber-900">
-              Use this lane for versioned completed-session exports from the official client. It validates checksums, maps participants,
-              preserves NPCs, and commits through the package import RPC.
-            </p>
-          </div>
-          <Link href="/admin/imports/parapoker" className="rounded-sm bg-zinc-950 px-3 py-2 text-xs font-black uppercase tracking-[0.12em] text-white">
-            Open package importer
-          </Link>
-        </div>
-      </section>
-
       <RawHandImportPanel />
 
       <section className="mt-8 grid gap-4 md:grid-cols-3 lg:grid-cols-6">
@@ -126,11 +110,12 @@ export default async function AdminImportsPage() {
 
       <section className="mt-8 grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
         <div className="rounded-lg border border-zinc-300 bg-white p-5 shadow-sm">
-          <p className="text-xs font-black uppercase tracking-[0.16em] text-amber-700">Override readiness</p>
-          <h2 className="mt-1 text-2xl font-black">Manual corrections lane</h2>
+          <p className="text-xs font-black uppercase tracking-[0.16em] text-amber-700">CSV-first pipeline</p>
+          <h2 className="mt-1 text-2xl font-black">Operational import lane</h2>
           <p className="mt-3 leading-7 text-zinc-600">
-            This phase keeps overrides read-only and visible. The next build step can add a controlled override editor for session, player,
-            hand, standings, and moment fields without changing the raw imported rows.
+            Raw hand CSV uploads are the active import path for league coverage. Legacy completed-session package tools remain available
+            for direct maintenance only, but the admin control room now centers the CSV workflow that feeds sessions, hand history, actions,
+            moments, standings evidence, and newsroom context.
           </p>
           <pre className="mt-4 overflow-auto rounded-md border border-zinc-200 bg-zinc-50 p-4 text-xs text-zinc-700">{`{
   "scope": "session|player|hand|moment|standings|article",

@@ -14,7 +14,7 @@ const shell = read("src/components/newsroom/NewsroomShell.jsx");
 const publicNav = read("src/components/newsroom/PublicNav.jsx");
 const currentSettings = JSON.parse(read("newsroom-library/settings/homepage.json"));
 
-for (const type of ["hero_board", "stat_strip", "latest_session", "upcoming_events", "current_standings", "featured_players", "featured_moments", "latest_articles"]) {
+for (const type of ["hero_board", "stat_strip", "latest_session", "upcoming_events", "current_standings", "featured_players", "featured_moments", "latest_articles", "social_caption_block", "top_performers", "recent_form"]) {
   assert.match(constants, new RegExp(`type: "${type}"`), `${type} must be defined in homepage module registry.`);
 }
 
@@ -28,6 +28,9 @@ for (const variant of [
   "identity_rail",
   "archive_clippings",
   "headline_list",
+  "quote_card",
+  "podium",
+  "session_trail",
 ]) {
   assert.match(constants, new RegExp(`"${variant}"`), `${variant} must be an approved variant.`);
 }

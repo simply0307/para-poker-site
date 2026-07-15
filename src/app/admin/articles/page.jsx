@@ -1,5 +1,4 @@
 import { GenericDraftWorkspace } from "@/components/admin-newsroom/GenericDraftWorkspace";
-import { getVariationOptions } from "@/lib/newsroom/contentAssignments";
 import { cleanName, formatDate, formatNumber, getPlayersIndex, getSessionsIndex, getStandingsRows, text } from "@/lib/newsroom/data";
 import { listArticleDrafts } from "@/lib/newsroom/drafts";
 import { DEFAULT_ARTICLE_CONTEXT_SELECTION } from "@/lib/newsroom/articleContextSelection";
@@ -49,8 +48,8 @@ export default async function AdminArticlesPage() {
 
   return (
     <GenericDraftWorkspace
+      draftType="league_article"
       title="Article draft desk"
-      endpoint="/api/articles/generate"
       defaultPayload={{
         variation: "beat_report",
         promptConfig: {
@@ -90,8 +89,6 @@ export default async function AdminArticlesPage() {
           },
         },
       }}
-      variationOptions={getVariationOptions("league_article")}
-      defaultPromptPreset="official_session_recap"
       existingDrafts={articleDrafts}
       existingDraftsTitle="Live articles"
       initialDraft={articleDrafts[0] || null}

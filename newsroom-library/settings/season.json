@@ -1,0 +1,15 @@
+{
+  "activeSeasonCode": "S0",
+  "seasonPhase": "preseason",
+  "seasonStatus": "in_progress",
+  "lifecycleNote": "Season 0 is ongoing. Treat standings and results as current markers, not final outcomes.",
+  "availableSeasons": [
+    {
+      "code": "S0",
+      "label": "Season 0",
+      "phase": "preseason",
+      "status": "in_progress"
+    }
+  ],
+  "updatedAt": null
+}
