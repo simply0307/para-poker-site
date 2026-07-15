@@ -43,3 +43,6 @@ next-env.d.ts
 next-dev.err.log
 next-dev.out.log
 *.log
+
+# local adjacent projects / generated sandboxes
+/eggs-poker/

@@ -3,45 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-
-const navGroups = [
-  {
-    label: "Dashboard",
-    links: [
-      ["/admin", "Dashboard"],
-      ["/", "Public Site"],
-    ],
-  },
-  {
-    label: "Data Pipeline",
-    links: [
-      ["/admin/imports", "Imports"],
-      ["/admin/sessions", "Sessions"],
-      ["/admin/players", "Players"],
-      ["/admin/standings", "Standings"],
-      ["/admin/rules", "Rules"],
-    ],
-  },
-  {
-    label: "Newsroom",
-    links: [
-      ["/admin/drafts", "Drafts"],
-      ["/admin/articles", "Articles"],
-      ["/admin/moments", "Moments"],
-      ["/admin/social-captions", "Social Captions"],
-      ["/admin/prompt-studio", "Prompt Studio"],
-      ["/admin/content-types", "Content Types"],
-      ["/admin/newsroom", "Prompt Library"],
-    ],
-  },
-  {
-    label: "Presentation",
-    links: [
-      ["/admin/settings", "Settings"],
-      ["/admin/events", "Events"],
-    ],
-  },
-];
+import { ADMIN_ROUTE_GROUPS } from "@/lib/newsroom/adminRoutes";
 
 function isActive(pathname, href) {
   if (href === "/admin") return pathname === href;
@@ -76,11 +38,11 @@ export function AdminShell({ children, title, description, eyebrow = "Admin news
           </div>
 
           <nav className="grid gap-3 lg:grid-cols-4">
-            {navGroups.map((group) => (
+            {ADMIN_ROUTE_GROUPS.map((group) => (
               <section key={group.label} className="rounded-md border border-white/10 bg-white/[0.04] p-3">
                 <p className="mb-2 text-[0.65rem] font-black uppercase tracking-[0.2em] text-amber-200/80">{group.label}</p>
                 <div className="flex flex-wrap gap-2">
-                  {group.links.map(([href, label]) => {
+                  {group.links.map(({ href, label }) => {
                     const active = isActive(pathname, href);
                     return (
                       <Link
