@@ -105,6 +105,22 @@ export default async function AdminMomentsPage() {
       initialDraft={momentDrafts[0] || null}
       preface={
         <div className="grid gap-6">
+          <section className="rounded-lg border border-zinc-300 bg-white p-5 shadow-sm">
+            <p className="text-xs font-black uppercase tracking-[0.16em] text-amber-700">Detected candidates</p>
+            <h2 className="mt-1 text-2xl font-black">Moment coverage by session</h2>
+            <p className="mt-2 text-sm leading-6 text-zinc-600">
+              Detected candidates are drafting targets. They become public only after a blurb is published or an admin marks them featured/major.
+            </p>
+            <div className="mt-4 grid gap-3 md:grid-cols-3">
+              {(viewModel.sessionBreakdown || []).map((row) => (
+                <div key={row.sessionCode} className="rounded-md border border-zinc-200 bg-zinc-50 p-3">
+                  <p className="font-black">{row.sessionCode}</p>
+                  <p className="mt-1 text-sm text-zinc-600">{row.detected} detected / {row.public} public</p>
+                  <p className="mt-1 text-xs font-bold uppercase tracking-wide text-zinc-500">{row.published} published / {row.featuredOrMajor} featured-major</p>
+                </div>
+              ))}
+            </div>
+          </section>
           <MomentCurationPanel moments={videoMomentOptions} initialSettings={curationSettings} />
           <MomentVideoManager moments={videoMomentOptions} />
         </div>

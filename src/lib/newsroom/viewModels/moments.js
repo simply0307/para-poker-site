@@ -263,6 +263,21 @@ export async function buildMomentsViewModel() {
     label: labelForType(type),
     count: enrichedWithVideo.filter((moment) => moment.types.includes(type)).length,
   }));
+  const sessionBreakdown = [...new Map(enrichedWithVideo.map((moment) => [text(moment.sessionCode || moment.session_id), {
+    sessionCode: text(moment.sessionCode || moment.session_id, "Session pending"),
+    detected: 0,
+    public: 0,
+    published: 0,
+    featuredOrMajor: 0,
+  }])).values()];
+  for (const row of sessionBreakdown) {
+    const sessionMoments = enrichedWithVideo.filter((moment) => text(moment.sessionCode || moment.session_id) === row.sessionCode);
+    row.detected = sessionMoments.length;
+    row.public = sessionMoments.filter((moment) => moment.isPublic).length;
+    row.published = sessionMoments.filter((moment) => moment.statuses.includes("published")).length;
+    row.featuredOrMajor = sessionMoments.filter((moment) => moment.statuses.includes("featured") || moment.statuses.includes("major")).length;
+  }
+  sessionBreakdown.sort((left, right) => text(right.sessionCode).localeCompare(text(left.sessionCode)));
 
   return {
     hero: {
@@ -276,6 +291,7 @@ export async function buildMomentsViewModel() {
     biggestPots,
     recentMoments,
     momentTypes,
+    sessionBreakdown,
     publishedMomentDrafts,
     curationSettings,
     appliedOverrides: momentsOverride.appliedOverrides,

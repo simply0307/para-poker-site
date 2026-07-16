@@ -18,6 +18,7 @@ import {
 } from "@/lib/newsroom/data";
 import { buildPlayerViewModel } from "@/lib/newsroom/viewModels/player";
 import { draftHeadline, draftHtml, draftParagraphs, draftSubheadline, waitingCopy } from "@/lib/newsroom/rendering";
+import { getPlayerPublicCopy, readPublicCopySettings } from "@/lib/newsroom/publicCopySettings";
 import { readSeasonSettings } from "@/lib/newsroom/seasonSettings";
 import { PokerStatGrid } from "@/components/poker/PokerStatGrid";
 import { HandHistoryBlock } from "@/components/poker/HandActionLog";
@@ -50,7 +51,7 @@ function finishText(value) {
 
 export default async function PlayerPage({ params }) {
   const { playerId } = await params;
-  const seasonSettings = await readSeasonSettings();
+  const [seasonSettings, publicCopySettings] = await Promise.all([readSeasonSettings(), readPublicCopySettings()]);
   const viewModel = await buildPlayerViewModel(playerId, { seasonCode: seasonSettings.activeSeasonCode });
   if (!viewModel?.player) notFound();
 
@@ -66,13 +67,15 @@ export default async function PlayerPage({ params }) {
     statCards,
   } = viewModel;
   const cardMap = new Map(statCards);
+  const publicCopy = getPlayerPublicCopy(publicCopySettings, viewModel.player);
+  const heroDek = [cardMap.get("Rank") ? `Rank ${cardMap.get("Rank")}` : "", cardMap.get("Points") ? `${cardMap.get("Points")} points` : "", cardMap.get("Sessions") ? `${cardMap.get("Sessions")} sessions` : ""].filter(Boolean).join(" · ") || publicCopy.playerProfileDek;
 
   return (
     <NewsroomShell eyebrow="Player Dossier">
       <LeagueHero
         eyebrow={`${seasonSettings.activeSeasonCode} player dossier`}
         title={displayName}
-        dek={[cardMap.get("Rank") ? `Rank ${cardMap.get("Rank")}` : "", cardMap.get("Points") ? `${cardMap.get("Points")} points` : "", cardMap.get("Sessions") ? `${cardMap.get("Sessions")} sessions` : ""].filter(Boolean).join(" · ") || "The board is still forming."}
+        dek={heroDek}
         aside={
           <div className="flex items-center gap-4">
             <div

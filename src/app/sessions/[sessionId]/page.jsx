@@ -22,6 +22,7 @@ import { buildSessionViewModel } from "@/lib/newsroom/viewModels/session";
 import { draftHeadline, draftHtml, draftParagraphs, draftSubheadline, waitingCopy } from "@/lib/newsroom/rendering";
 import { HandHistoryBlock } from "@/components/poker/HandActionLog";
 import { formatPotWithBb } from "@/lib/poker/potUnits";
+import { displaySessionTableLabel, getSessionPublicCopy, readPublicCopySettings } from "@/lib/newsroom/publicCopySettings";
 
 export const revalidate = 60;
 
@@ -35,7 +36,7 @@ function potValue(hand) {
 
 export default async function SessionPage({ params }) {
   const { sessionId } = await params;
-  const viewModel = await buildSessionViewModel(sessionId);
+  const [viewModel, publicCopySettings] = await Promise.all([buildSessionViewModel(sessionId), readPublicCopySettings()]);
   if (!viewModel?.session) notFound();
 
   const {
@@ -52,17 +53,19 @@ export default async function SessionPage({ params }) {
     biggestPot,
   } = viewModel;
   const displayHands = handHistory.length ? handHistory : hands;
+  const publicCopy = getSessionPublicCopy(publicCopySettings, session);
+  const tableLabel = displaySessionTableLabel(session, publicCopy);
 
   return (
     <NewsroomShell eyebrow="Session Recap">
       <LeagueHero
         eyebrow="Preseason table"
         title={text(session.session_code, "Session")}
-        dek={[firstPresent(session.table_name, session.format), `${session.hands_count || displayHands.length || 0} hands`, `${participants.length || playerSessionStats.length || sessionResults.length || 0} players`].filter(Boolean).join(" · ")}
+        dek={[tableLabel, `${session.hands_count || displayHands.length || 0} hands`, `${participants.length || playerSessionStats.length || sessionResults.length || 0} players`].filter(Boolean).join(" · ")}
         aside={
           <div className="space-y-3">
             <FactLine label="Date" value={formatDate(session.played_at)} />
-            <FactLine label="Table" value={firstPresent(session.table_name, session.format)} />
+            <FactLine label="Table" value={tableLabel} />
             <FactLine label="Status" value={session.status} />
           </div>
         }

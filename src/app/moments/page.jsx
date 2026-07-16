@@ -148,6 +148,19 @@ export default async function MomentsPage() {
                 </Link>
               ))}
             </EvidencePanel>
+            <EvidencePanel title="Detected Session Coverage" eyebrow="Admin candidate pool" empty="No detected moment candidates yet.">
+              {(viewModel.sessionBreakdown || []).map((row) => (
+                <div key={row.sessionCode} className="rounded-md border border-white/10 bg-white/[0.03] p-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="font-black text-white">{row.sessionCode}</p>
+                    <p className="text-sm font-black text-amber-200">{row.detected} detected</p>
+                  </div>
+                  <p className="mt-1 text-sm text-stone-400">
+                    {row.public} public / {row.published} published / {row.featuredOrMajor} featured or major
+                  </p>
+                </div>
+              ))}
+            </EvidencePanel>
           </>
         }
       />

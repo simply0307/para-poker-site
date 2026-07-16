@@ -9,6 +9,11 @@ const constants = read("src/lib/newsroom/homepageSettingsConstants.js");
 const normalizer = read("src/lib/newsroom/homepageSettings.js");
 const viewModel = read("src/lib/newsroom/viewModels/home.js");
 const form = read("src/components/admin-newsroom/HomepageSettingsForm.jsx");
+const publicCopy = read("src/lib/newsroom/publicCopySettings.js");
+const publicCopyForm = read("src/components/admin-newsroom/PublicCopySettingsForm.jsx");
+const settingsPage = read("src/app/admin/settings/page.jsx");
+const momentsViewModel = read("src/lib/newsroom/viewModels/moments.js");
+const momentsPage = read("src/app/moments/page.jsx");
 const modules = read("src/components/newsroom/HomepageModules.jsx");
 const shell = read("src/components/newsroom/NewsroomShell.jsx");
 const publicNav = read("src/components/newsroom/PublicNav.jsx");
@@ -49,6 +54,13 @@ assert.match(form, /Source mode/, "Admin form must expose source mode controls."
 assert.match(form, /Manual content/, "Admin form must expose safe manual selectors.");
 assert.match(form, /Developer config preview/, "JSON preview must be secondary.");
 assert.doesNotMatch(form, /color picker|Tailwind|CSS class|custom HTML/i, "Admin form must not expose raw styling controls.");
+assert.match(publicCopy, /DEFAULT_PUBLIC_COPY_SETTINGS/, "Public copy settings must have safe defaults.");
+assert.match(publicCopy, /getPlayerPublicCopy/, "Public copy settings must support player-specific fallback copy.");
+assert.match(publicCopy, /getSessionPublicCopy/, "Public copy settings must support session-specific fallback copy.");
+assert.match(publicCopyForm, /Fallback and entity copy/, "Admin settings must expose public fallback copy controls.");
+assert.match(settingsPage, /PublicCopySettingsForm/, "Admin settings page must render public copy controls.");
+assert.match(momentsViewModel, /sessionBreakdown/, "Moments view model must expose detected/public counts by session.");
+assert.match(momentsPage, /Detected Session Coverage/, "Public moments page must explain detected candidate coverage by session.");
 
 assert.match(modules, /module\.variant/, "Homepage renderer must use module variants.");
 assert.match(modules, /module\.resolvedContent/, "Homepage renderer must use resolved safe content.");

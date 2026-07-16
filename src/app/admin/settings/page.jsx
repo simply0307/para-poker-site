@@ -1,6 +1,7 @@
 import { AdminShell } from "@/components/admin-newsroom/AdminShell";
 import { HomepageSettingsForm } from "@/components/admin-newsroom/HomepageSettingsForm";
 import { PageHeroSettingsForm } from "@/components/admin-newsroom/PageHeroSettingsForm";
+import { PublicCopySettingsForm } from "@/components/admin-newsroom/PublicCopySettingsForm";
 import { SeasonSettingsForm } from "@/components/admin-newsroom/SeasonSettingsForm";
 import { getPlayersIndex, getSessionsIndex, formatDate } from "@/lib/newsroom/data";
 import { readHomepageSettings } from "@/lib/newsroom/homepageSettings";
@@ -10,13 +11,15 @@ import { getPublishedArticlesIndex } from "@/lib/newsroom/repositories/draftRepo
 import { listNewsroomDrafts } from "@/lib/newsroom/drafts";
 import { readUpcomingEventsSettings } from "@/lib/newsroom/upcomingEvents";
 import { buildMomentsViewModel } from "@/lib/newsroom/viewModels/moments";
+import { readPublicCopySettings } from "@/lib/newsroom/publicCopySettings";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminSettingsPage() {
-  const [homepageSettings, pageHeroSettings, seasonSettings, eventsSettings, sessions, players, momentModel, articles, socialCaptions] = await Promise.all([
+  const [homepageSettings, pageHeroSettings, publicCopySettings, seasonSettings, eventsSettings, sessions, players, momentModel, articles, socialCaptions] = await Promise.all([
     readHomepageSettings(),
     readPageHeroSettings(),
+    readPublicCopySettings(),
     readSeasonSettings(),
     readUpcomingEventsSettings(),
     getSessionsIndex(),
@@ -68,6 +71,17 @@ export default async function AdminSettingsPage() {
         <SeasonSettingsForm initialSettings={seasonSettings} />
         <HomepageSettingsForm initialSettings={homepageSettings} selectionOptions={selectionOptions} />
         <PageHeroSettingsForm initialSettings={pageHeroSettings} />
+        <PublicCopySettingsForm
+          initialSettings={publicCopySettings}
+          players={(players || []).map((player) => ({
+            id: player.slug || player.id,
+            label: player.display_name || player.pokernow_name || player.slug || player.id,
+          }))}
+          sessions={(sessions || []).map((session) => ({
+            id: session.session_code || session.id,
+            label: session.session_code || `Session ${session.session_number || session.id}`,
+          }))}
+        />
       </div>
     </AdminShell>
   );

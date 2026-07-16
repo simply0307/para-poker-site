@@ -1,12 +1,13 @@
 import { CardGrid, LeagueHero, NewsroomShell, PlayerCard, StatCard, StatStrip } from "@/components/newsroom/NewsroomShell";
 import { cleanName, getPlayersIndex, text } from "@/lib/newsroom/data";
 import { getPageHero } from "@/lib/newsroom/pageHeroSettings";
+import { getPlayerPublicCopy, readPublicCopySettings } from "@/lib/newsroom/publicCopySettings";
 import { readSeasonSettings } from "@/lib/newsroom/seasonSettings";
 
 export const revalidate = 60;
 
 export default async function PlayersPage() {
-  const [players, hero, seasonSettings] = await Promise.all([getPlayersIndex(), getPageHero("players"), readSeasonSettings()]);
+  const [players, hero, seasonSettings, publicCopySettings] = await Promise.all([getPlayersIndex(), getPageHero("players"), readSeasonSettings(), readPublicCopySettings()]);
 
   return (
     <NewsroomShell eyebrow="Players">
@@ -20,16 +21,19 @@ export default async function PlayersPage() {
         <StatCard label="Season" value={seasonSettings.activeSeasonCode} detail={seasonSettings.seasonPhase} />
       </StatStrip>
       <CardGrid>
-        {players.length ? players.map((player) => (
-          <PlayerCard
-            key={player.id}
-            href={`/players/${encodeURIComponent(text(player.slug || player.id))}`}
-            name={cleanName(player.display_name || player.pokernow_name)}
-            meta="Player profile"
-          >
-            <p>The board is still forming.</p>
-          </PlayerCard>
-        )) : (
+        {players.length ? players.map((player) => {
+          const copy = getPlayerPublicCopy(publicCopySettings, player);
+          return (
+            <PlayerCard
+              key={player.id}
+              href={`/players/${encodeURIComponent(text(player.slug || player.id))}`}
+              name={cleanName(player.display_name || player.pokernow_name)}
+              meta="Player profile"
+            >
+              <p>{copy.playerCardDek}</p>
+            </PlayerCard>
+          );
+        }) : (
           <PlayerCard name="No players yet">
             <p>No players yet.</p>
           </PlayerCard>

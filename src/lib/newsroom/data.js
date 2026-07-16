@@ -228,32 +228,14 @@ export async function getStandingsRows(seasonCode = "S0") {
 }
 
 export async function getMomentsIndex() {
-  const byCreatedAt = await safeQuery(
-    supabase
-      .from("notable_hands")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(40),
-    null
-  );
-  if (Array.isArray(byCreatedAt)) return byCreatedAt;
-
-  const byPot = await safeQueryAll(
-    supabase
-      .from("notable_hands")
-      .select("*")
-      .order("pot_collected", { ascending: false }),
-    []
-  );
-  if (Array.isArray(byPot) && byPot.length) return byPot;
-
-  return safeQueryAll(
-    supabase
-      .from("notable_hands")
-      .select("*")
-      .order("hand_no", { ascending: true }),
-    []
-  );
+  const rows = await safeQueryAll(supabase.from("notable_hands").select("*"), []);
+  return [...(rows || [])].sort((left, right) => {
+    const leftDate = Date.parse(left.created_at || left.updated_at || "");
+    const rightDate = Date.parse(right.created_at || right.updated_at || "");
+    if (Number.isFinite(leftDate) && Number.isFinite(rightDate) && leftDate !== rightDate) return rightDate - leftDate;
+    return Number(right.pot_bb || right.pot_collected || 0) - Number(left.pot_bb || left.pot_collected || 0) ||
+      Number(right.hand_no || 0) - Number(left.hand_no || 0);
+  });
 }
 
 export async function getPlayerNewsroomData(playerIdOrSlug, seasonCode = "S0") {
