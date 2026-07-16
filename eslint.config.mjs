@@ -10,6 +10,7 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "gauntlet-online/**",
+    "gauntlet-auth-hardening-worktree/**",
     "next-env.d.ts",
   ]),
 ]);

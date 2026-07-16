@@ -44,6 +44,10 @@ function potRecordText({ bb, chips } = {}) {
   return present(chips) ? `${formatNumber(chips)} chips` : "";
 }
 
+function finishText(value) {
+  return present(value) ? `#${value}` : "";
+}
+
 export default async function PlayerPage({ params }) {
   const { playerId } = await params;
   const seasonSettings = await readSeasonSettings();
@@ -56,6 +60,7 @@ export default async function PlayerPage({ params }) {
     publishedDraft: published,
     pokerStats,
     recentSessions,
+    currentForm,
     notableHands,
     contestedMoments,
     statCards,
@@ -84,7 +89,13 @@ export default async function PlayerPage({ params }) {
             </div>
           </div>
         }
-      />
+      >
+        <div className="grid gap-3 text-sm text-stone-300 sm:grid-cols-3">
+          <HeroBadge label="Current form" value={currentForm?.line || "Awaiting more sessions"} />
+          <HeroBadge label="Largest swing" value={potRecordText({ bb: pokerStats?.biggestPotBb, chips: pokerStats?.biggestPot }) || "Pending"} />
+          <HeroBadge label="Latest table" value={currentForm?.latestLabel || "Pending"} />
+        </div>
+      </LeagueHero>
       <StatStrip>
         <StatCard label="Points" value={pokerStats?.points || cardMap.get("Points") || ""} />
         <StatCard label="Sessions" value={pokerStats?.sessions || cardMap.get("Sessions") || ""} />
@@ -110,6 +121,13 @@ export default async function PlayerPage({ params }) {
               <RecordLine label="Points" value={cardMap.get("Points")} />
               <RecordLine label="Sessions" value={cardMap.get("Sessions")} />
               <RecordLine label="Best Finish" value={pokerStats?.bestFinish ? `#${pokerStats.bestFinish}` : cardMap.get("Best result")} />
+            </EvidencePanel>
+            <EvidencePanel title="Current Form" eyebrow="Active season" empty="No current-form rows are available yet.">
+              <RecordLine label="Latest" value={currentForm?.latestLabel} />
+              <RecordLine label="Wins" value={currentForm?.wins} />
+              <RecordLine label="Top-three" value={currentForm?.topFinishes} />
+              <RecordLine label="Recent points" value={currentForm?.points} />
+              {currentForm?.line ? <p className="rounded-md border border-white/10 bg-white/[0.035] p-3 text-sm leading-6 text-stone-300">{currentForm.line}</p> : null}
             </EvidencePanel>
             <EvidencePanel title="Poker Stats" empty="No poker stats are available yet.">
               <PokerStatGrid
@@ -153,7 +171,7 @@ export default async function PlayerPage({ params }) {
                   )}
                   <span className="text-sm text-stone-400">{formatDate(session.played_at)}</span>
                 </div>
-                <StatLine label="Finish" value={result.finish ? `#${result.finish}` : ""} />
+                <StatLine label="Finish" value={finishText(result.finish)} />
                 <StatLine label="Points" value={firstPresent(result.league_points, result.points)} />
                 <StatLine label="Hands" value={firstPresent(row.hands, row.hands_played, row.hand_count)} />
                 <StatLine label="Biggest pot" value={potRecordText({ bb: row.biggest_pot_won_bb, chips: firstPresent(row.biggest_pot_won, row.biggest_pot, row.largest_pot) })} />
@@ -168,6 +186,15 @@ export default async function PlayerPage({ params }) {
         </EvidencePanel>
       </section>
     </NewsroomShell>
+  );
+}
+
+function HeroBadge({ label, value }) {
+  return (
+    <div className="rounded-md border border-white/10 bg-black/25 px-3 py-2">
+      <p className="text-[0.64rem] font-black uppercase tracking-[0.16em] text-stone-500">{label}</p>
+      <p className="mt-1 font-black text-amber-100">{value}</p>
+    </div>
   );
 }
 

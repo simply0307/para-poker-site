@@ -47,3 +47,4 @@ next-dev.out.log
 # local adjacent projects / generated sandboxes
 /eggs-poker/
 /gauntlet-online/
+/gauntlet-auth-hardening-worktree/

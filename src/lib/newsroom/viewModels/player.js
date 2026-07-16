@@ -30,6 +30,41 @@ function firstPresent(...values) {
   return values.find((value) => present(value));
 }
 
+function sessionSortValue(row = {}) {
+  const session = row.session || {};
+  const playedAt = Date.parse(session.played_at || "");
+  if (Number.isFinite(playedAt)) return playedAt;
+  const sessionNumber = Number(session.session_number || 0);
+  return Number.isFinite(sessionNumber) ? sessionNumber : 0;
+}
+
+function buildCurrentForm(recentSessions = []) {
+  const resultRows = (recentSessions || []).map((row) => row.result || row).filter(Boolean);
+  const finishes = resultRows.map((row) => numberValue(row.finish)).filter((value) => value !== null);
+  const wins = finishes.filter((finish) => finish === 1).length;
+  const topFinishes = finishes.filter((finish) => finish <= 3).length;
+  const points = sumNumber(resultRows, ["league_points", "points"]);
+  const latest = recentSessions[0] || null;
+  const latestSession = latest?.session || {};
+  const latestLabel = firstPresent(latestSession.session_code, latestSession.session_number, latest?.session_id);
+
+  return {
+    sessions: recentSessions.length || null,
+    wins: wins || null,
+    topFinishes: topFinishes || null,
+    points,
+    latestLabel,
+    finishes,
+    line: recentSessions.length
+      ? [
+          `${recentSessions.length} archived session${recentSessions.length === 1 ? "" : "s"}`,
+          wins ? `${wins} win${wins === 1 ? "" : "s"}` : "",
+          topFinishes ? `${topFinishes} top-three finish${topFinishes === 1 ? "" : "es"}` : "",
+        ].filter(Boolean).join(" / ")
+      : "",
+  };
+}
+
 function playerImage(player) {
   return firstPresent(player.avatar_url, player.image_url, player.photo_url, player.profile_image_url, player.headshot_url);
 }
@@ -96,7 +131,8 @@ function buildPlayerPokerStats(player, sessionStats = [], sessionResults = [], n
 }
 
 export async function buildPlayerViewModel(playerIdOrSlug, options = {}) {
-  const playerData = await getPlayerNewsroomData(playerIdOrSlug, options.seasonCode || "S0");
+  const activeSeasonCode = options.seasonCode || "S0";
+  const playerData = await getPlayerNewsroomData(playerIdOrSlug, activeSeasonCode);
   if (!playerData?.player) return null;
 
   const overrides = await readActiveDataOverrides();
@@ -145,7 +181,10 @@ export async function buildPlayerViewModel(playerIdOrSlug, options = {}) {
       session: sessionMap.get(String(row.session_id)) || null,
       result: sessionResults.find((result) => String(result.session_id) === String(row.session_id)) || row,
     }))
+    .filter((row) => !row.session?.season_code || row.session.season_code === activeSeasonCode)
+    .sort((left, right) => sessionSortValue(right) - sessionSortValue(left))
     .slice(0, 8);
+  const currentForm = buildCurrentForm(recentSessions);
 
   return {
     player,
@@ -165,6 +204,7 @@ export async function buildPlayerViewModel(playerIdOrSlug, options = {}) {
     sessionStats,
     sessionResults,
     recentSessions,
+    currentForm,
     moments,
     wonMoments: moments,
     contestedMoments,

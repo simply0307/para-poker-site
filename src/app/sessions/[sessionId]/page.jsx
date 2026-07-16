@@ -90,6 +90,7 @@ export default async function SessionPage({ params }) {
             <EvidencePanel title="Session Pulse" eyebrow="Official record" empty="Session pulse is waiting on imported data.">
               <FactPill label="Winner" value={cleanName(sessionResults.find((row) => Number(row.finish) === 1)?.player_name || participants[0]?.name, "")} />
               <FactPill label="Biggest Pot" value={potValue(biggestPot)} />
+              <FactPill label="Normalized Pot" value={biggestPot?.pot_bb ? `${biggestPot.pot_bb} BB` : ""} />
               <FactPill label="Hands Logged" value={session.hands_count || displayHands.length} />
               <FactPill label="Action Coverage" value={hasFullActionLogs ? "Street-by-street" : "Summary only"} />
             </EvidencePanel>
@@ -142,12 +143,20 @@ export default async function SessionPage({ params }) {
               <article key={`${row.player_id || row.player_name || "stat"}-${index}`} className="rounded-md border border-white/10 bg-white/[0.03] p-4">
                 <h3 className="text-lg font-black text-white">{cleanName(participant.name || row.player_name)}</h3>
                 <FactLine label="Hands" value={firstPresent(row.hands, row.hands_played, row.hand_count)} />
+                <FactLine label="Hands won" value={row.hands_won} />
                 <FactLine
                   label="Biggest pot won"
                   value={formatPotWithBb({
                     pot: firstPresent(row.biggest_pot_won, row.biggest_pot, row.largest_pot),
                     potBb: row.biggest_pot_won_bb,
                   }) || chipValue(firstPresent(row.biggest_pot_won, row.biggest_pot, row.largest_pot))}
+                />
+                <FactLine
+                  label="Collected"
+                  value={formatPotWithBb({
+                    pot: row.total_collected,
+                    potBb: row.total_collected_bb,
+                  }) || chipValue(row.total_collected)}
                 />
                 <FactLine label="VPIP" value={firstPresent(row.vpip, row.vpip_pct)} />
                 <FactLine label="PFR" value={firstPresent(row.pfr, row.pfr_pct)} />
