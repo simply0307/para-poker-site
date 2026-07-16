@@ -23,6 +23,8 @@ import { readSeasonSettings } from "@/lib/newsroom/seasonSettings";
 import { PokerStatGrid } from "@/components/poker/PokerStatGrid";
 import { HandHistoryBlock } from "@/components/poker/HandActionLog";
 import { formatBb } from "@/lib/poker/potUnits";
+import { handArchiveItem } from "@/lib/poker/handArchiveMetadata";
+import { FilterableEvidenceArchive } from "@/components/newsroom/FilterableEvidenceArchive";
 
 export const revalidate = 60;
 
@@ -69,6 +71,14 @@ export default async function PlayerPage({ params }) {
   const cardMap = new Map(statCards);
   const publicCopy = getPlayerPublicCopy(publicCopySettings, viewModel.player);
   const heroDek = [cardMap.get("Rank") ? `Rank ${cardMap.get("Rank")}` : "", cardMap.get("Points") ? `${cardMap.get("Points")} points` : "", cardMap.get("Sessions") ? `${cardMap.get("Sessions")} sessions` : ""].filter(Boolean).join(" · ") || publicCopy.playerProfileDek;
+  const playerMoments = [
+    ...(notableHands || []).map((hand) => ({ hand, role: "Won hand" })),
+    ...(contestedMoments || []).map((hand) => ({ hand, role: "Contender hand" })),
+  ];
+  const playerMomentItems = playerMoments.map(({ hand, role }, index) => ({
+    ...handArchiveItem(hand, index, hand.session_code || hand.session_id),
+    role,
+  }));
 
   return (
     <NewsroomShell eyebrow="Player Dossier">
@@ -184,31 +194,22 @@ export default async function PlayerPage({ params }) {
         </EvidencePanel>
 
         <EvidencePanel title="Player Moments" empty="No notable hands are attached to this player yet.">
-          {(notableHands?.length || contestedMoments?.length) ? (
-            <ScrollableEvidenceList count={(notableHands?.length || 0) + (contestedMoments?.length || 0)} label="player moments">
-              <PlayerMomentSection title="Won moments" moments={notableHands} role="Winner" />
-              <PlayerMomentSection title="Contested moments" moments={contestedMoments} role="Involved" />
-            </ScrollableEvidenceList>
+          {playerMoments.length ? (
+            <FilterableEvidenceArchive items={playerMomentItems} label="player moments" maxHeightClass="max-h-[42rem]">
+              {playerMoments.map(({ hand, role }, index) => (
+                <div
+                  key={`${hand.id || hand.hand_no || role}-${index}`}
+                  className="grid gap-2"
+                >
+                  <p className="text-xs font-black uppercase tracking-[0.14em] text-stone-500">{role}</p>
+                  <HandHistoryBlock hand={hand} compact detailHref={handDetailHref(hand)} />
+                </div>
+              ))}
+            </FilterableEvidenceArchive>
           ) : null}
         </EvidencePanel>
       </section>
     </NewsroomShell>
-  );
-}
-
-function ScrollableEvidenceList({ children, count = 0, label = "items" }) {
-  return (
-    <div className="rounded-md border border-white/10 bg-black/20">
-      <div className="flex items-center justify-between gap-3 border-b border-white/10 px-3 py-2 text-xs font-black uppercase tracking-[0.14em] text-stone-500">
-        <span>Scrollable archive</span>
-        {count ? <span>{count} {label}</span> : null}
-      </div>
-      <div className="max-h-[42rem] overflow-y-auto overscroll-contain p-3 pr-2">
-        <div className="grid gap-4">
-          {children}
-        </div>
-      </div>
-    </div>
   );
 }
 
@@ -217,26 +218,6 @@ function HeroBadge({ label, value }) {
     <div className="rounded-md border border-white/10 bg-black/25 px-3 py-2">
       <p className="text-[0.64rem] font-black uppercase tracking-[0.16em] text-stone-500">{label}</p>
       <p className="mt-1 font-black text-amber-100">{value}</p>
-    </div>
-  );
-}
-
-function PlayerMomentSection({ title, moments = [], role }) {
-  if (!moments.length) return null;
-  return (
-    <div className="mb-5 last:mb-0">
-      <h3 className="mb-3 text-xs font-black uppercase tracking-[0.16em] text-amber-200">{title}</h3>
-      <div className="grid gap-4">
-        {moments.slice(0, 6).map((moment, index) => (
-          <div
-            key={`${moment.id || moment.hand_no || title}-${index}`}
-            className="grid gap-2"
-          >
-            <p className="text-xs font-black uppercase tracking-[0.14em] text-stone-500">{role === "Winner" ? "Won hand" : "Contender hand"}</p>
-            <HandHistoryBlock hand={moment} compact detailHref={handDetailHref(moment)} />
-          </div>
-        ))}
-      </div>
     </div>
   );
 }

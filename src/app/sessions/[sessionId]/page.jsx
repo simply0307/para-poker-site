@@ -23,6 +23,8 @@ import { draftHeadline, draftHtml, draftParagraphs, draftSubheadline, waitingCop
 import { HandHistoryBlock } from "@/components/poker/HandActionLog";
 import { formatPotWithBb } from "@/lib/poker/potUnits";
 import { displaySessionTableLabel, getSessionPublicCopy, readPublicCopySettings } from "@/lib/newsroom/publicCopySettings";
+import { handArchiveItem } from "@/lib/poker/handArchiveMetadata";
+import { FilterableEvidenceArchive } from "@/components/newsroom/FilterableEvidenceArchive";
 
 export const revalidate = 60;
 
@@ -55,6 +57,9 @@ export default async function SessionPage({ params }) {
   const displayHands = handHistory.length ? handHistory : hands;
   const publicCopy = getSessionPublicCopy(publicCopySettings, session);
   const tableLabel = displaySessionTableLabel(session, publicCopy);
+  const sessionCode = text(session.session_code || session.id, "Session");
+  const notableArchiveItems = notableHands.map((hand, index) => handArchiveItem(hand, index, sessionCode));
+  const handArchiveItems = displayHands.map((hand, index) => handArchiveItem(hand, index, sessionCode));
 
   return (
     <NewsroomShell eyebrow="Session Recap">
@@ -169,7 +174,7 @@ export default async function SessionPage({ params }) {
         </EvidencePanel>
         <EvidencePanel title="Notable Hand Summaries" empty="No notable hands are attached to this session yet.">
           {notableHands.length ? (
-            <ScrollableEvidenceList count={notableHands.length} label="notable hands" maxHeightClass="max-h-[38rem]">
+            <FilterableEvidenceArchive items={notableArchiveItems} label="notable hands" maxHeightClass="max-h-[38rem]" defaultSort="pot_desc">
               {notableHands.map((hand, index) => (
                 <HandHistoryBlock
                   key={`${hand.id || hand.hand_no || "notable"}-${index}`}
@@ -177,7 +182,7 @@ export default async function SessionPage({ params }) {
                   compact
                 />
               ))}
-            </ScrollableEvidenceList>
+            </FilterableEvidenceArchive>
           ) : null}
         </EvidencePanel>
       </section>
@@ -194,30 +199,14 @@ export default async function SessionPage({ params }) {
           </p>
         ) : null}
         {displayHands.length ? (
-          <ScrollableEvidenceList count={displayHands.length} label={hasFullActionLogs ? "hands with action" : "hand summaries"} maxHeightClass="max-h-[58rem]">
+          <FilterableEvidenceArchive items={handArchiveItems} label={hasFullActionLogs ? "hands with action" : "hand summaries"} maxHeightClass="max-h-[58rem]" defaultSort="hand_asc">
             {displayHands.map((hand, index) => (
               <HandHistoryBlock key={`${hand.id || hand.hand_no || "hand"}-${index}`} hand={hand} anchor />
             ))}
-          </ScrollableEvidenceList>
+          </FilterableEvidenceArchive>
         ) : null}
       </EvidencePanel>
     </NewsroomShell>
-  );
-}
-
-function ScrollableEvidenceList({ children, count = 0, label = "items", maxHeightClass = "max-h-[42rem]" }) {
-  return (
-    <div className="rounded-md border border-white/10 bg-black/20">
-      <div className="flex items-center justify-between gap-3 border-b border-white/10 px-3 py-2 text-xs font-black uppercase tracking-[0.14em] text-stone-500">
-        <span>Scrollable archive</span>
-        {count ? <span>{count} {label}</span> : null}
-      </div>
-      <div className={`${maxHeightClass} overflow-y-auto overscroll-contain p-3 pr-2`}>
-        <div className="grid gap-4">
-          {children}
-        </div>
-      </div>
-    </div>
   );
 }
 
