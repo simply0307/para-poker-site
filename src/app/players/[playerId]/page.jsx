@@ -184,11 +184,31 @@ export default async function PlayerPage({ params }) {
         </EvidencePanel>
 
         <EvidencePanel title="Player Moments" empty="No notable hands are attached to this player yet.">
-          <PlayerMomentSection title="Won moments" moments={notableHands} role="Winner" />
-          <PlayerMomentSection title="Contested moments" moments={contestedMoments} role="Involved" />
+          {(notableHands?.length || contestedMoments?.length) ? (
+            <ScrollableEvidenceList count={(notableHands?.length || 0) + (contestedMoments?.length || 0)} label="player moments">
+              <PlayerMomentSection title="Won moments" moments={notableHands} role="Winner" />
+              <PlayerMomentSection title="Contested moments" moments={contestedMoments} role="Involved" />
+            </ScrollableEvidenceList>
+          ) : null}
         </EvidencePanel>
       </section>
     </NewsroomShell>
+  );
+}
+
+function ScrollableEvidenceList({ children, count = 0, label = "items" }) {
+  return (
+    <div className="rounded-md border border-white/10 bg-black/20">
+      <div className="flex items-center justify-between gap-3 border-b border-white/10 px-3 py-2 text-xs font-black uppercase tracking-[0.14em] text-stone-500">
+        <span>Scrollable archive</span>
+        {count ? <span>{count} {label}</span> : null}
+      </div>
+      <div className="max-h-[42rem] overflow-y-auto overscroll-contain p-3 pr-2">
+        <div className="grid gap-4">
+          {children}
+        </div>
+      </div>
+    </div>
   );
 }
 

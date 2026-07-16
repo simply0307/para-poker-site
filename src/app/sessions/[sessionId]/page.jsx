@@ -168,13 +168,17 @@ export default async function SessionPage({ params }) {
           })}
         </EvidencePanel>
         <EvidencePanel title="Notable Hand Summaries" empty="No notable hands are attached to this session yet.">
-        {notableHands.slice(0, 12).map((hand, index) => (
-          <HandHistoryBlock
-            key={`${hand.id || hand.hand_no || "notable"}-${index}`}
-            hand={hand}
-            compact
-          />
-        ))}
+          {notableHands.length ? (
+            <ScrollableEvidenceList count={notableHands.length} label="notable hands" maxHeightClass="max-h-[38rem]">
+              {notableHands.map((hand, index) => (
+                <HandHistoryBlock
+                  key={`${hand.id || hand.hand_no || "notable"}-${index}`}
+                  hand={hand}
+                  compact
+                />
+              ))}
+            </ScrollableEvidenceList>
+          ) : null}
         </EvidencePanel>
       </section>
 
@@ -189,11 +193,31 @@ export default async function SessionPage({ params }) {
             board, winner, pot, and showdown fields that are stored for this session.
           </p>
         ) : null}
-        {displayHands.map((hand, index) => (
-          <HandHistoryBlock key={`${hand.id || hand.hand_no || "hand"}-${index}`} hand={hand} anchor />
-        ))}
+        {displayHands.length ? (
+          <ScrollableEvidenceList count={displayHands.length} label={hasFullActionLogs ? "hands with action" : "hand summaries"} maxHeightClass="max-h-[58rem]">
+            {displayHands.map((hand, index) => (
+              <HandHistoryBlock key={`${hand.id || hand.hand_no || "hand"}-${index}`} hand={hand} anchor />
+            ))}
+          </ScrollableEvidenceList>
+        ) : null}
       </EvidencePanel>
     </NewsroomShell>
+  );
+}
+
+function ScrollableEvidenceList({ children, count = 0, label = "items", maxHeightClass = "max-h-[42rem]" }) {
+  return (
+    <div className="rounded-md border border-white/10 bg-black/20">
+      <div className="flex items-center justify-between gap-3 border-b border-white/10 px-3 py-2 text-xs font-black uppercase tracking-[0.14em] text-stone-500">
+        <span>Scrollable archive</span>
+        {count ? <span>{count} {label}</span> : null}
+      </div>
+      <div className={`${maxHeightClass} overflow-y-auto overscroll-contain p-3 pr-2`}>
+        <div className="grid gap-4">
+          {children}
+        </div>
+      </div>
+    </div>
   );
 }
 
