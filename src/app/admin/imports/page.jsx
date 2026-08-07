@@ -2,6 +2,7 @@ import Link from "next/link";
 import { AdminShell, AdminStat } from "@/components/admin-newsroom/AdminShell";
 import { ImportSessionManager } from "@/components/admin-newsroom/ImportSessionManager";
 import { EggsSessionImportPanel } from "@/components/admin-newsroom/EggsSessionImportPanel";
+import { GauntletMatchImportPanel } from "@/components/admin-newsroom/GauntletMatchImportPanel";
 import { RawHandImportPanel } from "@/components/admin-newsroom/RawHandImportPanel";
 import { SessionResultReviewPanel } from "@/components/admin-newsroom/SessionResultReviewPanel";
 import { buildImportHealthViewModel } from "@/lib/newsroom/importHealth";
@@ -26,8 +27,9 @@ export default async function AdminImportsPage() {
   return (
     <AdminShell
       title="Import control room"
-      description="Import durable EGGS completed-session evidence or legacy raw hand-history CSV, then audit the canonical session projections before publishing coverage."
+      description="Import authoritative Gauntlet or EGGS evidence, or legacy raw hand-history CSV, then audit the canonical session projections before publishing coverage."
     >
+      <GauntletMatchImportPanel initialSeasonCode={seasonSettings.activeSeasonCode} leaguePlayers={leaguePlayers} />
       <EggsSessionImportPanel initialSeasonCode={seasonSettings.activeSeasonCode} existingSessions={health.sessions} leaguePlayers={leaguePlayers} />
       <RawHandImportPanel initialSeasonCode={seasonSettings.activeSeasonCode} existingSessions={health.sessions} />
       <ImportSessionManager sessions={health.sessions} />
