@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server";
+import { requireOperator } from "@/lib/auth/operatorAuthorization";
 import { applyLeagueRules, previewStandingsFromRules, readLeagueRules, saveLeagueRules } from "@/lib/league/rulesRepository";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(request) {
+  const authorization = await requireOperator(request);
+  if (!authorization.ok) return authorization.response;
   const { searchParams } = new URL(request.url);
   const seasonCode = searchParams.get("seasonCode") || "S0";
   const result = await readLeagueRules(seasonCode);
@@ -13,6 +16,8 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
+  const authorization = await requireOperator(request);
+  if (!authorization.ok) return authorization.response;
   try {
     const body = await request.json().catch(() => ({}));
     if (body.action === "preview") {

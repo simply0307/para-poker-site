@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ADMIN_ROUTE_GROUPS } from "@/lib/newsroom/adminRoutes";
+import { OperatorSignOut } from "@/components/admin-newsroom/OperatorSignOut";
 
 function isActive(pathname, href) {
   if (href === "/admin") return pathname === href;
@@ -34,6 +35,7 @@ export function AdminShell({ children, title, description, eyebrow = "Admin news
               <Link href="/sessions/S0-001" className="rounded-sm border border-amber-200/35 px-3 py-2 text-amber-100 hover:bg-amber-200 hover:text-zinc-950">
                 S0-001
               </Link>
+              <OperatorSignOut />
             </div>
           </div>
 

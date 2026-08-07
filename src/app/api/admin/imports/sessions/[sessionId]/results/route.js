@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { requireOperator } from "@/lib/auth/operatorAuthorization";
 import { readLeagueRules } from "@/lib/league/rulesRepository";
 import {
   backfillSessionPotNormalization,
@@ -13,6 +14,8 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(_request, { params }) {
+  const authorization = await requireOperator(_request);
+  if (!authorization.ok) return authorization.response;
   try {
     const { sessionId } = await params;
     const review = await getSessionResultReview(sessionId);
@@ -24,6 +27,8 @@ export async function GET(_request, { params }) {
 }
 
 export async function POST(request, { params }) {
+  const authorization = await requireOperator(request);
+  if (!authorization.ok) return authorization.response;
   try {
     const { sessionId } = await params;
     const body = await request.json().catch(() => ({}));
@@ -37,6 +42,8 @@ export async function POST(request, { params }) {
 }
 
 export async function PUT(request, { params }) {
+  const authorization = await requireOperator(request);
+  if (!authorization.ok) return authorization.response;
   try {
     const { sessionId } = await params;
     const body = await request.json().catch(() => ({}));

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { requireOperator } from "@/lib/auth/operatorAuthorization";
 import {
   bulkAssignDatasetSplitsBySession,
   getTrainingExampleForDraft,
@@ -10,6 +11,8 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(request) {
+  const authorization = await requireOperator(request);
+  if (!authorization.ok) return authorization.response;
   const { searchParams } = new URL(request.url);
   const draftTable = searchParams.get("draftTable") || "recap_drafts";
   const draftId = searchParams.get("draftId") || "";
@@ -19,6 +22,8 @@ export async function GET(request) {
 }
 
 export async function PATCH(request) {
+  const authorization = await requireOperator(request);
+  if (!authorization.ok) return authorization.response;
   try {
     const body = await request.json().catch(() => ({}));
     if (body.exampleId) {
@@ -37,6 +42,8 @@ export async function PATCH(request) {
 }
 
 export async function POST(request) {
+  const authorization = await requireOperator(request);
+  if (!authorization.ok) return authorization.response;
   try {
     const body = await request.json().catch(() => ({}));
     if (body.action !== "bulk_assign_splits_by_session") {

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { requireOperator } from "@/lib/auth/operatorAuthorization";
 import { supabase } from "@/lib/supabase";
 import { getMomentNewsroomData, text } from "@/lib/newsroom/data";
 import { createDataOverride } from "@/lib/newsroom/dataOverrides";
@@ -39,6 +40,8 @@ async function removeStoredVideo(video) {
 }
 
 export async function POST(request, { params }) {
+  const authorization = await requireOperator(request);
+  if (!authorization.ok) return authorization.response;
   try {
     const { momentId } = await params;
     const sourceId = text(momentId).trim();
@@ -101,6 +104,8 @@ export async function POST(request, { params }) {
 }
 
 export async function DELETE(_request, { params }) {
+  const authorization = await requireOperator(_request);
+  if (!authorization.ok) return authorization.response;
   try {
     const { momentId } = await params;
     const sourceId = text(momentId).trim();

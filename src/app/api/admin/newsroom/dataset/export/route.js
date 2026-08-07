@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { DATASET_SPLITS } from "@/lib/newsroom/trainingConstants";
 import { listExportableTrainingExamples, trainingMessagesForExample } from "@/lib/newsroom/trainingExamples";
+import { requireOperator } from "@/lib/auth/operatorAuthorization";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -17,6 +18,10 @@ function authorized(request) {
 }
 
 export async function GET(request) {
+  // The existing export token may continue to use Authorization: Bearer while
+  // the operator identity comes from the verified HttpOnly session cookie.
+  const operatorAuthorization = await requireOperator(request, { allowBearer: false });
+  if (!operatorAuthorization.ok) return operatorAuthorization.response;
   const auth = authorized(request);
   if (!auth.ok) return auth.response;
 

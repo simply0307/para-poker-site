@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server";
+import { requireOperator } from "@/lib/auth/operatorAuthorization";
 import { deleteDraft, updateDraft } from "@/lib/newsroom/drafts";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function PATCH(request, { params }) {
+  const authorization = await requireOperator(request);
+  if (!authorization.ok) return authorization.response;
   try {
     const { draftId } = await params;
     const body = await request.json().catch(() => ({}));
@@ -33,6 +36,8 @@ export async function PATCH(request, { params }) {
 }
 
 export async function DELETE(request, { params }) {
+  const authorization = await requireOperator(request);
+  if (!authorization.ok) return authorization.response;
   try {
     const { draftId } = await params;
     const { searchParams } = new URL(request.url);

@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server";
+import { requireOperator } from "@/lib/auth/operatorAuthorization";
 import { setDraftPublishStateForTable } from "@/lib/newsroom/drafts";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(request, { params }) {
+  const authorization = await requireOperator(request);
+  if (!authorization.ok) return authorization.response;
   try {
     const { draftId } = await params;
     const body = await request.json().catch(() => ({}));

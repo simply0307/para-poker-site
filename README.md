@@ -20,7 +20,7 @@ Then open http://localhost:3000.
 - `/sessions` and `/sessions/[sessionId]` show public session coverage.
 - `/players` and `/players/[playerId]` show public player pages.
 - `/standings`, `/moments`, and `/articles` are public archive/newsroom surfaces.
-- `/admin` is the admin newsroom and league ops entry.
+- `/admin` is the authenticated admin newsroom and league ops entry.
 - `/admin/sessions/[sessionId]` is the main recap generation/edit/publish desk.
 - `/admin/newsroom/dataset` is an optional future review tool for passively
   captured generation examples. It is not part of everyday recap publishing.
@@ -41,6 +41,9 @@ The normal editorial workflow is intentionally simple:
 
 The authoritative EGGS import contract and migration order are documented in
 `docs/eggs-completed-session-import.md`.
+
+The Supabase Auth operator boundary, role model, and complete privileged-route
+inventory are documented in `docs/admin-operator-authorization.md`.
 
 Training-data capture is passive. Generation stores the exact context packet and
 untouched model output in `recap_training_examples`. Publishing copies the final
@@ -119,6 +122,9 @@ Then call `/api/admin/newsroom/dataset/export?split=train` with:
 ```http
 Authorization: Bearer your-private-token
 ```
+
+The caller must also have a valid operator session cookie. The export token is a
+second control; it does not replace the shared admin authorization boundary.
 
 Only examples explicitly marked `included`, with `approved_output` and an
 assigned split, are exported.

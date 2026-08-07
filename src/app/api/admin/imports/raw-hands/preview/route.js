@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server";
+import { requireOperator } from "@/lib/auth/operatorAuthorization";
 import { persistRawHandImportPreview } from "@/lib/imports/rawHandImportRepository";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(request) {
+  const authorization = await requireOperator(request);
+  if (!authorization.ok) return authorization.response;
   try {
     const form = await request.formData();
     const uploaded = form.get("file");
