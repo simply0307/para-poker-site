@@ -122,7 +122,9 @@ export function SessionResultReviewPanel({ sessions = [] }) {
           <p className="text-xs font-black uppercase tracking-[0.16em] text-amber-700">Import review</p>
           <h2 className="mt-1 text-2xl font-black">Confirm official results</h2>
           <p className="mt-2 max-w-3xl text-sm leading-6 text-zinc-600">
-            Imported hand data can suggest a result order, but standings only update after admin confirmation.
+            {review?.authoritativeResultEvidence
+              ? "EGGS player, finish, and final-stack evidence is locked to its authority revision. Review points and notes, then approve for standings."
+              : "Imported hand data can suggest a result order, but standings only update after admin confirmation."}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -174,7 +176,7 @@ export function SessionResultReviewPanel({ sessions = [] }) {
                 {rows.map((row, index) => (
                   <tr key={`${row.player_id || row.player_name}-${index}`} className="border-t border-zinc-200">
                     <td className="px-3 py-2">
-                      <input type="number" value={row.finish} onChange={(event) => updateRow(index, "finish", event.target.value)} className="w-20 rounded-md border border-zinc-300 px-2 py-1" />
+                      <input type="number" value={row.finish} disabled={Boolean(review.authoritativeResultEvidence)} onChange={(event) => updateRow(index, "finish", event.target.value)} className="w-20 rounded-md border border-zinc-300 px-2 py-1 disabled:bg-zinc-100" />
                     </td>
                     <td className="px-3 py-2 font-bold">{row.player_name}</td>
                     <td className="px-3 py-2">

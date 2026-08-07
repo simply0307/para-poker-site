@@ -48,7 +48,10 @@ test("artifact preserves the exact source bytes and is deterministic", () => {
   assert.deepEqual(first.sourceBytes, new Uint8Array(fixtureBytes));
   assert.equal(first.canonicalManifest, second.canonicalManifest);
   assert.equal(first.manifestChecksum, second.manifestChecksum);
-  assert.equal(first.manifestChecksum, "9e4b794237c450142d2c6b7b6f56cb3b72b0ced053d63ca64ca8a6feffd0756c");
+  const expectedManifestChecksum = fixtureBytes.includes(Buffer.from("\r\n"))
+    ? "edb376353133ad15e9e14c3392ec2e534f3b195944410b5e6cb3dc4c499be926"
+    : "9e4b794237c450142d2c6b7b6f56cb3b72b0ced053d63ca64ca8a6feffd0756c";
+  assert.equal(first.manifestChecksum, expectedManifestChecksum);
   assert.deepEqual(first.manifest.totals, {
     sourceRows: 25,
     sourceBytes: fixtureBytes.byteLength,

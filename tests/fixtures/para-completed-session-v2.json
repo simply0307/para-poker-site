@@ -1,0 +1,666 @@
+{
+  "schemaVersion": "para-completed-session-v2",
+  "source": {
+    "producingApplication": "parapoker-official-client",
+    "applicationVersion": "0.1.0",
+    "buildVersion": "ceiling-one-fixture-build",
+    "packageCreationVersion": "para-completed-session-v2",
+    "packageCreatedAt": "2026-08-07T12:00:10.000Z",
+    "sourceAuthority": "server-authoritative",
+    "sourceMatchId": "ceiling-one-match",
+    "sourceTableId": "ceiling-one-table",
+    "blueprintId": "official-heads-up-v1",
+    "rulesContractVersion": "para-poker-rules-v0",
+    "eventSchemaVersion": "poker-event-v2"
+  },
+  "competition": {
+    "producerMatchId": "ceiling-one-match",
+    "producerTableId": "ceiling-one-table",
+    "tableId": "ceiling-one-table",
+    "gameFormat": "heads-up-no-limit-holdem",
+    "visibility": "private",
+    "officiality": "official"
+  },
+  "rules": {
+    "mode": "heads-up",
+    "format": "league",
+    "startingStack": 2,
+    "blinds": {
+      "smallBlind": 1,
+      "bigBlind": 2
+    }
+  },
+  "participants": [
+    {
+      "sourcePlayerId": "eggs-player-alice",
+      "seatId": "seat-1",
+      "displayName": "Alice",
+      "kind": "human",
+      "startingStack": 2,
+      "finalStack": 4,
+      "finish": 1,
+      "externalIdentities": []
+    },
+    {
+      "sourcePlayerId": "eggs-player-bob",
+      "seatId": "seat-2",
+      "displayName": "Bob",
+      "kind": "human",
+      "startingStack": 2,
+      "finalStack": 0,
+      "finish": 2,
+      "externalIdentities": []
+    }
+  ],
+  "hands": [
+    {
+      "handId": "ceiling-one-match:hand:1",
+      "handNumber": 1,
+      "startedAt": "2026-08-07T12:00:10.000Z",
+      "endedAt": "2026-08-07T12:00:10.014Z",
+      "dealerSeatId": "seat-1",
+      "participantSeatIds": [
+        "seat-1",
+        "seat-2"
+      ],
+      "positions": {
+        "seat-1": "BTN/SB",
+        "seat-2": "BB"
+      },
+      "stackCheckpoints": {
+        "initial": {
+          "seat-1": 2,
+          "seat-2": 2
+        },
+        "final": {
+          "seat-1": 4,
+          "seat-2": 0
+        }
+      },
+      "blinds": {
+        "smallBlindSeatId": "seat-1",
+        "bigBlindSeatId": "seat-2",
+        "smallBlind": 1,
+        "bigBlind": 2
+      },
+      "streets": [
+        {
+          "street": "preflop",
+          "board": []
+        },
+        {
+          "street": "flop",
+          "board": [
+            "2c",
+            "3d",
+            "7h",
+            "9s",
+            "Jc"
+          ],
+          "transitionEventId": "hand-1-event-9"
+        },
+        {
+          "street": "turn",
+          "board": [
+            "2c",
+            "3d",
+            "7h",
+            "9s",
+            "Jc"
+          ],
+          "transitionEventId": "hand-1-event-10"
+        },
+        {
+          "street": "river",
+          "board": [
+            "2c",
+            "3d",
+            "7h",
+            "9s",
+            "Jc"
+          ],
+          "transitionEventId": "hand-1-event-11"
+        }
+      ],
+      "actions": [
+        {
+          "eventId": "hand-1-event-2",
+          "sequenceNumber": 2,
+          "street": "preflop",
+          "seatId": "seat-1",
+          "kind": "blind",
+          "action": "smallBlind",
+          "amount": 1,
+          "targetContribution": 1
+        },
+        {
+          "eventId": "hand-1-event-3",
+          "sequenceNumber": 3,
+          "street": "preflop",
+          "seatId": "seat-2",
+          "kind": "blind",
+          "action": "bigBlind",
+          "amount": 2,
+          "targetContribution": 2
+        },
+        {
+          "eventId": "hand-1-event-8",
+          "sequenceNumber": 8,
+          "commandId": "fixture-final-command",
+          "street": "preflop",
+          "seatId": "seat-1",
+          "kind": "playerAction",
+          "action": "call",
+          "amount": 1,
+          "targetContribution": 2
+        }
+      ],
+      "contributions": {
+        "seat-1": 2,
+        "seat-2": 2
+      },
+      "revealedCards": {
+        "seat-1": [
+          "As",
+          "Ah"
+        ],
+        "seat-2": [
+          "Kc",
+          "Kd"
+        ]
+      },
+      "settlement": {
+        "completionEventId": "hand-1-event-14",
+        "completionReason": "showdown",
+        "settlementEventIds": [
+          "hand-1-event-13"
+        ],
+        "totalContributed": 4,
+        "totalAwarded": 4,
+        "pots": [
+          {
+            "amount": 4,
+            "eligibleSeatIds": [
+              "seat-1",
+              "seat-2"
+            ]
+          }
+        ],
+        "awards": [
+          {
+            "seatId": "seat-1",
+            "amount": 4,
+            "handName": "One pair",
+            "cards": [
+              "As",
+              "Ah",
+              "7h",
+              "9s",
+              "Jc"
+            ]
+          }
+        ],
+        "refunds": []
+      },
+      "eventIds": [
+        "hand-1-event-1",
+        "hand-1-event-2",
+        "hand-1-event-3",
+        "hand-1-event-6",
+        "hand-1-event-7",
+        "hand-1-event-8",
+        "hand-1-event-9",
+        "hand-1-event-10",
+        "hand-1-event-11",
+        "hand-1-event-12",
+        "hand-1-event-13",
+        "hand-1-event-14",
+        "hand-1-event-15"
+      ]
+    }
+  ],
+  "orderedPublicEvents": [
+    {
+      "schemaVersion": "poker-event-v2",
+      "eventId": "hand-1-event-1",
+      "sequenceNumber": 1,
+      "handId": 1,
+      "visibility": "public",
+      "type": "handStarted",
+      "payload": {
+        "dealerSeatId": "seat-1",
+        "participantSeatIds": [
+          "seat-1",
+          "seat-2"
+        ]
+      }
+    },
+    {
+      "schemaVersion": "poker-event-v2",
+      "eventId": "hand-1-event-2",
+      "sequenceNumber": 2,
+      "handId": 1,
+      "visibility": "public",
+      "type": "blindPosted",
+      "payload": {
+        "seatId": "seat-1",
+        "blind": "small",
+        "amount": 1
+      }
+    },
+    {
+      "schemaVersion": "poker-event-v2",
+      "eventId": "hand-1-event-3",
+      "sequenceNumber": 3,
+      "handId": 1,
+      "visibility": "public",
+      "type": "blindPosted",
+      "payload": {
+        "seatId": "seat-2",
+        "blind": "big",
+        "amount": 2
+      }
+    },
+    {
+      "schemaVersion": "poker-event-v2",
+      "eventId": "hand-1-event-6",
+      "sequenceNumber": 6,
+      "handId": 1,
+      "commandId": "fixture-faction-command",
+      "visibility": "public",
+      "type": "factionAbilityUsed",
+      "payload": {
+        "actorSeatId": "seat-1",
+        "actorPlayerId": "eggs-player-alice",
+        "abilityId": "eggs-proof-marker",
+        "abilityVersion": 1,
+        "timing": {
+          "phase": "beforeAction",
+          "ordinal": 1
+        },
+        "cost": [
+          {
+            "resource": "eggs-proof-charge",
+            "amount": 1
+          }
+        ],
+        "targets": [
+          {
+            "kind": "seat",
+            "targetId": "seat-2"
+          }
+        ],
+        "resultingEventIds": [
+          "hand-1-event-7"
+        ]
+      }
+    },
+    {
+      "schemaVersion": "poker-event-v2",
+      "eventId": "hand-1-event-7",
+      "sequenceNumber": 7,
+      "handId": 1,
+      "commandId": "fixture-faction-command",
+      "visibility": "public",
+      "type": "factionAbilityEffectApplied",
+      "payload": {
+        "actorSeatId": "seat-1",
+        "abilityId": "eggs-proof-marker",
+        "abilityVersion": 1,
+        "targetSeatId": "seat-2",
+        "effect": "proofMarker"
+      }
+    },
+    {
+      "schemaVersion": "poker-event-v2",
+      "eventId": "hand-1-event-8",
+      "sequenceNumber": 8,
+      "handId": 1,
+      "commandId": "fixture-final-command",
+      "visibility": "public",
+      "type": "actionApplied",
+      "payload": {
+        "seatId": "seat-1",
+        "action": "call",
+        "amount": 1,
+        "targetContribution": 2
+      }
+    },
+    {
+      "schemaVersion": "poker-event-v2",
+      "eventId": "hand-1-event-9",
+      "sequenceNumber": 9,
+      "handId": 1,
+      "visibility": "public",
+      "type": "streetAdvanced",
+      "payload": {
+        "street": "flop",
+        "communityCards": [
+          {
+            "rank": "2",
+            "suit": "clubs"
+          },
+          {
+            "rank": "3",
+            "suit": "diamonds"
+          },
+          {
+            "rank": "7",
+            "suit": "hearts"
+          },
+          {
+            "rank": "9",
+            "suit": "spades"
+          },
+          {
+            "rank": "J",
+            "suit": "clubs"
+          }
+        ]
+      }
+    },
+    {
+      "schemaVersion": "poker-event-v2",
+      "eventId": "hand-1-event-10",
+      "sequenceNumber": 10,
+      "handId": 1,
+      "visibility": "public",
+      "type": "streetAdvanced",
+      "payload": {
+        "street": "turn",
+        "communityCards": [
+          {
+            "rank": "2",
+            "suit": "clubs"
+          },
+          {
+            "rank": "3",
+            "suit": "diamonds"
+          },
+          {
+            "rank": "7",
+            "suit": "hearts"
+          },
+          {
+            "rank": "9",
+            "suit": "spades"
+          },
+          {
+            "rank": "J",
+            "suit": "clubs"
+          }
+        ]
+      }
+    },
+    {
+      "schemaVersion": "poker-event-v2",
+      "eventId": "hand-1-event-11",
+      "sequenceNumber": 11,
+      "handId": 1,
+      "visibility": "public",
+      "type": "streetAdvanced",
+      "payload": {
+        "street": "river",
+        "communityCards": [
+          {
+            "rank": "2",
+            "suit": "clubs"
+          },
+          {
+            "rank": "3",
+            "suit": "diamonds"
+          },
+          {
+            "rank": "7",
+            "suit": "hearts"
+          },
+          {
+            "rank": "9",
+            "suit": "spades"
+          },
+          {
+            "rank": "J",
+            "suit": "clubs"
+          }
+        ]
+      }
+    },
+    {
+      "schemaVersion": "poker-event-v2",
+      "eventId": "hand-1-event-12",
+      "sequenceNumber": 12,
+      "handId": 1,
+      "visibility": "public",
+      "type": "showdown",
+      "payload": {
+        "revealedCards": {
+          "seat-1": [
+            {
+              "rank": "A",
+              "suit": "spades"
+            },
+            {
+              "rank": "A",
+              "suit": "hearts"
+            }
+          ],
+          "seat-2": [
+            {
+              "rank": "K",
+              "suit": "clubs"
+            },
+            {
+              "rank": "K",
+              "suit": "diamonds"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "schemaVersion": "poker-event-v2",
+      "eventId": "hand-1-event-13",
+      "sequenceNumber": 13,
+      "handId": 1,
+      "visibility": "public",
+      "type": "potAwarded",
+      "payload": {
+        "winners": [
+          {
+            "seatId": "seat-1",
+            "amount": 4,
+            "handName": "One pair",
+            "cards": [
+              {
+                "rank": "A",
+                "suit": "spades"
+              },
+              {
+                "rank": "A",
+                "suit": "hearts"
+              },
+              {
+                "rank": "7",
+                "suit": "hearts"
+              },
+              {
+                "rank": "9",
+                "suit": "spades"
+              },
+              {
+                "rank": "J",
+                "suit": "clubs"
+              }
+            ]
+          }
+        ],
+        "pots": [
+          {
+            "amount": 4,
+            "eligibleSeatIds": [
+              "seat-1",
+              "seat-2"
+            ]
+          }
+        ],
+        "refunds": []
+      }
+    },
+    {
+      "schemaVersion": "poker-event-v2",
+      "eventId": "hand-1-event-14",
+      "sequenceNumber": 14,
+      "handId": 1,
+      "visibility": "public",
+      "type": "handCompleted",
+      "payload": {
+        "reason": "showdown",
+        "finalStacks": {
+          "seat-1": 4,
+          "seat-2": 0
+        },
+        "settlementEventIds": [
+          "hand-1-event-13"
+        ]
+      }
+    },
+    {
+      "schemaVersion": "poker-event-v2",
+      "eventId": "hand-1-event-15",
+      "sequenceNumber": 15,
+      "handId": 1,
+      "visibility": "public",
+      "type": "matchComplete",
+      "payload": {
+        "winnerSeatId": "seat-1"
+      }
+    }
+  ],
+  "results": {
+    "status": "complete",
+    "winnerSeatIds": [
+      "seat-1"
+    ],
+    "finalStacks": {
+      "seat-1": 4,
+      "seat-2": 0
+    },
+    "finishOrder": [
+      {
+        "seatId": "seat-1",
+        "finish": 1,
+        "finalStack": 4
+      },
+      {
+        "seatId": "seat-2",
+        "finish": 2,
+        "finalStack": 0
+      }
+    ],
+    "eliminationOrder": [
+      "seat-2",
+      "seat-1"
+    ],
+    "matchCompletionEventId": "hand-1-event-15"
+  },
+  "playerSessionStatistics": [
+    {
+      "matchId": "ceiling-one-match",
+      "seatId": "seat-1",
+      "handsPlayed": 1,
+      "handsStarted": 1,
+      "actions": 1,
+      "folds": 0,
+      "checks": 0,
+      "calls": 1,
+      "bets": 0,
+      "raises": 0,
+      "allIns": 0,
+      "potsWon": 1,
+      "chipsAwarded": 4
+    }
+  ],
+  "authorityConsequences": {
+    "progressionEffects": [
+      {
+        "effectId": "ceiling-one-match:ceiling-one-match:hand:1:achievement:first-authoritative-hand-v1:eggs-player-alice",
+        "matchId": "ceiling-one-match",
+        "handId": "ceiling-one-match:hand:1",
+        "playerId": "eggs-player-alice",
+        "effectType": "achievement",
+        "payload": {
+          "definitionId": "first-authoritative-hand",
+          "definitionVersion": 1,
+          "unlocked": true
+        },
+        "createdAt": "2026-08-07T12:00:10.000Z"
+      },
+      {
+        "effectId": "ceiling-one-match:ceiling-one-match:hand:1:campaign:authority-floor-v1:eggs-player-alice",
+        "matchId": "ceiling-one-match",
+        "handId": "ceiling-one-match:hand:1",
+        "playerId": "eggs-player-alice",
+        "effectType": "campaignProgress",
+        "payload": {
+          "campaignId": "authority-floor",
+          "campaignVersion": 1,
+          "objectiveId": "complete-authoritative-hand",
+          "increment": 1
+        },
+        "createdAt": "2026-08-07T12:00:10.000Z"
+      },
+      {
+        "effectId": "ceiling-one-match:ceiling-one-match:hand:1:faction:hand-1-event-6:eggs-player-alice",
+        "matchId": "ceiling-one-match",
+        "handId": "ceiling-one-match:hand:1",
+        "playerId": "eggs-player-alice",
+        "effectType": "factionCredit",
+        "payload": {
+          "abilityId": "eggs-proof-marker",
+          "abilityVersion": 1,
+          "journalEventId": "hand-1-event-6",
+          "resultingEventIds": [
+            "hand-1-event-7"
+          ],
+          "creditDelta": 1
+        },
+        "createdAt": "2026-08-07T12:00:10.000Z"
+      },
+      {
+        "effectId": "ceiling-one-match:ceiling-one-match:hand:1:player-stat:eggs-player-alice",
+        "matchId": "ceiling-one-match",
+        "handId": "ceiling-one-match:hand:1",
+        "playerId": "eggs-player-alice",
+        "effectType": "playerStatProjection",
+        "payload": {
+          "snapshot": {
+            "matchId": "ceiling-one-match",
+            "seatId": "seat-1",
+            "handsPlayed": 1,
+            "handsStarted": 1,
+            "actions": 1,
+            "folds": 0,
+            "checks": 0,
+            "calls": 1,
+            "bets": 0,
+            "raises": 0,
+            "allIns": 0,
+            "potsWon": 1,
+            "chipsAwarded": 4
+          }
+        },
+        "createdAt": "2026-08-07T12:00:10.000Z"
+      }
+    ]
+  },
+  "integrity": {
+    "canonicalSerialization": "recursive-key-sort-arrays-preserved-v1",
+    "checksumAlgorithm": "canonical-json-sha256-v1",
+    "contractSchemaChecksum": "50843d64ca62fa910d87cb893651a4a7664c796afa11f55247d33fedaeb3192c",
+    "eventCount": 13,
+    "handCount": 1,
+    "participantCount": 2,
+    "sourceMatchId": "ceiling-one-match",
+    "packageChecksum": "20fe266f641b0da463897f55593f6bfc1d3e7a0ed41f37358578a1440ba3abf1"
+  }
+}

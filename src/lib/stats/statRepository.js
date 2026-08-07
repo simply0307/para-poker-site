@@ -11,6 +11,7 @@ import {
   deriveSessionResultSuggestionsFromRows,
 } from "@/lib/stats/calculators";
 import { DEFAULT_LEAGUE_RULES } from "@/lib/league/rulesConstants";
+import { preserveAuthoritativeResultEvidence } from "@/lib/imports/authoritativeResultReview";
 
 function text(value, fallback = "") {
   if (value === null || value === undefined || value === "") return fallback;
@@ -236,6 +237,13 @@ export async function getSessionResultReview(sessionIdOrCode) {
     []
   );
   const storedStats = stats?.length ? stats : derived.stats;
+  const authoritativeResultEvidence = Boolean(
+    existingResults?.length
+    && derived.session.current_evidence_revision_id
+    && existingResults.every((row) =>
+      row.confidence === "authoritative_eggs"
+      && row.evidence_revision_id === derived.session.current_evidence_revision_id)
+  );
   return {
     session: derived.session,
     stats: storedStats,
@@ -245,6 +253,7 @@ export async function getSessionResultReview(sessionIdOrCode) {
       sessionStats: storedStats,
       actions: derived.actions,
     }),
+    authoritativeResultEvidence,
   };
 }
 
@@ -277,11 +286,29 @@ export function normalizeConfirmedResults(results = [], { sessionId, rules = DEF
 export async function saveConfirmedSessionResults(sessionIdOrCode, results = [], { rules = DEFAULT_LEAGUE_RULES } = {}) {
   const session = await getSession(sessionIdOrCode);
   if (!session) throw new Error("Session not found.");
-  const rows = normalizeConfirmedResults(results, { sessionId: session.id, rules });
+  const { data: existingResults, error: existingResultsError } = await supabase
+    .from("session_results")
+    .select("*")
+    .eq("session_id", session.id)
+    .order("finish", { ascending: true });
+  if (existingResultsError) throw new Error(`Could not read current session result evidence: ${existingResultsError.message}`);
+  const authoritativeEvidence = Boolean(
+    existingResults?.length
+    && session.current_evidence_revision_id
+    && existingResults.every((row) =>
+      row.confidence === "authoritative_eggs"
+      && row.evidence_revision_id === session.current_evidence_revision_id)
+  );
+  const rows = authoritativeEvidence
+    ? preserveAuthoritativeResultEvidence(existingResults, results, { rules })
+    : normalizeConfirmedResults(results, { sessionId: session.id, rules });
   if (!rows.length) throw new Error("At least one confirmed result is required.");
 
-  await supabase.from("session_results").delete().eq("session_id", session.id);
-  const { data, error } = await supabase.from("session_results").insert(rows).select("*");
+  if (!authoritativeEvidence) await supabase.from("session_results").delete().eq("session_id", session.id);
+  const query = authoritativeEvidence
+    ? supabase.from("session_results").upsert(rows, { onConflict: "id" })
+    : supabase.from("session_results").insert(rows);
+  const { data, error } = await query.select("*");
   if (error) throw new Error(`Could not save confirmed session results: ${error.message}`);
 
   await recalculateSeasonStats(session.season_code || "S0");

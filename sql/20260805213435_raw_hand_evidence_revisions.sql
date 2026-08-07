@@ -732,7 +732,7 @@ begin
       limit 1;
 
       if not found then
-        v_slug := nullif(btrim(both '-' from regexp_replace(lower(v_row->>'displayName'), '[^a-z0-9]+', '-', 'g')), '');
+        v_slug := nullif(btrim(regexp_replace(lower(v_row->>'displayName'), '[^a-z0-9]+', '-', 'g'), '-'), '');
         v_slug := coalesce(v_slug, 'player');
         if exists (select 1 from public.players where slug = v_slug) then
           v_slug := left(v_slug, 67) || '-' || left(encode(digest(convert_to(v_row->>'rawName', 'utf8'), 'sha256'), 'hex'), 12);

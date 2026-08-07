@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { AdminShell, AdminStat } from "@/components/admin-newsroom/AdminShell";
 import { ImportSessionManager } from "@/components/admin-newsroom/ImportSessionManager";
+import { EggsSessionImportPanel } from "@/components/admin-newsroom/EggsSessionImportPanel";
 import { RawHandImportPanel } from "@/components/admin-newsroom/RawHandImportPanel";
 import { SessionResultReviewPanel } from "@/components/admin-newsroom/SessionResultReviewPanel";
 import { buildImportHealthViewModel } from "@/lib/newsroom/importHealth";
-import { formatNumber } from "@/lib/newsroom/data";
+import { formatNumber, safeQuery, supabase } from "@/lib/newsroom/data";
 import { readSeasonSettings } from "@/lib/newsroom/seasonSettings";
 
 export const dynamic = "force-dynamic";
@@ -16,13 +17,18 @@ function statusClass(status) {
 }
 
 export default async function AdminImportsPage() {
-  const [health, seasonSettings] = await Promise.all([buildImportHealthViewModel(), readSeasonSettings()]);
+  const [health, seasonSettings, leaguePlayers] = await Promise.all([
+    buildImportHealthViewModel(),
+    readSeasonSettings(),
+    safeQuery(supabase.from("players").select("id,display_name").order("display_name"), []),
+  ]);
 
   return (
     <AdminShell
       title="Import control room"
-      description="Import raw hand-history CSV files into Supabase, then audit session, hand, action, moment, result, and player-stat coverage before generating or publishing coverage."
+      description="Import durable EGGS completed-session evidence or legacy raw hand-history CSV, then audit the canonical session projections before publishing coverage."
     >
+      <EggsSessionImportPanel initialSeasonCode={seasonSettings.activeSeasonCode} existingSessions={health.sessions} leaguePlayers={leaguePlayers} />
       <RawHandImportPanel initialSeasonCode={seasonSettings.activeSeasonCode} existingSessions={health.sessions} />
       <ImportSessionManager sessions={health.sessions} />
       <SessionResultReviewPanel sessions={health.sessions} />

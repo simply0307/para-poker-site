@@ -5,6 +5,7 @@ import test from "node:test";
 import { fileURLToPath } from "node:url";
 import pg from "pg";
 import { buildRawHandImportArtifact } from "../src/lib/imports/rawHandImportArtifact.js";
+import { buildEggsSessionImportArtifact, computeEggsPackageChecksum } from "../src/lib/imports/eggsSessionPackageArtifact.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const requiredEnvironment = [
@@ -86,6 +87,36 @@ async function commitPreview(client, preview, { confirmReplace = false } = {}) {
   return rows[0].result;
 }
 
+function eggsArtifact(packageValue, leaguePlayers, { sessionCode = "S0-EGGS-INTEGRATION", replaceExisting = false } = {}) {
+  return buildEggsSessionImportArtifact({
+    sourceBytes: new TextEncoder().encode(JSON.stringify(packageValue)),
+    source: { filename: "completed-session-v2.json", mediaType: "application/json" },
+    metadata: { sessionCode, seasonCode: "S0", replaceExisting },
+    participantMappings: {
+      "eggs-player-alice": leaguePlayers[0].id,
+      "eggs-player-bob": leaguePlayers[1].id,
+    },
+    leaguePlayers,
+  });
+}
+
+async function createEggsPreview(client, artifact) {
+  const { rows } = await client.query(
+    `select public.create_eggs_session_import_preview($1,$2,$3,$4,$5,$6,$7,$8) as result`,
+    [artifact.manifest.source.filename, artifact.manifest.source.mediaType, Buffer.from(artifact.sourceBytes).toString("base64"),
+      artifact.canonicalMetadata, artifact.parserVersion, artifact.canonicalManifest, artifact.canonicalValidationReport, null]
+  );
+  return rows[0].result;
+}
+
+async function commitEggsPreview(client, preview, { confirmReplace = false } = {}) {
+  const { rows } = await client.query(
+    `select public.commit_eggs_session_import($1,$2,true,$3,$4) as result`,
+    [preview.importId, preview.previewChecksum, confirmReplace, preview.expectedCurrentEvidenceRevisionId]
+  );
+  return rows[0].result;
+}
+
 test("raw-hand preview and commit database behavior", { skip: integrationEnabled ? false : `Set the disposable Supabase test environment (${missingEnvironment.join(", ") || "destructive flag missing"}).` }, async () => {
   assertDisposableTarget();
   const client = new pg.Client({ connectionString: process.env.SUPABASE_TEST_DATABASE_URL, ssl: { rejectUnauthorized: false } });
@@ -97,9 +128,10 @@ test("raw-hand preview and commit database behavior", { skip: integrationEnabled
       "tests/database/raw-hand-import-core-schema.sql",
       "sql/20260710_newsroom_recap_workflow.sql",
       "sql/20260713_game_session_imports.sql",
-      "sql/20260715_big_blind_pot_normalization.sql",
       "sql/20260715_player_stat_aggregates.sql",
+      "sql/20260715_big_blind_pot_normalization.sql",
       "sql/20260805213435_raw_hand_evidence_revisions.sql",
+      "sql/20260807_eggs_completed_session_v2.sql",
     ]) {
       await client.query(sql(migration));
     }
@@ -109,6 +141,10 @@ test("raw-hand preview and commit database behavior", { skip: integrationEnabled
       has_function_privilege('service_role', 'public.commit_raw_hand_session_import(uuid,text,boolean,boolean,uuid)', 'execute') as service_commit,
       has_function_privilege('anon', 'public.create_raw_hand_import_preview(text,text,text,text,text,text,text,uuid)', 'execute') as anon_preview,
       has_function_privilege('authenticated', 'public.commit_raw_hand_session_import(uuid,text,boolean,boolean,uuid)', 'execute') as authenticated_commit,
+      has_function_privilege('service_role', 'public.create_eggs_session_import_preview(text,text,text,text,text,text,text,uuid)', 'execute') as service_eggs_preview,
+      has_function_privilege('service_role', 'public.commit_eggs_session_import(uuid,text,boolean,boolean,uuid)', 'execute') as service_eggs_commit,
+      has_function_privilege('anon', 'public.create_eggs_session_import_preview(text,text,text,text,text,text,text,uuid)', 'execute') as anon_eggs_preview,
+      has_function_privilege('authenticated', 'public.commit_eggs_session_import(uuid,text,boolean,boolean,uuid)', 'execute') as authenticated_eggs_commit,
       has_table_privilege('service_role', 'public.game_session_imports', 'select,insert,update') as service_ledger,
       has_table_privilege('anon', 'public.game_session_imports', 'select') as anon_ledger`);
     assert.deepEqual(privileges.rows[0], {
@@ -116,6 +152,10 @@ test("raw-hand preview and commit database behavior", { skip: integrationEnabled
       service_commit: true,
       anon_preview: false,
       authenticated_commit: false,
+      service_eggs_preview: true,
+      service_eggs_commit: true,
+      anon_eggs_preview: false,
+      authenticated_eggs_commit: false,
       service_ledger: true,
       anon_ledger: false,
     });
@@ -253,6 +293,85 @@ test("raw-hand preview and commit database behavior", { skip: integrationEnabled
     );
     assert.equal(legacy.rows[0].current_evidence_revision_id, null);
     assert.equal(legacy.rows[0].result_review_status, "legacy_unversioned");
+
+    const leaguePlayers = (await client.query(
+      `insert into public.players(display_name,pokernow_name,slug) values
+       ('League Alice','eggs-alice','league-alice'),('League Bob','eggs-bob','league-bob')
+       returning id,display_name`
+    )).rows;
+    const completedPackage = JSON.parse(fs.readFileSync(path.join(root, "tests/fixtures/para-completed-session-v2.json"), "utf8"));
+    const eggs = eggsArtifact(completedPackage, leaguePlayers);
+    assert.equal(eggs.validationReport.valid, true);
+    const eggsPreview = await createEggsPreview(client, eggs);
+    assert.equal(eggsPreview.status, "ready");
+    const sameEggsPreview = await createEggsPreview(client, eggs);
+    assert.equal(sameEggsPreview.importId, eggsPreview.importId);
+    assert.equal(sameEggsPreview.idempotent, true);
+    const eggsCommit = await commitEggsPreview(client, eggsPreview);
+    assert.equal(eggsCommit.status, "imported");
+    assert.deepEqual(eggsCommit.insertedCounts, {
+      hands: 1,
+      actions: 3,
+      notableHands: 1,
+      playerSessionStats: 2,
+      sessionResults: 2,
+    });
+    const eggsRetry = await commitEggsPreview(client, eggsPreview);
+    assert.equal(eggsRetry.idempotent, true);
+    const importedEggsPreview = await createEggsPreview(client, eggs);
+    assert.equal(importedEggsPreview.status, "conflict");
+    assert.equal(importedEggsPreview.sourceMatchPreviouslyImported, true);
+
+    const conflictingPackage = structuredClone(completedPackage);
+    conflictingPackage.source.buildVersion = "conflicting-authority-build";
+    conflictingPackage.integrity.packageChecksum = computeEggsPackageChecksum(conflictingPackage);
+    const conflictingEggsPreview = await createEggsPreview(client, eggsArtifact(conflictingPackage, leaguePlayers));
+    assert.equal(conflictingEggsPreview.sourceMatchPreviouslyImported, true);
+    assert.equal(conflictingEggsPreview.status, "conflict");
+    assert.equal((await commitEggsPreview(client, conflictingEggsPreview)).status, "conflict");
+    const eggsRows = await client.query(
+      `select
+        (select count(*) from public.hands where session_id=$1)::integer hands,
+        (select count(*) from public.actions where session_id=$1)::integer actions,
+        (select count(*) from public.player_session_stats where session_id=$1)::integer stats,
+        (select count(*) from public.session_results where session_id=$1 and not approved and evidence_revision_id=$2)::integer results,
+        (select count(*) from public.actions where session_id=$1 and source_event_id is not null)::integer event_actions`,
+      [eggsCommit.sessionId, eggsCommit.revisionId]
+    );
+    assert.deepEqual(eggsRows.rows[0], { hands: 1, actions: 3, stats: 2, results: 2, event_actions: 3 });
+
+    await client.query(`
+      create or replace function public.fail_eggs_import_action() returns trigger language plpgsql as $$
+      begin
+        if exists (select 1 from public.session_evidence_revisions where id = new.evidence_revision_id and parser_version = 'eggs-session-package-v2')
+          then raise exception 'induced EGGS evidence write failure';
+        end if;
+        return new;
+      end $$;
+      create trigger fail_eggs_import_action before insert on public.actions
+      for each row execute function public.fail_eggs_import_action();
+    `);
+    const failingEggs = eggsArtifact(conflictingPackage, leaguePlayers, { replaceExisting: true });
+    const failingEggsPreview = await createEggsPreview(client, failingEggs);
+    assert.equal(failingEggsPreview.status, "ready");
+    assert.equal(failingEggsPreview.sourceMatchPreviouslyImported, true);
+    const beforeEggsFailure = await client.query(
+      `select current_evidence_revision_id,
+        (select count(*) from public.actions where session_id=sessions.id)::integer action_count,
+        (select count(*) from public.session_results where session_id=sessions.id)::integer result_count
+       from public.sessions where id=$1`, [eggsCommit.sessionId]
+    );
+    const failedEggsCommit = await commitEggsPreview(client, failingEggsPreview, { confirmReplace: true });
+    assert.equal(failedEggsCommit.status, "failed");
+    assert.equal(failedEggsCommit.failureStage, "actions");
+    const afterEggsFailure = await client.query(
+      `select current_evidence_revision_id,
+        (select count(*) from public.actions where session_id=sessions.id)::integer action_count,
+        (select count(*) from public.session_results where session_id=sessions.id)::integer result_count
+       from public.sessions where id=$1`, [eggsCommit.sessionId]
+    );
+    assert.deepEqual(afterEggsFailure.rows, beforeEggsFailure.rows);
+    await client.query("drop trigger fail_eggs_import_action on public.actions; drop function public.fail_eggs_import_action();");
   } finally {
     if (failureTriggerInstalled) {
       await client.query("drop trigger if exists fail_marked_import_action on public.actions; drop function if exists public.fail_marked_import_action();");

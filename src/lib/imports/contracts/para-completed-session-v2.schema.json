@@ -1,0 +1,495 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.parapoker.com/para-completed-session-v2.schema.json",
+  "title": "ParaPoker Completed Authoritative Session v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "source", "competition", "rules", "participants", "hands", "orderedPublicEvents", "results", "playerSessionStatistics", "authorityConsequences", "integrity"],
+  "properties": {
+    "schemaVersion": { "const": "para-completed-session-v2" },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["producingApplication", "applicationVersion", "buildVersion", "packageCreationVersion", "packageCreatedAt", "sourceAuthority", "sourceMatchId", "sourceTableId", "blueprintId", "rulesContractVersion", "eventSchemaVersion"],
+      "properties": {
+        "producingApplication": { "const": "parapoker-official-client" },
+        "applicationVersion": { "type": "string", "minLength": 1 },
+        "buildVersion": { "type": "string", "minLength": 1 },
+        "packageCreationVersion": { "const": "para-completed-session-v2" },
+        "packageCreatedAt": { "type": "string", "minLength": 1 },
+        "sourceAuthority": { "const": "server-authoritative" },
+        "sourceMatchId": { "$ref": "#/$defs/nonEmptyString" },
+        "sourceTableId": { "$ref": "#/$defs/nonEmptyString" },
+        "blueprintId": { "$ref": "#/$defs/nonEmptyString" },
+        "rulesContractVersion": { "$ref": "#/$defs/nonEmptyString" },
+        "eventSchemaVersion": { "const": "poker-event-v2" }
+      }
+    },
+    "competition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["producerMatchId", "producerTableId", "tableId", "gameFormat", "visibility", "officiality"],
+      "properties": {
+        "producerMatchId": { "$ref": "#/$defs/nonEmptyString" },
+        "producerTableId": { "$ref": "#/$defs/nonEmptyString" },
+        "leagueId": { "$ref": "#/$defs/nonEmptyString" },
+        "seasonCode": { "$ref": "#/$defs/nonEmptyString" },
+        "leagueSessionId": { "$ref": "#/$defs/nonEmptyString" },
+        "tableId": { "$ref": "#/$defs/nonEmptyString" },
+        "gameFormat": { "const": "heads-up-no-limit-holdem" },
+        "visibility": { "enum": ["private", "unlisted", "public"] },
+        "officiality": { "const": "official" }
+      }
+    },
+    "rules": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "format", "startingStack", "blinds"],
+      "properties": {
+        "mode": { "const": "heads-up" },
+        "format": { "$ref": "#/$defs/nonEmptyString" },
+        "startingStack": { "$ref": "#/$defs/nonNegativeInteger" },
+        "blinds": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["smallBlind", "bigBlind"],
+          "properties": {
+            "smallBlind": { "$ref": "#/$defs/nonNegativeInteger" },
+            "bigBlind": { "$ref": "#/$defs/nonNegativeInteger" }
+          }
+        }
+      }
+    },
+    "participants": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": { "$ref": "#/$defs/participant" }
+    },
+    "hands": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/hand" }
+    },
+    "orderedPublicEvents": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/publicEvent" }
+    },
+    "results": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "winnerSeatIds", "finalStacks", "finishOrder", "eliminationOrder"],
+      "properties": {
+        "status": { "const": "complete" },
+        "winnerSeatIds": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/nonEmptyString" } },
+        "finalStacks": { "$ref": "#/$defs/stackMap" },
+        "finishOrder": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["seatId", "finish", "finalStack"],
+            "properties": {
+              "seatId": { "$ref": "#/$defs/nonEmptyString" },
+              "finish": { "type": "integer", "minimum": 1 },
+              "finalStack": { "$ref": "#/$defs/nonNegativeInteger" }
+            }
+          }
+        },
+        "eliminationOrder": { "type": "array", "items": { "$ref": "#/$defs/nonEmptyString" } },
+        "matchCompletionEventId": { "$ref": "#/$defs/nonEmptyString" }
+      }
+    },
+    "playerSessionStatistics": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/playerStat" }
+    },
+    "authorityConsequences": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["progressionEffects"],
+      "properties": {
+        "progressionEffects": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/progressionEffect" }
+        }
+      }
+    },
+    "integrity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["canonicalSerialization", "checksumAlgorithm", "contractSchemaChecksum", "packageChecksum", "eventCount", "handCount", "participantCount", "sourceMatchId"],
+      "properties": {
+        "canonicalSerialization": { "const": "recursive-key-sort-arrays-preserved-v1" },
+        "checksumAlgorithm": { "const": "canonical-json-sha256-v1" },
+        "contractSchemaChecksum": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "packageChecksum": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "eventCount": { "$ref": "#/$defs/nonNegativeInteger" },
+        "handCount": { "$ref": "#/$defs/nonNegativeInteger" },
+        "participantCount": { "$ref": "#/$defs/nonNegativeInteger" },
+        "sourceMatchId": { "$ref": "#/$defs/nonEmptyString" }
+      }
+    }
+  },
+  "$defs": {
+    "nonEmptyString": { "type": "string", "minLength": 1 },
+    "nonNegativeInteger": { "type": "integer", "minimum": 0 },
+    "stringArray": { "type": "array", "items": { "type": "string" } },
+    "stackMap": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/nonNegativeInteger" }
+    },
+    "participant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourcePlayerId", "seatId", "displayName", "kind", "startingStack", "finalStack", "finish", "externalIdentities"],
+      "properties": {
+        "sourcePlayerId": { "$ref": "#/$defs/nonEmptyString" },
+        "seatId": { "$ref": "#/$defs/nonEmptyString" },
+        "displayName": { "$ref": "#/$defs/nonEmptyString" },
+        "kind": { "enum": ["human", "npc"] },
+        "startingStack": { "$ref": "#/$defs/nonNegativeInteger" },
+        "finalStack": { "$ref": "#/$defs/nonNegativeInteger" },
+        "finish": { "type": "integer", "minimum": 1 },
+        "externalIdentities": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["system", "id"],
+            "properties": {
+              "system": { "$ref": "#/$defs/nonEmptyString" },
+              "id": { "$ref": "#/$defs/nonEmptyString" }
+            }
+          }
+        }
+      }
+    },
+    "action": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["eventId", "sequenceNumber", "street", "seatId", "kind", "action", "amount", "targetContribution"],
+      "properties": {
+        "eventId": { "$ref": "#/$defs/nonEmptyString" },
+        "sequenceNumber": { "type": "integer", "minimum": 1 },
+        "commandId": { "$ref": "#/$defs/nonEmptyString" },
+        "street": { "$ref": "#/$defs/street" },
+        "seatId": { "$ref": "#/$defs/nonEmptyString" },
+        "kind": { "enum": ["blind", "playerAction"] },
+        "action": { "enum": ["smallBlind", "bigBlind", "fold", "check", "call", "bet", "raise", "allIn"] },
+        "amount": { "$ref": "#/$defs/nonNegativeInteger" },
+        "targetContribution": { "$ref": "#/$defs/nonNegativeInteger" },
+        "raiseTo": { "$ref": "#/$defs/nonNegativeInteger" }
+      }
+    },
+    "street": { "enum": ["preflop", "flop", "turn", "river", "showdown"] },
+    "hand": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["handId", "handNumber", "startedAt", "endedAt", "dealerSeatId", "participantSeatIds", "positions", "stackCheckpoints", "blinds", "streets", "actions", "contributions", "revealedCards", "settlement", "eventIds"],
+      "properties": {
+        "handId": { "$ref": "#/$defs/nonEmptyString" },
+        "handNumber": { "type": "integer", "minimum": 1 },
+        "startedAt": { "$ref": "#/$defs/nonEmptyString" },
+        "endedAt": { "$ref": "#/$defs/nonEmptyString" },
+        "dealerSeatId": { "$ref": "#/$defs/nonEmptyString" },
+        "participantSeatIds": { "type": "array", "minItems": 2, "items": { "$ref": "#/$defs/nonEmptyString" } },
+        "positions": { "type": "object", "additionalProperties": { "type": "string" } },
+        "stackCheckpoints": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["initial", "final"],
+          "properties": { "initial": { "$ref": "#/$defs/stackMap" }, "final": { "$ref": "#/$defs/stackMap" } }
+        },
+        "blinds": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["smallBlindSeatId", "bigBlindSeatId", "smallBlind", "bigBlind"],
+          "properties": {
+            "smallBlindSeatId": { "$ref": "#/$defs/nonEmptyString" },
+            "bigBlindSeatId": { "$ref": "#/$defs/nonEmptyString" },
+            "smallBlind": { "$ref": "#/$defs/nonNegativeInteger" },
+            "bigBlind": { "$ref": "#/$defs/nonNegativeInteger" }
+          }
+        },
+        "streets": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["street", "board"],
+            "properties": {
+              "street": { "$ref": "#/$defs/street" },
+              "board": { "$ref": "#/$defs/stringArray" },
+              "transitionEventId": { "$ref": "#/$defs/nonEmptyString" }
+            }
+          }
+        },
+        "actions": { "type": "array", "items": { "$ref": "#/$defs/action" } },
+        "contributions": { "$ref": "#/$defs/stackMap" },
+        "revealedCards": { "type": "object", "additionalProperties": { "$ref": "#/$defs/stringArray" } },
+        "settlement": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["completionEventId", "completionReason", "settlementEventIds", "totalContributed", "totalAwarded", "pots", "awards", "refunds"],
+          "properties": {
+            "completionEventId": { "$ref": "#/$defs/nonEmptyString" },
+            "completionReason": { "enum": ["uncontested", "showdown"] },
+            "settlementEventIds": { "$ref": "#/$defs/stringArray" },
+            "totalContributed": { "$ref": "#/$defs/nonNegativeInteger" },
+            "totalAwarded": { "$ref": "#/$defs/nonNegativeInteger" },
+            "pots": { "type": "array", "items": { "$ref": "#/$defs/pot" } },
+            "awards": { "type": "array", "items": { "$ref": "#/$defs/award" } },
+            "refunds": { "type": "array", "items": { "$ref": "#/$defs/refund" } }
+          }
+        },
+        "eventIds": { "$ref": "#/$defs/stringArray" }
+      }
+    },
+    "pot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["amount", "eligibleSeatIds"],
+      "properties": {
+        "amount": { "$ref": "#/$defs/nonNegativeInteger" },
+        "eligibleSeatIds": { "$ref": "#/$defs/stringArray" }
+      }
+    },
+    "award": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["seatId", "amount"],
+      "properties": {
+        "seatId": { "$ref": "#/$defs/nonEmptyString" },
+        "amount": { "$ref": "#/$defs/nonNegativeInteger" },
+        "handName": { "type": "string" },
+        "cards": { "$ref": "#/$defs/stringArray" }
+      }
+    },
+    "refund": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["seatId", "amount"],
+      "properties": { "seatId": { "$ref": "#/$defs/nonEmptyString" }, "amount": { "$ref": "#/$defs/nonNegativeInteger" } }
+    },
+    "card": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rank", "suit"],
+      "properties": {
+        "rank": { "enum": ["2", "3", "4", "5", "6", "7", "8", "9", "T", "J", "Q", "K", "A"] },
+        "suit": { "enum": ["clubs", "diamonds", "hearts", "spades"] }
+      }
+    },
+    "eventBase": {
+      "type": "object",
+      "required": ["schemaVersion", "eventId", "sequenceNumber", "handId", "visibility", "type", "payload"],
+      "properties": {
+        "schemaVersion": { "const": "poker-event-v2" },
+        "eventId": { "$ref": "#/$defs/nonEmptyString" },
+        "sequenceNumber": { "type": "integer", "minimum": 1 },
+        "handId": { "type": "integer", "minimum": 1 },
+        "commandId": { "$ref": "#/$defs/nonEmptyString" },
+        "visibility": { "const": "public" },
+        "type": true,
+        "payload": true
+      }
+    },
+    "publicEvent": {
+      "oneOf": [
+        { "$ref": "#/$defs/handStartedEvent" },
+        { "$ref": "#/$defs/blindPostedEvent" },
+        { "$ref": "#/$defs/actionAppliedEvent" },
+        { "$ref": "#/$defs/streetAdvancedEvent" },
+        { "$ref": "#/$defs/potAwardedEvent" },
+        { "$ref": "#/$defs/showdownEvent" },
+        { "$ref": "#/$defs/handCompletedEvent" },
+        { "$ref": "#/$defs/factionAbilityUsedEvent" },
+        { "$ref": "#/$defs/factionAbilityEffectEvent" },
+        { "$ref": "#/$defs/matchCompleteEvent" }
+      ]
+    },
+    "handStartedEvent": {
+      "allOf": [
+        { "$ref": "#/$defs/eventBase" },
+        { "type": "object", "additionalProperties": false, "required": ["type", "payload"], "properties": { "schemaVersion": true, "eventId": true, "sequenceNumber": true, "handId": true, "commandId": true, "visibility": true, "type": { "const": "handStarted" }, "payload": { "type": "object", "additionalProperties": false, "required": ["dealerSeatId", "participantSeatIds"], "properties": { "dealerSeatId": { "$ref": "#/$defs/nonEmptyString" }, "participantSeatIds": { "$ref": "#/$defs/stringArray" } } } } }
+      ]
+    },
+    "blindPostedEvent": {
+      "allOf": [
+        { "$ref": "#/$defs/eventBase" },
+        { "type": "object", "additionalProperties": false, "required": ["type", "payload"], "properties": { "schemaVersion": true, "eventId": true, "sequenceNumber": true, "handId": true, "commandId": true, "visibility": true, "type": { "const": "blindPosted" }, "payload": { "type": "object", "additionalProperties": false, "required": ["seatId", "blind", "amount"], "properties": { "seatId": { "$ref": "#/$defs/nonEmptyString" }, "blind": { "enum": ["small", "big"] }, "amount": { "$ref": "#/$defs/nonNegativeInteger" } } } } }
+      ]
+    },
+    "actionAppliedEvent": {
+      "allOf": [
+        { "$ref": "#/$defs/eventBase" },
+        { "type": "object", "additionalProperties": false, "required": ["type", "payload"], "properties": { "schemaVersion": true, "eventId": true, "sequenceNumber": true, "handId": true, "commandId": true, "visibility": true, "type": { "const": "actionApplied" }, "payload": { "type": "object", "additionalProperties": false, "required": ["seatId", "action", "amount", "targetContribution"], "properties": { "seatId": { "$ref": "#/$defs/nonEmptyString" }, "action": { "enum": ["fold", "check", "call", "bet", "raise", "allIn"] }, "amount": { "$ref": "#/$defs/nonNegativeInteger" }, "targetContribution": { "$ref": "#/$defs/nonNegativeInteger" } } } } }
+      ]
+    },
+    "streetAdvancedEvent": {
+      "allOf": [
+        { "$ref": "#/$defs/eventBase" },
+        { "type": "object", "additionalProperties": false, "required": ["type", "payload"], "properties": { "schemaVersion": true, "eventId": true, "sequenceNumber": true, "handId": true, "commandId": true, "visibility": true, "type": { "const": "streetAdvanced" }, "payload": { "type": "object", "additionalProperties": false, "required": ["street", "communityCards"], "properties": { "street": { "$ref": "#/$defs/street" }, "communityCards": { "type": "array", "items": { "$ref": "#/$defs/card" } } } } } }
+      ]
+    },
+    "potAwardedEvent": {
+      "allOf": [
+        { "$ref": "#/$defs/eventBase" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "payload"],
+          "properties": {
+            "schemaVersion": true,
+            "eventId": true,
+            "sequenceNumber": true,
+            "handId": true,
+            "commandId": true,
+            "visibility": true,
+            "type": { "const": "potAwarded" },
+            "payload": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["winners"],
+              "properties": {
+                "winners": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["seatId", "amount"],
+                    "properties": {
+                      "seatId": { "$ref": "#/$defs/nonEmptyString" },
+                      "amount": { "$ref": "#/$defs/nonNegativeInteger" },
+                      "handName": { "type": "string" },
+                      "cards": { "type": "array", "items": { "$ref": "#/$defs/card" } }
+                    }
+                  }
+                },
+                "pots": { "type": "array", "items": { "$ref": "#/$defs/pot" } },
+                "refunds": { "type": "array", "items": { "$ref": "#/$defs/refund" } }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "showdownEvent": {
+      "allOf": [
+        { "$ref": "#/$defs/eventBase" },
+        { "type": "object", "additionalProperties": false, "required": ["type", "payload"], "properties": { "schemaVersion": true, "eventId": true, "sequenceNumber": true, "handId": true, "commandId": true, "visibility": true, "type": { "const": "showdown" }, "payload": { "type": "object", "additionalProperties": false, "required": ["revealedCards"], "properties": { "revealedCards": { "type": "object", "additionalProperties": { "type": "array", "items": { "$ref": "#/$defs/card" } } } } } } }
+      ]
+    },
+    "handCompletedEvent": {
+      "allOf": [
+        { "$ref": "#/$defs/eventBase" },
+        { "type": "object", "additionalProperties": false, "required": ["type", "payload"], "properties": { "schemaVersion": true, "eventId": true, "sequenceNumber": true, "handId": true, "commandId": true, "visibility": true, "type": { "const": "handCompleted" }, "payload": { "type": "object", "additionalProperties": false, "required": ["reason", "finalStacks", "settlementEventIds"], "properties": { "reason": { "enum": ["uncontested", "showdown"] }, "finalStacks": { "$ref": "#/$defs/stackMap" }, "settlementEventIds": { "$ref": "#/$defs/stringArray" } } } } }
+      ]
+    },
+    "factionAbilityUsedEvent": {
+      "allOf": [
+        { "$ref": "#/$defs/eventBase" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "payload"],
+          "properties": {
+            "schemaVersion": true,
+            "eventId": true,
+            "sequenceNumber": true,
+            "handId": true,
+            "commandId": true,
+            "visibility": true,
+            "type": { "const": "factionAbilityUsed" },
+            "payload": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["actorSeatId", "abilityId", "abilityVersion", "timing", "cost", "targets", "resultingEventIds"],
+              "properties": {
+                "actorSeatId": { "$ref": "#/$defs/nonEmptyString" },
+                "actorPlayerId": { "$ref": "#/$defs/nonEmptyString" },
+                "abilityId": { "$ref": "#/$defs/nonEmptyString" },
+                "abilityVersion": { "type": "integer", "minimum": 1 },
+                "timing": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["phase", "ordinal"],
+                  "properties": {
+                    "phase": { "enum": ["beforeAction", "afterAction", "streetTransition", "settlement"] },
+                    "ordinal": { "type": "integer", "minimum": 1 }
+                  }
+                },
+                "cost": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["resource", "amount"],
+                    "properties": {
+                      "resource": { "$ref": "#/$defs/nonEmptyString" },
+                      "amount": { "$ref": "#/$defs/nonNegativeInteger" }
+                    }
+                  }
+                },
+                "targets": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["kind", "targetId"],
+                    "properties": {
+                      "kind": { "enum": ["seat", "card", "pot", "hand"] },
+                      "targetId": { "$ref": "#/$defs/nonEmptyString" }
+                    }
+                  }
+                },
+                "resultingEventIds": { "$ref": "#/$defs/stringArray" }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "factionAbilityEffectEvent": {
+      "allOf": [
+        { "$ref": "#/$defs/eventBase" },
+        { "type": "object", "additionalProperties": false, "required": ["type", "payload"], "properties": { "schemaVersion": true, "eventId": true, "sequenceNumber": true, "handId": true, "commandId": true, "visibility": true, "type": { "const": "factionAbilityEffectApplied" }, "payload": { "type": "object", "additionalProperties": false, "required": ["actorSeatId", "abilityId", "abilityVersion", "targetSeatId", "effect"], "properties": { "actorSeatId": { "$ref": "#/$defs/nonEmptyString" }, "abilityId": { "$ref": "#/$defs/nonEmptyString" }, "abilityVersion": { "type": "integer", "minimum": 1 }, "targetSeatId": { "$ref": "#/$defs/nonEmptyString" }, "effect": { "const": "proofMarker" } } } } }
+      ]
+    },
+    "matchCompleteEvent": {
+      "allOf": [
+        { "$ref": "#/$defs/eventBase" },
+        { "type": "object", "additionalProperties": false, "required": ["type", "payload"], "properties": { "schemaVersion": true, "eventId": true, "sequenceNumber": true, "handId": true, "commandId": true, "visibility": true, "type": { "const": "matchComplete" }, "payload": { "type": "object", "additionalProperties": false, "required": ["winnerSeatId"], "properties": { "winnerSeatId": { "$ref": "#/$defs/nonEmptyString" } } } } }
+      ]
+    },
+    "playerStat": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["matchId", "seatId", "handsPlayed", "handsStarted", "actions", "folds", "checks", "calls", "bets", "raises", "allIns", "potsWon", "chipsAwarded"],
+      "properties": {
+        "matchId": { "$ref": "#/$defs/nonEmptyString" }, "seatId": { "$ref": "#/$defs/nonEmptyString" },
+        "handsPlayed": { "$ref": "#/$defs/nonNegativeInteger" }, "handsStarted": { "$ref": "#/$defs/nonNegativeInteger" },
+        "actions": { "$ref": "#/$defs/nonNegativeInteger" }, "folds": { "$ref": "#/$defs/nonNegativeInteger" },
+        "checks": { "$ref": "#/$defs/nonNegativeInteger" }, "calls": { "$ref": "#/$defs/nonNegativeInteger" },
+        "bets": { "$ref": "#/$defs/nonNegativeInteger" }, "raises": { "$ref": "#/$defs/nonNegativeInteger" },
+        "allIns": { "$ref": "#/$defs/nonNegativeInteger" }, "potsWon": { "$ref": "#/$defs/nonNegativeInteger" },
+        "chipsAwarded": { "$ref": "#/$defs/nonNegativeInteger" }
+      }
+    },
+    "progressionEffect": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["effectId", "matchId", "handId", "playerId", "effectType", "payload", "createdAt"],
+      "properties": {
+        "effectId": { "$ref": "#/$defs/nonEmptyString" }, "matchId": { "$ref": "#/$defs/nonEmptyString" },
+        "handId": { "$ref": "#/$defs/nonEmptyString" }, "playerId": { "$ref": "#/$defs/nonEmptyString" },
+        "effectType": { "enum": ["playerStatProjection", "achievement", "campaignProgress", "factionCredit"] },
+        "payload": { "type": "object" }, "createdAt": { "$ref": "#/$defs/nonEmptyString" }
+      }
+    }
+  }
+}

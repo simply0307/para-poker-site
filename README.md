@@ -24,6 +24,7 @@ Then open http://localhost:3000.
 - `/admin/sessions/[sessionId]` is the main recap generation/edit/publish desk.
 - `/admin/newsroom/dataset` is an optional future review tool for passively
   captured generation examples. It is not part of everyday recap publishing.
+- `/admin/imports` previews and commits strict EGGS completed-session JSON or legacy raw-hand evidence.
 
 ## Data And Newsroom Flow
 
@@ -37,6 +38,9 @@ The normal editorial workflow is intentionally simple:
 2. Edit recap.
 3. Save recap.
 4. Publish recap.
+
+The authoritative EGGS import contract and migration order are documented in
+`docs/eggs-completed-session-import.md`.
 
 Training-data capture is passive. Generation stores the exact context packet and
 untouched model output in `recap_training_examples`. Publishing copies the final
