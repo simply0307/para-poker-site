@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase";
+import { isMissingSchemaFieldError } from "@/lib/newsroom/schemaCompatibility";
 import {
   enrichHandWithPotUnits,
   formatBb,
@@ -289,7 +290,9 @@ export async function saveConfirmedSessionResults(sessionIdOrCode, results = [],
     .from("sessions")
     .update({ result_review_status: "approved" })
     .eq("id", session.id);
-  if (reviewStateError) throw new Error(`Results were saved but the session review state could not be updated: ${reviewStateError.message}`);
+  if (reviewStateError && !isMissingSchemaFieldError(reviewStateError, "result_review_status")) {
+    throw new Error(`Results were saved but the session review state could not be updated: ${reviewStateError.message}`);
+  }
 
   return {
     session,

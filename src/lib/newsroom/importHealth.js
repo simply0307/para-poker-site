@@ -70,7 +70,7 @@ export async function buildImportHealthViewModel() {
     safeQuery(
       supabase
         .from("sessions")
-        .select("id, session_code, season_code, session_number, played_at, table_name, format, status, hands_count, players_count, current_evidence_revision_id, result_review_status")
+        .select("*")
         .order("session_number", { ascending: false }),
       []
     ),

@@ -9,6 +9,7 @@ import {
 } from "../src/lib/imports/rawHandImportArtifact.js";
 import { parseRawHandCommitBody } from "../src/lib/imports/rawHandCommitContract.js";
 import { rawHandImportStateReducer } from "../src/lib/imports/rawHandImportUiState.js";
+import { isMissingSchemaFieldError } from "../src/lib/newsroom/schemaCompatibility.js";
 
 const fixtureBytes = fs.readFileSync(new URL("./fixtures/parapoker-local-match-entry-order-hand-history.csv", import.meta.url));
 const metadata = {
@@ -32,6 +33,13 @@ function artifact(bytes = fixtureBytes, overrides = {}) {
 
 test("canonical JSON sorts object keys recursively while preserving array order", () => {
   assert.equal(canonicalJson({ z: 1, a: { d: 4, c: 3 }, rows: [{ b: 2, a: 1 }, 4] }), '{"a":{"c":3,"d":4},"rows":[{"a":1,"b":2},4],"z":1}');
+});
+
+test("legacy schema fallback recognizes only the requested missing field", () => {
+  assert.equal(isMissingSchemaFieldError({ code: "42703", message: "column sessions.result_review_status does not exist" }, "result_review_status"), true);
+  assert.equal(isMissingSchemaFieldError({ code: "PGRST204", message: "Could not find the is_stale column" }, "is_stale"), true);
+  assert.equal(isMissingSchemaFieldError({ code: "42501", message: "permission denied for is_stale" }, "is_stale"), false);
+  assert.equal(isMissingSchemaFieldError({ code: "42703", message: "column another_field does not exist" }, "is_stale"), false);
 });
 
 test("artifact preserves the exact source bytes and is deterministic", () => {
