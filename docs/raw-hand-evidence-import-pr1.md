@@ -4,29 +4,32 @@
 
 ## Deployment order
 
-1. Obtain a read-only dump of the deployed schema and compare it with the assumptions below.
+1. Compare the target schema with the assumptions below using read-only inspection.
 2. Configure an explicitly disposable Supabase project and run `npm run test:imports:integration`.
 3. Run Supabase security and performance advisors against that disposable project.
 4. Run the complete application validation gate.
-5. Apply the authoritative SQL migration to the target project.
-6. Verify that `create_raw_hand_import_preview` and `commit_raw_hand_session_import` are executable by `service_role` only.
-7. Reload the Data API schema, deploy the application, and exercise a non-production preview/commit.
+5. If `public.game_session_imports` is absent, apply `sql/20260713_game_session_imports.sql` first without modifying it.
+6. Apply the authoritative `sql/20260805213435_raw_hand_evidence_revisions.sql` migration.
+7. Verify that `create_raw_hand_import_preview` and `commit_raw_hand_session_import` are executable by `service_role` only.
+8. Reload the Data API schema, deploy the application, and exercise a non-production preview/commit.
 
 Do not apply `tests/database/raw-hand-import-core-schema.sql` anywhere except a disposable integration-test database. It drops/recreates no objects itself, but the test harness resets the disposable project's `public` schema before applying it.
 
 ## Deployed-schema assumptions
 
-Core table creation migrations are not present in this repository. The authoritative migration fails before changing application code dependencies when a required table or required column is absent. Its assumptions are derived from current repository reads/writes and the historical import RPC:
+Core table creation migrations are not present in this repository. The authoritative migration fails before changing application code dependencies when a required table or required column is absent. Read-only inspection of the connected target on 2026-08-07 confirmed the required legacy poker tables and columns, found no `game_session_imports` table, and found no entries in Supabase migration history. The remaining contract is:
 
 - `sessions` has UUID `id`, unique session code semantics, season/session numbering, played timestamp, table/format/status, and raw/hands/player counts.
 - `players` has UUID `id`, `display_name`, `pokernow_name`, and a unique-compatible `slug`.
 - `hands`, `actions`, `notable_hands`, and `player_session_stats` have the columns written by `rawHandImportRepository.js`, `20260713_game_session_imports.sql`, and the stat calculators.
 - `session_results` is keyed to sessions and exposes `approved`.
-- `standings` and `player_season_stats` expose `season_code`; aggregate tables have UUID `id`.
+- `standings` and `player_season_stats` expose `season_code`. Identifier types are deliberately not assumed: the inspected schema mixes UUID and bigint identifiers.
 - `recap_drafts` has session scope/source, visibility, generation/publication fields; `published_articles` has `draft_id`, publication, and unpublication fields.
 - Supabase roles `anon`, `authenticated`, and `service_role` exist.
+- `pgcrypto` is installed and available through the `extensions` schema on the inspected target.
 
 Optional normalized pot/stat columns are added defensively before the new RPC is compiled. Existing evidence remains nullable and is labeled `legacy_unversioned` through the session pointer/review state.
+The migration explicitly grants the invoker RPC's required table and sequence privileges to `service_role`; it revokes direct ledger/revision access and RPC execution from `PUBLIC`, `anon`, and `authenticated`.
 
 ## Canonical artifact and checksum contract
 

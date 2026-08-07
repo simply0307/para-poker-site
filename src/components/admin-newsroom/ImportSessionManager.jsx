@@ -10,17 +10,18 @@ function dateTimeLocal(value) {
   return new Date(date.getTime() - offset).toISOString().slice(0, 16);
 }
 
-function formFromSession(session = {}) {
+function formFromSession(session) {
+  const source = session || {};
   return {
-    sessionCode: session.sessionCode || "",
-    seasonCode: session.seasonCode || "S0",
-    sessionNumber: session.sessionNumber || "",
-    tableName: session.tableName || "",
-    playedAt: dateTimeLocal(session.playedAt),
-    format: session.format || "Imported hand history",
-    status: session.status || "processed",
-    handsCount: session.declaredHands || session.handsImported || 0,
-    playersCount: session.playersCount || "",
+    sessionCode: source.sessionCode || "",
+    seasonCode: source.seasonCode || "S0",
+    sessionNumber: source.sessionNumber || "",
+    tableName: source.tableName || "",
+    playedAt: dateTimeLocal(source.playedAt),
+    format: source.format || "Imported hand history",
+    status: source.status || "processed",
+    handsCount: source.declaredHands || source.handsImported || 0,
+    playersCount: source.playersCount || "",
   };
 }
 

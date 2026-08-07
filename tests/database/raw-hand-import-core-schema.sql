@@ -13,12 +13,12 @@ create table public.players (
 create table public.sessions (
   id uuid primary key default gen_random_uuid(),
   season_code text not null default 'S0',
-  session_number integer,
+  session_number integer not null,
   session_code text not null unique,
-  played_at timestamptz not null,
-  table_name text not null,
-  format text not null,
-  status text not null,
+  played_at timestamptz,
+  table_name text,
+  format text,
+  status text,
   raw_log_rows integer,
   hands_count integer,
   players_count integer
@@ -26,25 +26,25 @@ create table public.sessions (
 
 create table public.hands (
   id uuid primary key default gen_random_uuid(),
-  session_id uuid not null references public.sessions(id) on delete cascade,
-  hand_no integer not null,
+  session_id uuid references public.sessions(id) on delete cascade,
+  hand_no integer,
   hand_id text,
   start_time timestamptz,
   board text,
   winner_player_id uuid references public.players(id) on delete set null,
   winner_name text,
-  pot_collected numeric,
+  pot_collected integer,
   winning_hand text,
   showdown boolean,
   raw_result text
 );
 
 create table public.actions (
-  id uuid primary key default gen_random_uuid(),
-  session_id uuid not null references public.sessions(id) on delete cascade,
+  id bigserial primary key,
+  session_id uuid references public.sessions(id) on delete cascade,
   hand_id uuid references public.hands(id) on delete cascade,
   hand_no integer,
-  log_order integer,
+  log_order bigint,
   street text,
   player_id uuid references public.players(id) on delete set null,
   player_name text,
@@ -53,7 +53,7 @@ create table public.actions (
   dealer_name text,
   preflop_action_order integer,
   action text,
-  amount numeric,
+  amount integer,
   all_in boolean,
   faced_raise boolean,
   faced_3bet boolean,
@@ -65,13 +65,13 @@ create table public.actions (
 );
 
 create table public.notable_hands (
-  id uuid primary key default gen_random_uuid(),
-  session_id uuid not null references public.sessions(id) on delete cascade,
+  id bigserial primary key,
+  session_id uuid references public.sessions(id) on delete cascade,
   hand_no integer,
   hand_code text,
   tags text[],
   winner_name text,
-  pot_collected numeric,
+  pot_collected integer,
   winning_hand text,
   board text,
   involved_players text[],
@@ -80,49 +80,49 @@ create table public.notable_hands (
 );
 
 create table public.player_session_stats (
-  id uuid primary key default gen_random_uuid(),
-  session_id uuid not null references public.sessions(id) on delete cascade,
-  player_id uuid references public.players(id) on delete set null,
-  player_name text not null,
-  hands integer not null default 0,
-  hands_won integer not null default 0,
-  hand_win_pct numeric not null default 0,
-  total_collected numeric not null default 0,
-  biggest_pot_won numeric not null default 0,
-  all_ins integer not null default 0,
-  folds integer not null default 0,
-  fold_pct numeric not null default 0,
-  notable_hands integer not null default 0,
+  id bigserial primary key,
+  session_id uuid references public.sessions(id) on delete cascade,
+  player_id uuid references public.players(id),
+  player_name text,
+  hands integer,
+  hands_won integer,
+  hand_win_pct numeric,
+  total_collected integer,
+  biggest_pot_won integer,
+  all_ins integer,
+  folds integer,
+  fold_pct numeric,
+  notable_hands integer,
   primary_label text,
   secondary_label text
 );
 
 create table public.session_results (
-  id uuid primary key default gen_random_uuid(),
-  session_id uuid not null references public.sessions(id) on delete cascade,
-  player_id uuid references public.players(id) on delete set null,
-  player_name text not null,
+  id bigserial primary key,
+  session_id uuid references public.sessions(id) on delete cascade,
+  player_id uuid references public.players(id),
+  player_name text,
   finish integer,
-  league_points numeric,
-  final_stack numeric,
+  league_points integer,
+  final_stack integer,
   confidence text,
   notes text,
-  approved boolean not null default false
+  approved boolean
 );
 
 create table public.standings (
-  id uuid primary key default gen_random_uuid(),
-  season_code text not null,
-  player_id uuid references public.players(id) on delete set null,
-  player_name text not null,
-  sessions_played integer not null default 0,
-  total_points numeric not null default 0,
-  wins integer not null default 0,
-  top_3s integer not null default 0,
-  top_4s integer not null default 0,
+  id bigserial primary key,
+  season_code text,
+  player_id uuid references public.players(id),
+  player_name text,
+  sessions_played integer,
+  total_points integer,
+  wins integer,
+  top_3s integer,
+  top_4s integer,
   best_finish integer,
   avg_finish numeric,
   latest_session_code text,
   rank integer,
-  updated_at timestamptz not null default now()
+  updated_at timestamptz
 );

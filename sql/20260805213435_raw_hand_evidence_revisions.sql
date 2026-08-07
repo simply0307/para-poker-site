@@ -529,18 +529,29 @@ begin
     return jsonb_build_object('status', 'conflict', 'importId', v_import.id, 'error', 'Import is not a raw-hand preview.');
   end if;
 
+  if not coalesce(p_confirm, false) then
+    return jsonb_build_object('status', 'conflict', 'importId', v_import.id, 'error', 'Explicit commit confirmation is required.');
+  end if;
+  if p_preview_checksum is distinct from v_import.preview_checksum then
+    return jsonb_build_object('status', 'conflict', 'importId', v_import.id, 'error', 'Preview checksum does not match the stored import.');
+  end if;
+  if v_import.replace_existing then
+    if not coalesce(p_confirm_replace, false) then
+      return jsonb_build_object('status', 'conflict', 'importId', v_import.id, 'error', 'Replacement requires a second explicit confirmation.');
+    end if;
+    if p_expected_current_evidence_revision_id is distinct from v_import.expected_current_evidence_revision_id then
+      return jsonb_build_object('status', 'conflict', 'importId', v_import.id, 'error', 'Expected evidence revision does not match the stored replacement preview.');
+    end if;
+  elsif p_confirm_replace or p_expected_current_evidence_revision_id is not null then
+    return jsonb_build_object('status', 'conflict', 'importId', v_import.id, 'error', 'Replacement confirmation is not valid for a new session.');
+  end if;
+
   if v_import.status = 'imported' and v_import.committed_revision_id is not null then
     return coalesce(v_import.commit_report, '{}'::jsonb) || jsonb_build_object('status', 'imported', 'idempotent', true);
   end if;
 
-  if not coalesce(p_confirm, false) then
-    return jsonb_build_object('status', 'conflict', 'importId', v_import.id, 'error', 'Explicit commit confirmation is required.');
-  end if;
   if v_import.status not in ('ready', 'failed') then
     return jsonb_build_object('status', 'conflict', 'importId', v_import.id, 'error', format('Import status %s cannot be committed.', v_import.status));
-  end if;
-  if p_preview_checksum is distinct from v_import.preview_checksum then
-    return jsonb_build_object('status', 'conflict', 'importId', v_import.id, 'error', 'Preview checksum does not match the stored import.');
   end if;
 
   v_recomputed_source_checksum := encode(digest(v_import.source_bytes, 'sha256'), 'hex');
@@ -596,11 +607,7 @@ begin
     if not found or v_existing_session.id is distinct from v_import.target_session_id then
       return jsonb_build_object('status', 'conflict', 'importId', v_import.id, 'error', 'Replacement target no longer matches the stored preview.');
     end if;
-    if not coalesce(p_confirm_replace, false) then
-      return jsonb_build_object('status', 'conflict', 'importId', v_import.id, 'error', 'Replacement requires a second explicit confirmation.');
-    end if;
-    if p_expected_current_evidence_revision_id is distinct from v_import.expected_current_evidence_revision_id
-       or v_existing_session.current_evidence_revision_id is distinct from v_import.expected_current_evidence_revision_id then
+    if v_existing_session.current_evidence_revision_id is distinct from v_import.expected_current_evidence_revision_id then
       update public.game_session_imports
       set status = 'conflict', commit_report = jsonb_build_object(
         'status', 'conflict',
@@ -615,9 +622,6 @@ begin
   else
     if found then
       return jsonb_build_object('status', 'conflict', 'importId', v_import.id, 'error', 'Session code already exists and replacement was not previewed.');
-    end if;
-    if p_confirm_replace or p_expected_current_evidence_revision_id is not null then
-      return jsonb_build_object('status', 'conflict', 'importId', v_import.id, 'error', 'Replacement confirmation is not valid for a new session.');
     end if;
   end if;
 
@@ -949,8 +953,35 @@ begin
 end
 $function$;
 
+-- The RPCs are security invoker, so make their server-only table and sequence
+-- privileges explicit instead of relying on project-level default privileges.
+alter function public.set_updated_at() set search_path = pg_catalog;
+
+revoke all on table public.game_session_imports from public, anon, authenticated;
+grant select, insert, update on table public.game_session_imports to service_role;
+
 revoke all on table public.session_evidence_revisions from public, anon, authenticated;
-grant select, insert, update, delete on table public.session_evidence_revisions to service_role;
+grant select, insert, update on table public.session_evidence_revisions to service_role;
+
+grant select, insert, update on table public.sessions to service_role;
+grant select, insert on table public.players to service_role;
+grant select, insert, delete on table public.hands, public.actions, public.notable_hands, public.player_session_stats to service_role;
+grant select, delete on table public.session_results, public.player_season_stats, public.player_career_stats, public.standings to service_role;
+grant select, update on table public.recap_drafts, public.published_articles to service_role;
+
+do $service_role_sequences$
+declare
+  v_table text;
+  v_sequence text;
+begin
+  foreach v_table in array array['sessions','players','hands','actions','notable_hands','player_session_stats'] loop
+    v_sequence := pg_get_serial_sequence(format('public.%I', v_table), 'id');
+    if v_sequence is not null then
+      execute format('grant usage, select on sequence %s to service_role', v_sequence);
+    end if;
+  end loop;
+end
+$service_role_sequences$;
 
 revoke all on function public.create_raw_hand_import_preview(text, text, text, text, text, text, text, uuid) from public, anon, authenticated;
 grant execute on function public.create_raw_hand_import_preview(text, text, text, text, text, text, text, uuid) to service_role;

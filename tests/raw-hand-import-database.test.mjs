@@ -89,6 +89,7 @@ async function commitPreview(client, preview, { confirmReplace = false } = {}) {
 test("raw-hand preview and commit database behavior", { skip: integrationEnabled ? false : `Set the disposable Supabase test environment (${missingEnvironment.join(", ") || "destructive flag missing"}).` }, async () => {
   assertDisposableTarget();
   const client = new pg.Client({ connectionString: process.env.SUPABASE_TEST_DATABASE_URL, ssl: { rejectUnauthorized: false } });
+  let failureTriggerInstalled = false;
   await client.connect();
   try {
     await client.query("drop schema public cascade; create schema public; grant usage on schema public to public;");
@@ -103,6 +104,22 @@ test("raw-hand preview and commit database behavior", { skip: integrationEnabled
       await client.query(sql(migration));
     }
 
+    const privileges = await client.query(`select
+      has_function_privilege('service_role', 'public.create_raw_hand_import_preview(text,text,text,text,text,text,text,uuid)', 'execute') as service_preview,
+      has_function_privilege('service_role', 'public.commit_raw_hand_session_import(uuid,text,boolean,boolean,uuid)', 'execute') as service_commit,
+      has_function_privilege('anon', 'public.create_raw_hand_import_preview(text,text,text,text,text,text,text,uuid)', 'execute') as anon_preview,
+      has_function_privilege('authenticated', 'public.commit_raw_hand_session_import(uuid,text,boolean,boolean,uuid)', 'execute') as authenticated_commit,
+      has_table_privilege('service_role', 'public.game_session_imports', 'select,insert,update') as service_ledger,
+      has_table_privilege('anon', 'public.game_session_imports', 'select') as anon_ledger`);
+    assert.deepEqual(privileges.rows[0], {
+      service_preview: true,
+      service_commit: true,
+      anon_preview: false,
+      authenticated_commit: false,
+      service_ledger: true,
+      anon_ledger: false,
+    });
+
     const fixture = fs.readFileSync(path.join(root, "tests/fixtures/parapoker-local-match-entry-order-hand-history.csv"));
     const firstArtifact = rawArtifact(fixture);
     const firstPreview = await createPreview(client, firstArtifact);
@@ -113,6 +130,14 @@ test("raw-hand preview and commit database behavior", { skip: integrationEnabled
     const duplicatePreview = await createPreview(client, firstArtifact);
     assert.equal(duplicatePreview.importId, firstPreview.importId);
     assert.equal(duplicatePreview.idempotent, true);
+
+    const wrongChecksumBeforeCommit = await client.query(
+      `select public.commit_raw_hand_session_import($1,$2,true,false,null) as result`,
+      [firstPreview.importId, "0".repeat(64)]
+    );
+    assert.equal(wrongChecksumBeforeCommit.rows[0].result.status, "conflict");
+    const sessionsBeforeCommit = await client.query("select count(*)::integer as count from public.sessions");
+    assert.equal(sessionsBeforeCommit.rows[0].count, 0);
 
     const firstCommit = await commitPreview(client, firstPreview);
     assert.equal(firstCommit.status, "imported");
@@ -126,6 +151,11 @@ test("raw-hand preview and commit database behavior", { skip: integrationEnabled
     const duplicateCommit = await commitPreview(client, firstPreview);
     assert.equal(duplicateCommit.status, "imported");
     assert.equal(duplicateCommit.idempotent, true);
+    const wrongChecksumAfterCommit = await client.query(
+      `select public.commit_raw_hand_session_import($1,$2,true,false,null) as result`,
+      [firstPreview.importId, "f".repeat(64)]
+    );
+    assert.equal(wrongChecksumAfterCommit.rows[0].result.status, "conflict");
 
     const duplicateSourcePreview = await createPreview(client, rawArtifact(fixture, { sessionCode: "S0-INTEGRATION-DUPLICATE-SOURCE" }));
     assert.equal(duplicateSourcePreview.status, "ready");
@@ -134,8 +164,12 @@ test("raw-hand preview and commit database behavior", { skip: integrationEnabled
     assert.equal(duplicateSourceCommit.duplicateOfImportId, firstPreview.importId);
 
     for (const table of ["hands", "actions", "notable_hands", "player_session_stats"]) {
-      const { rows } = await client.query(`select count(*)::integer as count, count(distinct evidence_revision_id)::integer as revisions from public.${table} where session_id = $1`, [firstCommit.sessionId]);
+      const { rows } = await client.query(`select count(*)::integer as count,
+        count(*) filter (where evidence_revision_id = $2)::integer as stamped,
+        count(distinct evidence_revision_id)::integer as revisions
+        from public.${table} where session_id = $1`, [firstCommit.sessionId, firstCommit.revisionId]);
       assert.equal(rows[0].count, firstArtifact.manifest.totals[table === "notable_hands" ? "notableHands" : table === "player_session_stats" ? "playerSessionStats" : table]);
+      assert.equal(rows[0].stamped, rows[0].count);
       assert.equal(rows[0].revisions, 1);
     }
 
@@ -197,6 +231,7 @@ test("raw-hand preview and commit database behavior", { skip: integrationEnabled
       create trigger fail_marked_import_action before insert on public.actions
       for each row execute function public.fail_marked_import_action();
     `);
+    failureTriggerInstalled = true;
     const failingSource = Buffer.from(fixture.toString("utf8").replace("raises to 31 and goes all in", "raises to 31 and goes all in [FAIL_TEST]"), "utf8");
     const failingPreview = await createPreview(client, rawArtifact(failingSource, { replaceExisting: true }));
     const beforeFailure = await client.query("select current_evidence_revision_id from public.sessions where id = $1", [firstCommit.sessionId]);
@@ -211,8 +246,6 @@ test("raw-hand preview and commit database behavior", { skip: integrationEnabled
     const failedLedger = await client.query("select status, commit_report from public.game_session_imports where id = $1", [failingPreview.importId]);
     assert.equal(failedLedger.rows[0].status, "failed");
     assert.equal(failedLedger.rows[0].commit_report.failureStage, "actions");
-    await client.query("drop trigger fail_marked_import_action on public.actions; drop function public.fail_marked_import_action();");
-
     const legacy = await client.query(
       `insert into public.sessions(season_code,session_number,session_code,played_at,table_name,format,status)
        values ('S0',99,'S0-LEGACY','2026-01-01','Legacy','Legacy','processed')
@@ -221,6 +254,9 @@ test("raw-hand preview and commit database behavior", { skip: integrationEnabled
     assert.equal(legacy.rows[0].current_evidence_revision_id, null);
     assert.equal(legacy.rows[0].result_review_status, "legacy_unversioned");
   } finally {
+    if (failureTriggerInstalled) {
+      await client.query("drop trigger if exists fail_marked_import_action on public.actions; drop function if exists public.fail_marked_import_action();");
+    }
     await client.end();
   }
 });
