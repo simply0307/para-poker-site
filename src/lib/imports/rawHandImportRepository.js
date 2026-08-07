@@ -1,413 +1,150 @@
-import { parseHandHistoryInput } from "@/lib/imports/rawHandHistoryParser";
+import { buildRawHandImportArtifact } from "@/lib/imports/rawHandImportArtifact";
 import { nextSessionNumber, positiveSessionNumber } from "@/lib/imports/sessionNumber";
-import { cleanName, getSessionByIdOrCode, safeQuery, supabase, text } from "@/lib/newsroom/data";
-import { recalculateCareerStats, recalculatePlayerSessionStats, recalculateSeasonStats } from "@/lib/stats/statRepository";
+import { getSessionByIdOrCode, safeQuery, supabase, text } from "@/lib/newsroom/data";
+import { recalculateCareerStats, recalculateSeasonStats } from "@/lib/stats/statRepository";
 
-function slugFor(name = "") {
-  return cleanName(name, "player")
-    .toLowerCase()
-    .replace(/@/g, " at ")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 80) || `player-${Date.now()}`;
-}
-
-function isoDate(value) {
-  const date = value ? new Date(value) : new Date();
-  return Number.isNaN(date.getTime()) ? new Date().toISOString() : date.toISOString();
-}
-
-async function getOrCreatePlayers(playerRows = []) {
-  const existing = await safeQuery(supabase.from("players").select("*").limit(10000), []);
-  const byRawName = new Map();
-  const byCleanName = new Map();
-
-  for (const player of existing || []) {
-    if (player.pokernow_name) byRawName.set(String(player.pokernow_name).toLowerCase(), player);
-    if (player.display_name) byCleanName.set(String(cleanName(player.display_name)).toLowerCase(), player);
+export class ImportRepositoryError extends Error {
+  constructor(message, { status = 500, details = null } = {}) {
+    super(message);
+    this.name = "ImportRepositoryError";
+    this.status = status;
+    this.details = details;
   }
+}
 
-  const resolved = new Map();
-  for (const imported of playerRows) {
-    const rawKey = String(imported.raw_name || "").toLowerCase();
-    const cleanKey = String(imported.display_name || "").toLowerCase();
-    let player = byRawName.get(rawKey) || byCleanName.get(cleanKey);
+function rpcErrorMessage(error, fallback) {
+  return error?.message || error?.details || fallback;
+}
 
-    if (!player) {
-      const insert = {
-        display_name: imported.display_name,
-        pokernow_name: imported.raw_name,
-        slug: slugFor(imported.raw_name || imported.display_name),
-      };
-      const { data, error } = await supabase.from("players").insert(insert).select("*").single();
-      if (error) throw new Error(`Could not create player ${imported.display_name}: ${error.message}`);
-      player = data;
-      byRawName.set(rawKey, player);
-      byCleanName.set(cleanKey, player);
+function assertMatchingArtifactChecksums(artifact, preview) {
+  const fields = [
+    ["sourceChecksum", artifact.sourceChecksum],
+    ["metadataChecksum", artifact.metadataChecksum],
+    ["manifestChecksum", artifact.manifestChecksum],
+    ["validationReportChecksum", artifact.validationReportChecksum],
+  ];
+  for (const [field, expected] of fields) {
+    if (preview?.[field] !== expected) {
+      throw new ImportRepositoryError(`Database ${field} did not match the canonical server artifact.`, { status: 500 });
     }
-
-    resolved.set(imported.raw_name, player);
   }
-
-  return resolved;
 }
 
-async function resolveSessionNumber(metadata = {}, existing = null) {
-  const explicit = positiveSessionNumber(metadata.sessionNumber);
-  if (explicit !== null) return explicit;
-
-  const existingNumber = positiveSessionNumber(existing?.session_number);
-  if (existingNumber !== null) return existingNumber;
-
-  const seasonCode = text(metadata.seasonCode, "S0");
-  const { data, error } = await supabase
-    .from("sessions")
-    .select("session_number")
-    .eq("season_code", seasonCode)
-    .order("session_number", { ascending: false })
-    .limit(1);
-  if (error) throw new Error(`Could not allocate a session number: ${error.message}`);
-  return nextSessionNumber(data || []);
-}
-
-async function upsertSession(metadata = {}, parsed) {
-  const sessionCode = text(metadata.sessionCode, `IMPORT-${Date.now()}`);
-  const existing = await getSessionByIdOrCode(sessionCode);
-  const sessionNumber = await resolveSessionNumber(metadata, existing);
-  if (existing) {
-    const { data, error } = await supabase
-      .from("sessions")
-      .update({
-        season_code: text(metadata.seasonCode, existing.season_code || "S0"),
-        session_number: sessionNumber,
-        played_at: isoDate(metadata.playedAt || existing.played_at),
-        table_name: text(metadata.tableName, existing.table_name || "Imported Table"),
-        format: text(metadata.format, existing.format || "Imported hand history"),
-        status: "processed",
-        raw_log_rows: Number(metadata.rawLogRows || 0) || null,
-        hands_count: parsed.totals.hands,
-        players_count: parsed.totals.players,
-      })
-      .eq("id", existing.id)
-      .select("*")
-      .single();
-    if (error) throw new Error(error.message);
-    return data;
+export async function persistRawHandImportPreview({ sourceBytes, source, metadata } = {}) {
+  const artifact = buildRawHandImportArtifact({ sourceBytes, source, metadata });
+  const { data, error } = await supabase.rpc("create_raw_hand_import_preview", {
+    p_source_filename: artifact.manifest.source.filename,
+    p_source_media_type: artifact.manifest.source.mediaType,
+    p_source_base64: Buffer.from(artifact.sourceBytes).toString("base64"),
+    p_canonical_metadata: artifact.canonicalMetadata,
+    p_parser_version: artifact.parserVersion,
+    p_canonical_manifest: artifact.canonicalManifest,
+    p_canonical_validation_report: artifact.canonicalValidationReport,
+    p_created_by_user_id: null,
+  });
+  if (error) {
+    throw new ImportRepositoryError(rpcErrorMessage(error, "Could not persist the immutable preview."), { details: error });
   }
-
-  const { data, error } = await supabase
-    .from("sessions")
-    .insert({
-      season_code: text(metadata.seasonCode, "S0"),
-      session_number: sessionNumber,
-      session_code: sessionCode,
-      played_at: isoDate(metadata.playedAt),
-      table_name: text(metadata.tableName, "Imported Table"),
-      format: text(metadata.format, "Imported hand history"),
-      status: "processed",
-      raw_log_rows: Number(metadata.rawLogRows || 0) || null,
-      hands_count: parsed.totals.hands,
-      players_count: parsed.totals.players,
-    })
-    .select("*")
-    .single();
-  if (error) throw new Error(error.message);
+  assertMatchingArtifactChecksums(artifact, data);
   return data;
 }
 
-async function clearImportedRows(sessionId) {
-  await supabase.from("actions").delete().eq("session_id", sessionId);
-  await supabase.from("notable_hands").delete().eq("session_id", sessionId);
-  await supabase.from("player_session_stats").delete().eq("session_id", sessionId);
-  await supabase.from("session_results").delete().eq("session_id", sessionId);
-  await supabase.from("hands").delete().eq("session_id", sessionId);
-}
-
-function actionFlags(action) {
-  return {
-    all_in: Boolean(action.all_in),
-    faced_raise: false,
-    faced_3bet: false,
-    is_open_raise: action.action === "raises",
-    is_3bet: false,
-    is_limp: action.action === "calls" && Number(action.amount || 0) > 0,
-    is_call_vs_raise: action.action === "calls",
-  };
-}
-
-async function insertHandsAndActions(session, parsed, playersByRawName) {
-  const handInserts = parsed.hands.map((hand) => {
-    const winner = playersByRawName.get(hand.winner_name);
-    return {
-      session_id: session.id,
-      hand_no: hand.hand_no,
-      hand_id: hand.hand_code,
-      start_time: session.played_at,
-      board: hand.board,
-      winner_player_id: winner?.id || null,
-      winner_name: hand.winner_name,
-      pot_collected: hand.pot_collected || 0,
-      pot_bb: hand.pot_bb || null,
-      big_blind: hand.big_blind || null,
-      small_blind: hand.small_blind || null,
-      winning_hand: hand.winning_hand || "",
-      showdown: Boolean(hand.showdown),
-      raw_result: hand.raw_result || "",
-    };
+export async function commitRawHandImport(input) {
+  const { data, error } = await supabase.rpc("commit_raw_hand_session_import", {
+    p_import_id: input.importId,
+    p_preview_checksum: input.previewChecksum,
+    p_confirm: input.confirm,
+    p_confirm_replace: input.confirmReplace,
+    p_expected_current_evidence_revision_id: input.expectedCurrentEvidenceRevisionId,
   });
-
-  const { data: hands, error: handError } = await insertWithOptionalColumns("hands", handInserts, ["pot_bb", "big_blind", "small_blind"]);
-  if (handError) throw new Error(`Could not insert hands: ${handError.message}`);
-
-  const handByNo = new Map((hands || []).map((hand) => [Number(hand.hand_no), hand]));
-  const actionInserts = parsed.actions.map((action) => {
-    const player = playersByRawName.get(action.player_name);
-    const storedHand = handByNo.get(Number(action.hand_no));
-    return {
-      session_id: session.id,
-      hand_id: storedHand?.id || null,
-      hand_no: action.hand_no,
-      log_order: action.log_order,
-      street: action.street,
-      player_id: player?.id || null,
-      player_name: action.player_name,
-      position: "",
-      seat_index: null,
-      dealer_name: "",
-      preflop_action_order: action.street === "preflop" ? action.log_order : null,
-      action: action.action,
-      amount: action.amount || 0,
-      ...actionFlags(action),
-      raw_entry: action.raw_entry,
-    };
-  });
-
-  if (actionInserts.length) {
-    const { error } = await supabase.from("actions").insert(actionInserts);
-    if (error) throw new Error(`Could not insert actions: ${error.message}`);
+  if (error) {
+    throw new ImportRepositoryError(rpcErrorMessage(error, "Could not commit the stored import."), { details: error });
   }
-
-  return hands || [];
-}
-
-async function insertNotableHands(session, parsed) {
-  const rows = parsed.notableHands.map((moment) => ({
-    session_id: session.id,
-    hand_no: moment.hand_no,
-    hand_code: moment.hand_code,
-    tags: moment.tags,
-    winner_name: moment.winner_name,
-    pot_collected: moment.pot_collected || 0,
-    pot_bb: moment.pot_bb || null,
-    big_blind: moment.big_blind || null,
-    small_blind: moment.small_blind || null,
-    winning_hand: moment.winning_hand || "",
-    board: moment.board || "",
-    involved_players: moment.involved_players || [],
-    summary: moment.summary,
-    raw_result: moment.raw_result || "",
-  }));
-
-  if (!rows.length) return [];
-  const { data, error } = await insertWithOptionalColumns("notable_hands", rows, ["pot_bb", "big_blind", "small_blind"]);
-  if (error) throw new Error(`Could not insert notable hands: ${error.message}`);
-  return data || [];
-}
-
-function missingSchemaColumn(error) {
-  const value = `${error?.code || ""} ${error?.message || ""}`.toLowerCase();
-  if (!value.includes("pgrst204") && !value.includes("schema cache")) return "";
-  const match = String(error?.message || "").match(/'([^']+)'\s+column/i);
-  return match?.[1] || "";
-}
-
-async function insertWithOptionalColumns(table, rows, optionalColumns = []) {
-  let payload = rows.map((row) => ({ ...row }));
-  for (let attempt = 0; attempt <= optionalColumns.length; attempt += 1) {
-    const result = await supabase.from(table).insert(payload).select("*");
-    if (!result.error) return result;
-    const column = missingSchemaColumn(result.error);
-    if (column && optionalColumns.includes(column)) {
-      payload = payload.map((row) => {
-        const next = { ...row };
-        delete next[column];
-        return next;
-      });
-      continue;
-    }
-    return result;
+  if (data?.status === "not_found") throw new ImportRepositoryError(data.error, { status: 404, details: data });
+  if (data?.status === "conflict" || data?.status === "duplicate") {
+    throw new ImportRepositoryError(data.error || "The import conflicts with current evidence.", { status: 409, details: data });
   }
-  return supabase.from(table).insert(payload).select("*");
-}
-
-function blindSummary(parsed) {
-  const hands = parsed.hands || [];
-  const withBigBlind = hands.filter((hand) => hand.big_blind).length;
-  const withPotBb = hands.filter((hand) => hand.pot_bb).length;
-  const blindLevels = [...new Set(hands.map((hand) => hand.big_blind).filter(Boolean))].sort((left, right) => Number(left) - Number(right));
-  const biggestPotBb = hands.reduce((max, hand) => Math.max(max, Number(hand.pot_bb || 0)), 0);
-  return {
-    handsWithBigBlind: withBigBlind,
-    handsWithPotBb: withPotBb,
-    blindLevels,
-    biggestPotBb: biggestPotBb || null,
-    status: withPotBb === hands.length ? "stored_from_import" : withPotBb ? "partial" : "missing",
-  };
-}
-
-async function upsertBasicPlayerStats(session, parsed, playersByRawName) {
-  const byPlayer = new Map();
-  for (const hand of parsed.hands) {
-    const involved = [...new Set(hand.actions.map((action) => action.player_name).filter(Boolean))];
-    for (const playerName of involved) {
-      if (!byPlayer.has(playerName)) {
-        byPlayer.set(playerName, {
-          hands: 0,
-          hands_won: 0,
-          total_collected: 0,
-          biggest_pot_won: 0,
-          all_ins: 0,
-          folds: 0,
-        });
-      }
-      const stats = byPlayer.get(playerName);
-      stats.hands += 1;
-      stats.all_ins += hand.actions.filter((action) => action.player_name === playerName && action.all_in).length;
-      stats.folds += hand.actions.filter((action) => action.player_name === playerName && action.action === "folds").length;
-    }
-    if (hand.winner_name && byPlayer.has(hand.winner_name)) {
-      const stats = byPlayer.get(hand.winner_name);
-      stats.hands_won += 1;
-      stats.total_collected += Number(hand.pot_collected || 0);
-      stats.biggest_pot_won = Math.max(stats.biggest_pot_won, Number(hand.pot_collected || 0));
-    }
+  if (data?.status === "failed") {
+    throw new ImportRepositoryError(data.error || "The evidence transaction failed and was rolled back.", { status: 500, details: data });
   }
-
-  const rows = [...byPlayer.entries()].map(([playerName, stats]) => {
-    const player = playersByRawName.get(playerName);
-    return {
-      session_id: session.id,
-      player_id: player?.id || null,
-      player_name: playerName,
-      hands: stats.hands,
-      hands_won: stats.hands_won,
-      hand_win_pct: stats.hands ? Number(((stats.hands_won / stats.hands) * 100).toFixed(1)) : 0,
-      total_collected: stats.total_collected,
-      biggest_pot_won: stats.biggest_pot_won,
-      all_ins: stats.all_ins,
-      folds: stats.folds,
-      fold_pct: stats.hands ? Number(((stats.folds / stats.hands) * 100).toFixed(1)) : 0,
-      notable_hands: parsed.notableHands.filter((moment) => moment.involved_players?.includes(playerName)).length,
-    };
-  });
-
-  if (!rows.length) return [];
-  await supabase.from("player_session_stats").delete().eq("session_id", session.id);
-  const { data, error } = await supabase.from("player_session_stats").insert(rows).select("*");
-  if (error) throw new Error(`Could not insert player session stats: ${error.message}`);
-  return data || [];
+  if (data?.status !== "imported") {
+    throw new ImportRepositoryError("The commit RPC returned an unexpected status.", { details: data });
+  }
+  return data;
 }
 
-export function previewRawHandImport(input = {}) {
-  const parsed = parseHandHistoryInput({ rawText: input.rawText || "", csvText: input.csvText || "" });
-  return {
-    metadata: {
-      sessionCode: text(input.sessionCode),
-      seasonCode: text(input.seasonCode, "S0"),
-      tableName: text(input.tableName, "Imported Table"),
-      playedAt: input.playedAt || "",
-      format: text(input.format, "Imported hand history"),
-    },
-    ...parsed,
-    blindSummary: blindSummary(parsed),
-    hands: parsed.hands.slice(0, 12),
-    actions: parsed.actions.slice(0, 30),
-    notableHands: parsed.notableHands.slice(0, 12),
-  };
+async function requireLegacyUnversionedSession(sessionIdOrCode) {
+  const session = await getSessionByIdOrCode(sessionIdOrCode);
+  if (!session) throw new ImportRepositoryError("Session not found.", { status: 404 });
+  if (session.current_evidence_revision_id) {
+    throw new ImportRepositoryError(
+      "Revisioned evidence cannot be edited or deleted through legacy session maintenance. Create an explicit replacement preview instead.",
+      { status: 409 }
+    );
+  }
+  return session;
 }
 
-export async function commitRawHandImport(input = {}) {
-  const rawText = text(input.rawText);
-  const csvText = text(input.csvText);
-  if (!rawText.trim() && !csvText.trim()) throw new Error("Raw hand history or CSV upload is required.");
-  const parsed = parseHandHistoryInput({ rawText, csvText });
-  if (!parsed.hands.length) throw new Error("No hands were parsed from this import.");
-  const existingSession = await getSessionByIdOrCode(text(input.sessionCode));
-  if (existingSession && !input.replaceExisting) {
-    throw new Error("A session with this code already exists. Enable replace existing rows to re-import it.");
-  }
-  const metadata = {
-    ...input,
-    rawLogRows: (csvText || rawText).split(/\r?\n/u).filter(Boolean).length,
-  };
+async function resolveLegacySessionNumber(metadata = {}, existing = null) {
+  const explicit = positiveSessionNumber(metadata.sessionNumber || metadata.session_number);
+  if (explicit !== null) return explicit;
+  const existingNumber = positiveSessionNumber(existing?.session_number);
+  if (existingNumber !== null) return existingNumber;
+  const seasonCode = text(metadata.seasonCode || metadata.season_code, "S0");
+  const rows = await safeQuery(
+    supabase.from("sessions").select("session_number").eq("season_code", seasonCode).order("session_number", { ascending: false }).limit(1),
+    []
+  );
+  return nextSessionNumber(rows || []);
+}
 
-  const playersByRawName = await getOrCreatePlayers(parsed.players);
-  const session = await upsertSession(metadata, parsed);
-  if (input.replaceExisting) await clearImportedRows(session.id);
-  const hands = await insertHandsAndActions(session, parsed, playersByRawName);
-  const notableHands = await insertNotableHands(session, parsed);
-  const playerStats = await recalculatePlayerSessionStats(session.id);
-  if (input.replaceExisting) {
-    await recalculateSeasonStats(session.season_code || metadata.seasonCode || "S0");
-    await recalculateCareerStats();
-  }
-
-  return {
-    session,
-    totals: {
-      ...parsed.totals,
-      insertedHands: hands.length,
-      insertedNotableHands: notableHands.length,
-      insertedPlayerStats: playerStats.stats.length,
-    },
-    warnings: parsed.warnings,
-  };
+function isoDate(value, fallback) {
+  const date = new Date(value || fallback || "");
+  if (Number.isNaN(date.getTime())) throw new ImportRepositoryError("Played-at must be a valid date.", { status: 400 });
+  return date.toISOString();
 }
 
 export async function updateImportedSession(sessionIdOrCode, patch = {}) {
-  const session = await getSessionByIdOrCode(sessionIdOrCode);
-  if (!session) throw new Error("Session not found.");
-
+  const session = await requireLegacyUnversionedSession(sessionIdOrCode);
   const nextSessionCode = text(patch.sessionCode || patch.session_code, session.session_code).trim();
-  if (nextSessionCode && nextSessionCode.toLowerCase() !== text(session.session_code).toLowerCase()) {
+  if (nextSessionCode.toLowerCase() !== text(session.session_code).toLowerCase()) {
     const existingCode = await getSessionByIdOrCode(nextSessionCode);
     if (existingCode && existingCode.id !== session.id) {
-      throw new Error("Another session already uses that session code.");
+      throw new ImportRepositoryError("Another session already uses that session code.", { status: 409 });
     }
   }
 
   const update = {
     season_code: text(patch.seasonCode || patch.season_code, session.season_code || "S0"),
-    session_number: positiveSessionNumber(patch.sessionNumber || patch.session_number) ?? session.session_number,
-    session_code: nextSessionCode || session.session_code,
-    played_at: isoDate(patch.playedAt || patch.played_at || session.played_at),
+    session_number: await resolveLegacySessionNumber(patch, session),
+    session_code: nextSessionCode,
+    played_at: isoDate(patch.playedAt || patch.played_at, session.played_at),
     table_name: text(patch.tableName || patch.table_name, session.table_name || "Imported Table"),
     format: text(patch.format, session.format || "Imported hand history"),
     status: text(patch.status, session.status || "processed"),
     hands_count: Number(patch.handsCount || patch.hands_count || session.hands_count || 0),
     players_count: Number(patch.playersCount || patch.players_count || session.players_count || 0),
   };
-
   const { data, error } = await supabase.from("sessions").update(update).eq("id", session.id).select("*").single();
-  if (error) throw new Error(`Could not update session import: ${error.message}`);
+  if (error) throw new ImportRepositoryError(`Could not update session import: ${error.message}`);
   return data;
 }
 
-export async function deleteImportedSession(sessionIdOrCode) {
-  const session = await getSessionByIdOrCode(sessionIdOrCode);
-  if (!session) throw new Error("Session not found.");
-  const seasonCode = session.season_code || "S0";
+async function clearLegacyImportedRows(sessionId) {
+  for (const table of ["actions", "notable_hands", "player_session_stats", "session_results", "hands"]) {
+    const { error } = await supabase.from(table).delete().eq("session_id", sessionId);
+    if (error) throw new ImportRepositoryError(`Could not clear ${table}: ${error.message}`);
+  }
+}
 
-  await clearImportedRows(session.id);
+export async function deleteImportedSession(sessionIdOrCode) {
+  const session = await requireLegacyUnversionedSession(sessionIdOrCode);
+  const seasonCode = session.season_code || "S0";
+  await clearLegacyImportedRows(session.id);
   await supabase.from("recap_drafts").delete().eq("scope", "session").eq("source_session_id", session.id);
   const { error } = await supabase.from("sessions").delete().eq("id", session.id);
-  if (error) throw new Error(`Could not delete session import: ${error.message}`);
+  if (error) throw new ImportRepositoryError(`Could not delete session import: ${error.message}`);
   await recalculateSeasonStats(seasonCode);
   await recalculateCareerStats();
-
-  return {
-    deleted: true,
-    sessionId: session.id,
-    sessionCode: session.session_code,
-  };
+  return { deleted: true, sessionId: session.id, sessionCode: session.session_code };
 }

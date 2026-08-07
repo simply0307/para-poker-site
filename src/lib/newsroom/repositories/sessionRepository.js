@@ -45,7 +45,7 @@ export async function getSessionByIdOrCode(sessionIdOrCode) {
 export async function getSessionsIndex(seasonCode = "") {
   let query = supabase
     .from("sessions")
-    .select("id, session_code, season_code, session_number, played_at, table_name, format, status, hands_count")
+    .select("id, session_code, season_code, session_number, played_at, table_name, format, status, hands_count, current_evidence_revision_id, result_review_status")
     .order("session_number", { ascending: false });
   if (seasonCode) query = query.eq("season_code", seasonCode);
   return safeQuery(query, []);

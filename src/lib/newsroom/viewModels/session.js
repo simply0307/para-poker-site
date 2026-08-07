@@ -45,6 +45,11 @@ export async function buildSessionViewModel(sessionIdOrCode) {
   return {
     session,
     rawSession: data.session,
+    evidence: {
+      status: session.current_evidence_revision_id ? "versioned" : "legacy_unversioned",
+      revisionId: session.current_evidence_revision_id || null,
+      resultReviewStatus: session.result_review_status || (session.current_evidence_revision_id ? "awaiting_result_review" : "legacy_unversioned"),
+    },
     publishedDraft,
     keyMoments,
     participants,

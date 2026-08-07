@@ -285,6 +285,11 @@ export async function saveConfirmedSessionResults(sessionIdOrCode, results = [],
 
   await recalculateSeasonStats(session.season_code || "S0");
   await recalculateCareerStats();
+  const { error: reviewStateError } = await supabase
+    .from("sessions")
+    .update({ result_review_status: "approved" })
+    .eq("id", session.id);
+  if (reviewStateError) throw new Error(`Results were saved but the session review state could not be updated: ${reviewStateError.message}`);
 
   return {
     session,

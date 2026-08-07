@@ -1,5 +1,11 @@
-import { cleanName, text } from "@/lib/newsroom/data";
-import { detectBigBlindFromActions, enrichHandWithPotUnits, potBb } from "../poker/potUnits";
+import { stripPlayerHandle, text } from "../playerNames.js";
+import { detectBigBlindFromActions, enrichHandWithPotUnits, potBb } from "../poker/potUnits.js";
+
+export const RAW_HAND_PARSER_VERSION = "raw-hand-csv-v1";
+
+function cleanName(value, fallback = "Unknown Player") {
+  return stripPlayerHandle(value, fallback);
+}
 
 function numberValue(value, fallback = 0) {
   const match = String(value || "").replace(/,/g, "").match(/-?\d+(\.\d+)?/);

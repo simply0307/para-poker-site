@@ -11,7 +11,7 @@ export async function PATCH(request, { params }) {
     const session = await updateImportedSession(sessionId, body);
     return NextResponse.json({ session });
   } catch (error) {
-    return NextResponse.json({ error: error.message || "Could not update imported session." }, { status: 400 });
+    return NextResponse.json({ error: error.message || "Could not update imported session." }, { status: error.status || 400 });
   }
 }
 
@@ -21,6 +21,6 @@ export async function DELETE(_request, { params }) {
     const result = await deleteImportedSession(sessionId);
     return NextResponse.json({ result });
   } catch (error) {
-    return NextResponse.json({ error: error.message || "Could not delete imported session." }, { status: 400 });
+    return NextResponse.json({ error: error.message || "Could not delete imported session." }, { status: error.status || 400 });
   }
 }

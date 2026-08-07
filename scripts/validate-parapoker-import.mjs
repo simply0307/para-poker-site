@@ -61,7 +61,9 @@ function chronologicalCsvRows(rows = []) {
 }
 
 const rawParser = read("src/lib/imports/rawHandHistoryParser.js");
+const rawArtifact = read("src/lib/imports/rawHandImportArtifact.js");
 const rawRepository = read("src/lib/imports/rawHandImportRepository.js");
+const commitContract = read("src/lib/imports/rawHandCommitContract.js");
 const rawPanel = read("src/components/admin-newsroom/RawHandImportPanel.jsx");
 const importManager = read("src/components/admin-newsroom/ImportSessionManager.jsx");
 const resultReviewPanel = read("src/components/admin-newsroom/SessionResultReviewPanel.jsx");
@@ -73,36 +75,45 @@ const sessionResultsRoute = read("src/app/api/admin/imports/sessions/[sessionId]
 const handHistory = read("src/lib/poker/handHistory.js");
 const handHistoryUi = read("src/components/poker/HandActionLog.jsx");
 const adminRoutes = read("src/lib/newsroom/adminRoutes.js");
+const revisionMigration = read("sql/20260805213435_raw_hand_evidence_revisions.sql");
 const { nextSessionNumber, positiveSessionNumber } = await import("../src/lib/imports/sessionNumber.js");
 
 assert.match(rawPanel, /accept="\.csv,text\/csv"/, "Import panel must accept CSV uploads.");
 assert.match(rawPanel, /fetch\("\/api\/admin\/imports\/raw-hands\/preview"/, "Import panel must preview through the raw-hand API.");
 assert.match(rawPanel, /fetch\("\/api\/admin\/imports\/raw-hands\/commit"/, "Import panel must commit through the raw-hand API.");
-assert.match(rawPanel, /Big-blind normalization/, "Import preview must show big-blind normalization status.");
-assert.match(rawPanel, /Commit New Session/, "Import panel must make new live Supabase commits explicit.");
-assert.match(rawPanel, /Replace Live Session/, "Import panel must make replacement explicit.");
-assert.match(rawPanel, /matchingSession.*!form\.replaceExisting/s, "Import panel must block duplicate session-code commits unless replacement is explicit.");
+assert.match(rawPanel, /new FormData\(\)/, "Import preview must upload exact file bytes with FormData.");
+assert.match(rawPanel, /body\.append\("file", file, file\.name\)/, "The selected File must be uploaded rather than converted to browser text.");
+assert.match(rawPanel, /Create immutable preview/, "Import panel must name the persisted preview boundary.");
+assert.match(rawPanel, /Confirm replacement/, "Import panel must require a second explicit replacement confirmation.");
+assert.match(rawPanel, /importId: preview\.importId/, "Commit must reference only the persisted import ID.");
+assert.doesNotMatch(rawPanel.match(/body: JSON\.stringify\(\{[\s\S]*?\}\),/)?.[0] || "", /(manifest|rawText|sourceBytes|hands):/, "Commit JSON must not contain browser evidence.");
 assert.match(adminPage, /RawHandImportPanel/, "Import control room must center the raw hand CSV import panel.");
 assert.match(adminPage, /ImportSessionManager/, "Import control room must expose session import edit/delete controls.");
 assert.doesNotMatch(adminPage, /\/admin\/imports\/parapoker/, "Import control room must not promote the legacy package importer.");
 assert.doesNotMatch(adminRoutes, /\/admin\/imports\/parapoker/, "Admin navigation must not expose the legacy package importer.");
 
-assert.match(previewRoute, /previewRawHandImport/, "Preview route must use server-side raw hand parsing.");
+assert.match(previewRoute, /persistRawHandImportPreview/, "Preview route must persist the canonical server artifact.");
+assert.match(previewRoute, /await uploaded\.arrayBuffer\(\)/, "Preview route must consume the exact uploaded file bytes.");
 assert.match(commitRoute, /commitRawHandImport/, "Commit route must use server-side Supabase commit.");
+assert.match(commitRoute, /parseRawHandCommitBody/, "Commit route must enforce the five-field allowlist.");
 assert.match(sessionImportRoute, /updateImportedSession/, "Imported sessions must be editable through an admin API.");
 assert.match(sessionImportRoute, /deleteImportedSession/, "Imported sessions must be deletable through an admin API.");
 assert.match(importManager, /Delete Imported Session/, "Import manager must expose a clear imported-session delete action.");
 assert.match(resultReviewPanel, /Recalc Season \+ Career/, "Import review must expose season/career stat recalculation.");
 assert.match(resultReviewPanel, /Backfill BB Fields/, "Import review must expose a BB backfill control after the normalization migration is applied.");
 assert.match(sessionResultsRoute, /backfillSessionPotNormalization/, "Session result route must support server-side BB backfill.");
-assert.match(rawRepository, /\.from\("sessions"\)/, "Raw import repository must write sessions through Supabase.");
-assert.match(rawRepository, /insertWithOptionalColumns\("hands"/s, "Raw import repository must write hands through Supabase with optional normalized pot columns.");
-assert.match(rawRepository, /\.from\("actions"\)\.insert/s, "Raw import repository must write chronological actions through Supabase.");
-assert.match(rawRepository, /insertWithOptionalColumns\("notable_hands"/s, "Raw import repository must write detected moment candidates through Supabase with optional normalized pot columns.");
-assert.match(rawRepository, /pot_bb/s, "Raw import repository must preserve normalized pot size when schema supports it.");
-assert.match(rawRepository, /player_session_stats/, "Raw import repository must create basic player-session stats.");
-assert.match(rawRepository, /resolveSessionNumber/, "Raw imports must resolve a non-null session number before writing sessions.");
-assert.match(rawPanel, /assigned automatically within the selected season/i, "The import UI must explain automatic session numbering.");
+assert.match(rawRepository, /rpc\("create_raw_hand_import_preview"/, "Preview repository must call the persistence RPC.");
+assert.match(rawRepository, /rpc\("commit_raw_hand_session_import"/, "Commit repository must use one transactional RPC.");
+assert.match(rawRepository, /current_evidence_revision_id/, "Legacy maintenance must reject revisioned sessions server-side.");
+assert.match(commitContract, /ALLOWED_COMMIT_FIELDS/, "Commit contract must use an explicit field allowlist.");
+assert.doesNotMatch(commitContract, /manifest|rawText|csvText|sourceBytes/, "Commit contract must not accept evidence payload fields.");
+assert.match(rawArtifact, /TextDecoder\("utf-8", \{ fatal: true \}\)/, "Artifacts must strictly decode UTF-8.");
+assert.match(rawArtifact, /canonicalJson/, "Artifacts must use canonical JSON.");
+assert.match(rawArtifact, /derivePlayerSessionStatsFromRows/, "Artifacts must include deterministic player-session stats.");
+assert.match(revisionMigration, /create table public\.session_evidence_revisions/, "Migration must create durable evidence revisions.");
+assert.match(revisionMigration, /begin[\s\S]*exception when others[\s\S]*get stacked diagnostics/, "Commit RPC must use a nested rollback boundary with durable failure reporting.");
+assert.match(revisionMigration, /pg_advisory_xact_lock/, "Commit RPC must serialize session/source allocation and replacements.");
+assert.match(revisionMigration, /affected_aggregates_removed_pending_result_review/, "Replacement must explicitly report the safe aggregate fallback.");
 
 assert.equal(positiveSessionNumber("12"), 12, "Explicit positive session numbers must be preserved.");
 assert.equal(positiveSessionNumber(""), null, "Blank session numbers must request automatic allocation.");

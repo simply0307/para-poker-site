@@ -66,14 +66,15 @@ function sessionIssues(coverage) {
 }
 
 export async function buildImportHealthViewModel() {
-  const [sessions, hands, actions, notableHands, sessionResults, playerSessionStats] = await Promise.all([
+  const [sessions, revisions, hands, actions, notableHands, sessionResults, playerSessionStats] = await Promise.all([
     safeQuery(
       supabase
         .from("sessions")
-        .select("id, session_code, season_code, session_number, played_at, table_name, format, status, hands_count, players_count")
+        .select("id, session_code, season_code, session_number, played_at, table_name, format, status, hands_count, players_count, current_evidence_revision_id, result_review_status")
         .order("session_number", { ascending: false }),
       []
     ),
+    safeQueryAll(supabase.from("session_evidence_revisions").select("id, session_id, revision_number, status"), []),
     safeQueryAll(supabase.from("hands").select("*"), []),
     safeQueryAll(supabase.from("actions").select("*"), []),
     safeQueryAll(supabase.from("notable_hands").select("*"), []),
@@ -88,6 +89,7 @@ export async function buildImportHealthViewModel() {
   const notableBySession = groupCount(notableHands);
   const resultsBySession = groupCount(sessionResults);
   const statsBySession = groupCount(playerSessionStats);
+  const revisionsById = new Map((revisions || []).map((revision) => [text(revision.id), revision]));
 
   const sessionCoverage = (sessions || []).map((session) => {
     const sessionId = text(session.id);
@@ -111,6 +113,13 @@ export async function buildImportHealthViewModel() {
       tableName: text(session.table_name, "Table pending"),
       format: text(session.format, "Imported hand history"),
       status: text(session.status, "unknown"),
+      resultReviewStatus: text(session.result_review_status, session.current_evidence_revision_id ? "awaiting_result_review" : "legacy_unversioned"),
+      currentEvidenceRevisionId: session.current_evidence_revision_id || null,
+      evidenceRevisionNumber: revisionsById.get(text(session.current_evidence_revision_id))?.revision_number || null,
+      isRevisioned: Boolean(session.current_evidence_revision_id),
+      evidenceLabel: session.current_evidence_revision_id
+        ? `revision ${revisionsById.get(text(session.current_evidence_revision_id))?.revision_number || "unknown"}`
+        : "legacy unversioned",
       playersCount: session.players_count,
       declaredHands,
       handsImported,

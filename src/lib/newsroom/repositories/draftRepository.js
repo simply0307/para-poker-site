@@ -90,6 +90,7 @@ export async function getPublishedDraft({ scope, sourceSessionId, sourcePlayerId
     .select("*")
     .eq("scope", scope)
     .eq("visibility", "published")
+    .eq("is_stale", false)
     .order("published_at", { ascending: false })
     .limit(1);
 
@@ -115,6 +116,7 @@ export async function getPublishedArticlesIndex() {
     supabase
       .from("published_articles")
       .select("*")
+      .eq("is_stale", false)
       .is("unpublished_at", null)
       .order("published_at", { ascending: false }),
     []
@@ -127,6 +129,7 @@ export async function getPublishedArticlesIndex() {
       .select("*")
       .eq("scope", "article")
       .eq("visibility", "published")
+      .eq("is_stale", false)
       .order("published_at", { ascending: false }),
     []
   );
@@ -164,6 +167,7 @@ export async function getPublishedArticle(articleIdOrSlug) {
       .from("published_articles")
       .select("*")
       .eq("id", key)
+      .eq("is_stale", false)
       .is("unpublished_at", null)
       .maybeSingle(),
     null
@@ -175,6 +179,7 @@ export async function getPublishedArticle(articleIdOrSlug) {
       .from("published_articles")
       .select("*")
       .eq("slug", key)
+      .eq("is_stale", false)
       .is("unpublished_at", null)
       .maybeSingle(),
     null
@@ -188,6 +193,7 @@ export async function getPublishedArticle(articleIdOrSlug) {
       .eq("id", key)
       .eq("scope", "article")
       .eq("visibility", "published")
+      .eq("is_stale", false)
       .maybeSingle(),
     null
   );
@@ -200,6 +206,7 @@ export async function getPublishedArticle(articleIdOrSlug) {
       .eq("article_request->>slug", key)
       .eq("scope", "article")
       .eq("visibility", "published")
+      .eq("is_stale", false)
       .maybeSingle(),
     null
   );
