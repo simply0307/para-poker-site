@@ -29,6 +29,7 @@ export default async function PlayersPage() {
               href={`/players/${encodeURIComponent(text(player.slug || player.id))}`}
               name={cleanName(player.display_name || player.pokernow_name)}
               meta="Player profile"
+              image={player.avatar_url || player.image_url || player.photo_url || player.profile_image_url || player.headshot_url}
             >
               <p>{copy.playerCardDek}</p>
             </PlayerCard>
