@@ -316,6 +316,7 @@ function FeaturedPlayersModule({ module, viewModel }) {
               href={`/players/${encodeURIComponent(text(player.slug || player.id))}`}
               name={cleanName(player.display_name || player.pokernow_name)}
               meta={standing.rank ? `Rank ${standing.rank}` : "Public profile"}
+              image={player.avatar_url || player.image_url || player.photo_url || player.profile_image_url || player.headshot_url}
             >
               <p>{standing.total_points ? `${standing.total_points} points on the current board.` : "Their public record begins with the next approved session."}</p>
             </PlayerCard>

@@ -41,19 +41,28 @@ export default async function StandingsPage() {
         <StatCard label="Top points" value={text(leader.points || leader.league_points || leader.total_points, "-")} />
       </StatStrip>
       <div className="mt-8">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-md border border-[#d8c087]/20 bg-[#061019]/82 px-4 py-3">
+          <div>
+            <p className="text-[0.62rem] font-black uppercase tracking-[0.2em] text-[#d8c087]">Verified league record</p>
+            <p className="mt-1 text-sm text-stone-400">The board advances only through approved session results.</p>
+          </div>
+          <span className="flex items-center gap-2 rounded-sm border border-[#d8c087]/30 bg-[#d8c087]/10 px-3 py-2 text-[0.62rem] font-black uppercase tracking-[0.16em] text-[#fff1bf]">
+            <i className="h-1.5 w-1.5 rounded-full bg-[#d8c087] shadow-[0_0_12px_rgba(216,192,135,0.8)]" /> Current board
+          </span>
+        </div>
         <DataTableShell
-          title="Standings Table"
+          title="Live Standings"
           columns={["Rank", "Player", "Points", "Sessions", "Best", "Big Pot"]}
           rows={standings}
           empty="No standings rows are available yet."
           renderRow={(row, index) => (
             <tr key={`${row.player_id || row.player_name || "standing"}-${index}`} className="border-b border-white/10">
-              <td className="border-b border-white/10 px-3 py-3 font-black text-amber-200">{text(row.rank || row.current_rank, "-")}</td>
+              <td className="para-data border-b border-white/10 px-3 py-3 text-lg font-black text-amber-200">{text(row.rank || row.current_rank, "-")}</td>
               <td className="border-b border-white/10 px-3 py-3 text-white">{cleanName(row.player_name || row.display_name, "Player")}</td>
-              <td className="border-b border-white/10 px-3 py-3 text-stone-300">{formatNumber(row.points || row.league_points || row.total_points, "-")}</td>
-              <td className="border-b border-white/10 px-3 py-3 text-stone-300">{formatNumber(row.sessions_played, "-")}</td>
-              <td className="border-b border-white/10 px-3 py-3 text-stone-300">{row.best_finish ? `#${row.best_finish}` : "-"}</td>
-              <td className="border-b border-white/10 px-3 py-3 text-stone-300">{formatNumber(row.biggest_pot_won, "-")}</td>
+              <td className="para-data border-b border-white/10 px-3 py-3 text-stone-300">{formatNumber(row.points || row.league_points || row.total_points, "-")}</td>
+              <td className="para-data border-b border-white/10 px-3 py-3 text-stone-300">{formatNumber(row.sessions_played, "-")}</td>
+              <td className="para-data border-b border-white/10 px-3 py-3 text-stone-300">{row.best_finish ? `#${row.best_finish}` : "-"}</td>
+              <td className="para-data border-b border-white/10 px-3 py-3 text-stone-300">{formatNumber(row.biggest_pot_won, "-")}</td>
             </tr>
           )}
         />

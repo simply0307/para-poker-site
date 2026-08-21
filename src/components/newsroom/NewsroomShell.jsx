@@ -27,9 +27,39 @@ export function NewsroomShell({ children }) {
           </Link>
           <PublicNav />
         </nav>
-        <div className="pb-16">{children}</div>
+        <div className="pb-12">{children}</div>
+        <BranchFooter />
       </div>
     </main>
+  );
+}
+
+export function ParaProjectEndorsement({ compact = false }) {
+  return (
+    <div className={`flex items-center gap-2.5 ${compact ? "" : "sm:gap-3"}`}>
+      <Image
+        src="/images/para-wordmark.svg"
+        alt="PARA"
+        width={96}
+        height={30}
+        className={`${compact ? "h-3.5 w-auto" : "h-4 w-auto sm:h-5"} invert opacity-85`}
+      />
+      <span className="text-[0.56rem] font-bold uppercase tracking-[0.2em] text-[#d8c087] sm:text-[0.62rem]">
+        A PARA PROJECT
+      </span>
+    </div>
+  );
+}
+
+function BranchFooter() {
+  return (
+    <footer className="mb-5 grid gap-5 border-t border-[#d8c087]/25 px-1 py-6 text-stone-400 md:grid-cols-[1fr_auto] md:items-end">
+      <div>
+        <p className="text-[0.62rem] font-bold uppercase tracking-[0.2em] text-[#d8c087]">Para-Poker League</p>
+        <p className="mt-2 max-w-xl text-sm leading-6">Sessions, standings, players, moments, and the public record.</p>
+      </div>
+      <ParaProjectEndorsement />
+    </footer>
   );
 }
 
@@ -148,12 +178,18 @@ export function MomentCard({ title, meta, pot, children, href }) {
   return href ? <Link href={href}>{content}</Link> : content;
 }
 
-export function PlayerCard({ name, meta, href, children }) {
+export function PlayerCard({ name, meta, href, image, children }) {
   const clean = publicText(name || "P");
   const initial = String(clean || "P").slice(0, 1).toUpperCase();
   const content = (
     <article className="flex h-full gap-4 rounded-md border border-[#d8c087]/15 bg-[#08111a]/78 p-4 transition hover:border-[#d8c087]/55">
-      <div className="grid h-12 w-12 shrink-0 place-items-center rounded-sm border border-[#d8c087]/35 bg-[#d8c087]/10 text-xl font-black text-[#fff1bf]">{initial}</div>
+      <div
+        className="grid h-12 w-12 shrink-0 place-items-center rounded-sm border border-[#d8c087]/35 bg-[#d8c087]/10 bg-cover bg-center text-xl font-black text-[#fff1bf]"
+        style={image ? { backgroundImage: `url(${image})` } : undefined}
+        aria-label={image ? `${clean} profile image` : undefined}
+      >
+        {image ? null : initial}
+      </div>
       <div>
         {meta ? <p className="text-xs font-bold uppercase tracking-[0.14em] text-stone-400">{publicText(meta)}</p> : null}
         <h2 className="text-2xl font-bold text-white">{clean}</h2>
@@ -166,7 +202,7 @@ export function PlayerCard({ name, meta, href, children }) {
 
 export function SessionCard({ title, meta, href, children }) {
   const content = (
-    <article className="h-full rounded-md border border-[#d8c087]/16 bg-[linear-gradient(135deg,rgba(216,192,135,0.12),rgba(255,255,255,0.035)_45%,rgba(94,22,22,0.14))] p-5 transition hover:border-[#d8c087]/55">
+    <article className="relative h-full overflow-hidden rounded-md border border-[#d8c087]/16 bg-[linear-gradient(135deg,rgba(216,192,135,0.12),rgba(255,255,255,0.035)_45%,rgba(94,22,22,0.14))] p-5 transition before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-[#d8c087]/70 before:to-transparent hover:border-[#d8c087]/55">
       {meta ? <p className="text-xs font-bold uppercase tracking-[0.16em] text-stone-400">{publicText(meta)}</p> : null}
       <h2 className="mt-2 text-3xl font-black text-white">{publicText(title)}</h2>
       {children ? <div className="mt-4 text-sm leading-6 text-stone-300">{children}</div> : null}
