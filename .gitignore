@@ -51,5 +51,6 @@ next-dev.out.log
 
 # Local upstream snapshot and verification output
 /.reference/
+/supabase/.temp/
 /artifacts/
 !.env.example

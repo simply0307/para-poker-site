@@ -1,5 +1,10 @@
 # Consumer identity proposal — UNAPPLIED
 
+Historical Phase 1 proposal. The project has since been restored with user
+permission and audited. See the [Phase 2 audit and reconciled migration](eggs-phase2-identity-audit.md)
+for verified facts, differences, disposable test evidence and the still-unapplied
+SQL candidate. The original proposal below is retained for comparison.
+
 Date: 2026-09-22. Review design only. No consumer tables, policies, migrations,
 triggers, endpoints, cookies, onboarding or claim writes were implemented.
 The existing Supabase project `uzderzjbitmghfvrllvz` reports INACTIVE; its original

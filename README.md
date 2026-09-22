@@ -11,7 +11,9 @@ sequence. `profiles.auth_user_id` remains the existing operator relationship;
 consumer `eggs_profiles` and reviewed player claims are proposed, not deployed.
 The [Phase 1 implementation report](docs/eggs-migration-status.md) records the
 current boundaries and validation. The [consumer identity proposal](docs/eggs-consumer-identity-proposal.md)
-is a review design only; no consumer migration has been created or applied.
+is retained for comparison. The [Phase 2 audit](docs/eggs-phase2-identity-audit.md)
+documents the verified live database and a tested additive migration candidate.
+The consumer migration remains unapplied to production.
 
 ## Development
 
@@ -27,8 +29,10 @@ Then open http://localhost:3000.
 The EGGS shell runs without credentials. League routes show an unavailable
 state until the three variables in `.env.example` are configured in `.env.local`.
 Only use the intended league database; do not copy credentials into client code.
-The linked Supabase project was inactive during the audit, so live RLS, grants,
-and login remain unverified. No real data or synthetic profiles are bundled.
+The existing Supabase project was restored with user permission for the Phase 2
+read-only audit. Schema, RLS, grants and Auth settings were verified; live account
+login/session behavior remains a later rollout check. No live data is bundled;
+synthetic identity fixtures are confined to disposable database tests.
 
 ## Routes
 
@@ -78,6 +82,12 @@ It never writes to a real database.
 Existing PGlite acceptance tests use disposable in-memory databases. Neither is
 proof of deployed schema or live-data parity. The separate destructive database
 integration suite remains opt-in and must use a confirmed disposable database.
+
+`npm run test:identity` tests the unapplied consumer migration in a fresh local
+PostgreSQL 17 cluster, including RLS and real concurrent claim approval conflicts.
+It never accepts a remote database URL. See the [Phase 2 report](docs/eggs-phase2-identity-audit.md#disposable-validation)
+for binary setup, coverage and limits. Missing local binaries produce an explicit
+skip; migration review requires a run that actually executes the database tests.
 
 ## Data And Newsroom Flow
 
