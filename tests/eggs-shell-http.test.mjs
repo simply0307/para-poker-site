@@ -5,6 +5,7 @@ import { createServer } from "node:http";
 import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { test } from "node:test";
+import { apiInventory, concreteRoute, requiresOperator } from "./helpers/routeInventory.mjs";
 
 // Disposable HTTP fixtures only. This test never uses a real Supabase project,
 // provider key, account, database, or network address other than loopback.
@@ -14,7 +15,6 @@ const playerId = "33333333-3333-4333-8333-333333333333";
 const sessionId = "44444444-4444-4444-8444-444444444444";
 const serviceSentinel = "eggs-http-test-service-secret-never-public";
 const sections = ["players", "sessions", "standings", "moments", "articles"];
-const generations = ["articles", "moments", "player-session-recaps", "profiles", "recaps", "social-captions", "standings"];
 
 async function listen(server) {
   server.listen(0, "127.0.0.1");
@@ -76,9 +76,11 @@ test("disconnected shell works, profile handles do not fabricate records, legacy
     }
     const admin = await fetch(app.base + "/admin", { redirect: "manual" });
     assert.equal(new URL(admin.headers.get("location"), app.base).pathname, "/operator-login");
-    for (const route of generations) {
-      const response = await fetch(`${app.base}/api/${route}/generate`, { method: "POST", body: "not-json" });
-      assert.equal(response.status, 401, route);
+    for (const entry of (await apiInventory()).filter(requiresOperator)) {
+      const response = await fetch(app.base + concreteRoute(entry.route), {
+        method: entry.method, ...(entry.method === "GET" ? {} : { body: "not-json" }),
+      });
+      assert.equal(response.status, 401, `${entry.method} ${entry.route}`);
     }
   } finally { await stopApp(app.child); }
 });
@@ -124,9 +126,13 @@ test("league adapters render fixture dossiers and operator boundaries verify UUI
       assert.ok(!/href="\/(?:players|sessions|standings|moments|articles)(?:\/|\")/.test(html), `${route} emits legacy public links`);
     }
     assert.equal((await fetch(app.base + "/para/poker/players/unknown")).status, 404);
-    for (const route of generations) {
-      const response = await fetch(`${app.base}/api/${route}/generate`, { method: "POST", headers: { Authorization: "Bearer viewer-token" }, body: "not-json" });
-      assert.equal(response.status, 403, `${route}: user metadata must not authorize`);
+    for (const entry of (await apiInventory()).filter(requiresOperator)) {
+      const response = await fetch(app.base + concreteRoute(entry.route), {
+        method: entry.method,
+        headers: { Authorization: "Bearer viewer-token", Cookie: "para_league_operator=viewer-token" },
+        ...(entry.method === "GET" ? {} : { body: "not-json" }),
+      });
+      assert.equal(response.status, 403, `${entry.method} ${entry.route}: metadata must not authorize`);
     }
     for (const [token, status] of [["invalid", 401], ["viewer-token", 403], ["operator-token", 200]]) {
       const response = await fetch(app.base + "/api/operator-session", { method: "POST", headers: { Authorization: `Bearer ${token}` } });
@@ -142,6 +148,16 @@ test("league adapters render fixture dossiers and operator boundaries verify UUI
     }
     const consumerCookie = await fetch(app.base + "/api/admin/homepage-settings", { headers: { Cookie: "eggs_session=operator-token" } });
     assert.equal(consumerCookie.status, 401);
+    for (const route of ["/admin", "/admin/players", "/admin/sessions"]) {
+      const response = await fetch(app.base + route, { headers: { Cookie: "para_league_operator=operator-token" } });
+      const html = await response.text();
+      assert.equal(response.status, 200, route);
+      assert.match(html, /League operations/);
+      assert.doesNotMatch(html, /href="\/(?:players|sessions|standings|moments|articles)(?:\/|")/u);
+    }
+    const signOut = await fetch(app.base + "/api/operator-session", { method: "DELETE" });
+    assert.equal(signOut.status, 200);
+    assert.match(signOut.headers.get("set-cookie"), /para_league_operator=;/);
     assert.ok(requests.every(request => request.method === "GET"), "A denied request reached a backend write");
   } finally {
     if (app) await stopApp(app.child);

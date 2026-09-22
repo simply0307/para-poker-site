@@ -11,7 +11,7 @@ function isActive(pathname, href) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export function AdminShell({ children, title, description, eyebrow = "Admin newsroom", actions }) {
+export function AdminShell({ children, title, description, eyebrow = "Para Poker League newsroom", actions }) {
   const pathname = usePathname();
 
   return (
@@ -25,15 +25,15 @@ export function AdminShell({ children, title, description, eyebrow = "Admin news
               </span>
               <span>
                 <span className="block text-xs font-black uppercase tracking-[0.24em] text-amber-200">Para-Poker</span>
-                <span className="block text-2xl font-black leading-none">Admin</span>
+                <span className="block text-2xl font-black leading-none">League operations</span>
               </span>
             </Link>
             <div className="flex flex-wrap gap-2 text-xs font-black uppercase tracking-[0.14em]">
               <Link href="/para/poker" className="rounded-sm border border-white/15 px-3 py-2 text-zinc-300 hover:border-amber-200/60 hover:text-white">
                 Public Site
               </Link>
-              <Link href="/para/poker/sessions/S0-001" className="rounded-sm border border-amber-200/35 px-3 py-2 text-amber-100 hover:bg-amber-200 hover:text-zinc-950">
-                S0-001
+              <Link href="/para/poker/sessions" className="rounded-sm border border-amber-200/35 px-3 py-2 text-amber-100 hover:bg-amber-200 hover:text-zinc-950">
+                Session archive
               </Link>
               <OperatorSignOut />
             </div>

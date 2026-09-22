@@ -2,7 +2,10 @@
   "name": "eggs-web",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
+  "engines": { "node": ">=22" },
   "scripts": {
+    "test": "node scripts/run-tests.mjs",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",

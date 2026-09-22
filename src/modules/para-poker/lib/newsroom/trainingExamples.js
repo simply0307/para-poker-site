@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/modules/para-poker/lib/supabase";
 import { CAPTURE_STATUSES, DATASET_SPLITS } from "@/modules/para-poker/lib/newsroom/trainingConstants";
 
 function schemaCacheMessage(error) {

@@ -1,3 +1,5 @@
+import { canonicalPokerHref } from "../../routes.mjs";
+
 const ALLOWED_TAGS = new Set([
   "a",
   "b",
@@ -66,7 +68,7 @@ function sanitizeAttrs(tag, rawAttrs = "") {
 
   if (tag === "a") {
     const hrefMatch = String(rawAttrs).match(/\shref\s*=\s*("([^"]*)"|'([^']*)'|([^\s>]+))/iu);
-    const href = hrefMatch?.[2] || hrefMatch?.[3] || hrefMatch?.[4] || "";
+    const href = canonicalPokerHref(hrefMatch?.[2] || hrefMatch?.[3] || hrefMatch?.[4] || "");
     if (safeHref(href)) {
       attrs.push(`href="${escapeAttr(href)}"`);
       attrs.push('rel="noopener noreferrer"');

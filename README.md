@@ -9,6 +9,9 @@ Read [the architecture audit](docs/eggs-architecture-audit.md) for the current
 identity boundaries, proposed additive schema, file map, risks and migration
 sequence. `profiles.auth_user_id` remains the existing operator relationship;
 consumer `eggs_profiles` and reviewed player claims are proposed, not deployed.
+The [Phase 1 implementation report](docs/eggs-migration-status.md) records the
+current boundaries and validation. The [consumer identity proposal](docs/eggs-consumer-identity-proposal.md)
+is a review design only; no consumer migration has been created or applied.
 
 ## Development
 
@@ -38,7 +41,8 @@ and login remain unverified. No real data or synthetic profiles are bundled.
   and query strings. The original league domain's root needs a separate cutover decision.
 - `/music`, `/library`, `/profile`, `/login` explain planned features. Consumer
   sign-in is not active; unknown `/profile/[handle]` requests return 404.
-- `/admin` is the authenticated admin newsroom and league ops entry.
+- `/admin` remains the authenticated Para Poker newsroom and league ops entry;
+  it is not a universal EGGS administrator surface.
 - `/admin/sessions/[sessionId]` is the main recap generation/edit/publish desk.
 - `/admin/newsroom/dataset` is an optional future review tool for passively
   captured generation examples. It is not part of everyday recap publishing.
@@ -46,6 +50,8 @@ and login remain unverified. No real data or synthetic profiles are bundled.
 
 League views, components, repositories and import/stat utilities live under
 `src/modules/para-poker`. `src/app/para/poker` contains thin route adapters.
+Operator pages and APIs use `(para-poker)` source route groups, which keep the
+current URLs intact. The shared `src/lib` contains authentication primitives only.
 Existing admin and API addresses, SQL files, and local newsroom settings remain
 stable. League route adapters render dynamically so unavailable configuration
 is not cached into the public archive. Original view/data behavior is retained.
@@ -55,27 +61,27 @@ is not cached into the public archive. Original view/data behavior is retained.
 ```powershell
 npm.cmd run build
 npm.cmd run lint
-npm.cmd run test:admin-auth
-npm.cmd run test:imports:pure
-npm.cmd run test:imports:acceptance
-npm.cmd run test:shell
+npm.cmd test
 npm.cmd run validate:homepage
 npm.cmd run validate:stats
 npm.cmd run validate:training
 npm.cmd run validate:parapoker-import
 ```
 
-`test:shell` requires a production build. It starts isolated loopback servers,
+`npm test` includes all test files and requires a production build for the HTTP
+suite. Its default runner explicitly disables the destructive remote test, which
+reports a skip. The HTTP suite starts isolated loopback servers,
 uses a disposable HTTP fixture for Supabase responses, and checks actual public
 rendering, redirects, missing profiles, operator sessions, denied generation
-requests and browser credential boundaries. It never writes to a real database.
+requests across all 48 protected API methods and browser credential boundaries.
+It never writes to a real database.
 Existing PGlite acceptance tests use disposable in-memory databases. Neither is
 proof of deployed schema or live-data parity. The separate destructive database
 integration suite remains opt-in and must use a confirmed disposable database.
 
 ## Data And Newsroom Flow
 
-Supabase access is server-side only through `src/lib/supabase.js`. Do not import
+League data access is server-side only through `src/modules/para-poker/lib/supabase.js`. Do not import
 that client into browser components or expose `SUPABASE_SERVICE_ROLE_KEY` to the
 browser.
 
@@ -99,6 +105,9 @@ edited output into `approved_output` and marks the capture row
 dataset or assigns a split.
 
 ## Supabase SQL Setup
+
+The following is inherited league setup documentation, not a step in the EGGS
+shell migration. Phase 1 changes no SQL and applies no database changes.
 
 Run SQL from the Supabase SQL Editor or another trusted SQL client. After schema
 changes, the migration files call `select pg_notify('pgrst', 'reload schema');`
@@ -193,7 +202,7 @@ newsroom-library/settings/homepage.json
 All persistence must stay behind:
 
 ```text
-src/lib/newsroom/homepageSettings.js
+src/modules/para-poker/lib/newsroom/homepageSettings.js
 ```
 
 Components and view models should call the read/write settings helpers rather
@@ -219,7 +228,7 @@ newsroom-library/settings/upcoming-events.json
 All persistence must stay behind:
 
 ```text
-src/lib/newsroom/upcomingEvents.js
+src/modules/para-poker/lib/newsroom/upcomingEvents.js
 ```
 
 When the game-site schedule feed is ready, replace the internals of that

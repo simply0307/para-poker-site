@@ -7,7 +7,7 @@ export const ADMIN_ROUTE_GROUPS = [
         href: "/admin",
         label: "Dashboard",
         title: "Newsroom Control Room",
-        description: "Top-level admin hub for pipeline, newsroom, presentation, and league ops.",
+        description: "Para Poker League pipeline, newsroom, presentation, and operations.",
         showOnDashboard: false,
       },
       {

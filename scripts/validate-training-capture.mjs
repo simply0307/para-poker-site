@@ -19,7 +19,7 @@ function oneJsonObjectPerLine(jsonl) {
 const sql = read("sql/20260712_recap_training_capture.sql");
 const passiveSql = read("sql/20260712_passive_training_capture.sql");
 const drafts = read("src/modules/para-poker/lib/newsroom/drafts.js");
-const exportRoute = read("src/app/api/admin/newsroom/dataset/export/route.js");
+const exportRoute = read("src/app/api/(para-poker)/admin/newsroom/dataset/export/route.js");
 const trainingRepo = read("src/modules/para-poker/lib/newsroom/trainingExamples.js");
 const sessionEditor = read("src/modules/para-poker/components/admin-newsroom/SessionRecapDraftEditor.jsx");
 const genericEditor = read("src/modules/para-poker/components/admin-newsroom/GenericDraftWorkspace.jsx");

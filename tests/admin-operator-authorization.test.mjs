@@ -8,7 +8,7 @@ import {
   authorizeOperatorRequest,
   isAdminWorkspacePath,
   isPrivilegedAdminApiPath,
-} from "../src/lib/auth/operatorAuthorizationCore.mjs";
+} from "../src/modules/para-poker/lib/auth/operatorAuthorizationCore.mjs";
 
 const OPERATOR_USER_ID = "11111111-1111-4111-8111-111111111111";
 const VIEWER_USER_ID = "22222222-2222-4222-8222-222222222222";
@@ -121,7 +121,7 @@ test("authorization failures never include verifier or profile secrets", async (
 });
 
 test("every exported /api/admin method invokes the shared guard", async () => {
-  const root = path.resolve("src/app/api/admin");
+  const root = path.resolve("src/app/api/(para-poker)/admin");
   const routes = [];
   async function walk(directory) {
     for (const entry of await readdir(directory, { withFileTypes: true })) {

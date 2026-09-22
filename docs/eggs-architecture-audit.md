@@ -3,7 +3,8 @@
 Audit date: 2026-09-22. Implementation baseline: `simply0307/para-poker-site`
 at `ca431bb734fab97c8da1dfeae0d515cf2ac1305f` (published HEAD, “Apply Para Poker
 child identity system (#1)”). This workspace was an empty Git repository. Its
-local branch now starts from that snapshot; no remote is configured for pushing.
+local branch starts from that snapshot. The initial shell is now committed as
+`3c79b7f` and pushed to `codex/eggs-shell` in the existing repository.
 The existing Para Poker checkout is at `7a4285d` and has user changes to package
 files and newsroom settings. Those files were inspected but not imported or edited.
 
@@ -12,6 +13,12 @@ brand approval, database migration, or deployment. The supplied user request is
 the architectural scope. Existing Para visual assets stay inside the league;
 the EGGS shell is a functional application scaffold, not a new identity system
 for the brand's artwork.
+
+This document records the **pre-migration findings** and initial recommendation.
+The seven unguarded endpoints and eager shared service client described below
+were fixed in Phase 1. See [the implementation report](eggs-migration-status.md)
+for current paths, endpoint coverage, validation and review status, and
+[the unapplied consumer design](eggs-consumer-identity-proposal.md) for Phase 2.
 
 ## 1. Current architecture
 

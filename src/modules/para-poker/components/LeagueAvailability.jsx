@@ -1,4 +1,4 @@
-import { hasLeagueConfiguration } from "@/lib/supabase/server";
+import { hasLeagueConfiguration } from "@/modules/para-poker/lib/supabase";
 import { LeagueHero, NewsroomShell } from "./newsroom/NewsroomShell";
 
 export function LeagueAvailability({ children }) {

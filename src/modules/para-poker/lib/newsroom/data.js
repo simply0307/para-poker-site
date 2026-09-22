@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/modules/para-poker/lib/supabase";
 import {
   attachActionsToHands as attachPokerActionsToHands,
   extractHandActionLog as extractPokerHandActionLog,

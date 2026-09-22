@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/modules/para-poker/lib/supabase";
 import { attachActionsToHands, normalizeHandRow } from "@/modules/para-poker/lib/poker/handHistory";
 import { normalizePlayerNameForMatch, stripPlayerHandle } from "@/modules/para-poker/lib/playerNames";
 import { getSessionsIndex, safeQuery } from "./sessionRepository";

@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/modules/para-poker/lib/supabase";
 import { readActiveDataOverrides } from "@/modules/para-poker/lib/newsroom/applyDataOverrides";
 
 export const MOMENT_VIDEO_FIELD_PATH = "media.video";

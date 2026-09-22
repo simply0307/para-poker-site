@@ -1,3 +1,5 @@
+import "@/modules/para-poker/styles.css";
+
 export const metadata = {
   title: "Para Poker League",
   description: "Para Poker League newsroom, standings, sessions, and player dossiers. A Para project within EGGS.",
@@ -5,5 +7,5 @@ export const metadata = {
 };
 
 export default function PokerLayout({ children }) {
-  return children;
+  return <div className="para-poker-module">{children}</div>;
 }

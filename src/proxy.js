@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { OPERATOR_SESSION_COOKIE } from "@/lib/auth/operatorAuthorizationCore.mjs";
+import { OPERATOR_SESSION_COOKIE } from "@/modules/para-poker/lib/auth/operatorAuthorizationCore.mjs";
 
 // Optimistic UI gate only. Every /api/admin handler performs the full token and
 // profile authorization independently before invoking privileged repositories.

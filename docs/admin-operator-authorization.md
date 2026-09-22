@@ -9,6 +9,12 @@ Only the existing `admin` and `owner` profile roles may use the privileged admin
 surface. Other authenticated roles receive 403. Missing or invalid credentials
 receive 401. A profile lookup failure fails closed with 503.
 
+These are **Para Poker League operations**, not universal EGGS administration.
+Source ownership is explicit in `src/app/admin/(para-poker)` and
+`src/app/api/(para-poker)` while all operational URLs remain stable.
+The role lookup and cookie contract live in `src/modules/para-poker/lib/auth`;
+shared `src/lib/auth/verifiedIdentity.js` verifies identity only.
+
 ## Request boundary
 
 1. The browser signs in to Supabase Auth with the public URL and publishable key.
@@ -16,8 +22,9 @@ receive 401. A profile lookup failure fails closed with 503.
    then resolves the profile by stable Auth UUID using the server-only client.
 3. A successful operator session is stored in an HttpOnly, Secure (production),
    SameSite=Strict cookie for at most one hour.
-4. Every exported method under `/api/admin/**` independently repeats token and
-   profile-role verification before its repository is invoked.
+4. Every exported method under `/api/admin/**` and every generation POST
+   independently repeats token and profile-role verification before parsing
+   input, invoking a repository or calling a provider.
 5. `/admin` has an additional layout and Proxy gate for coherent UI behavior.
    These are defense in depth and are not the API security boundary.
 
@@ -50,6 +57,8 @@ Mutating privileged methods:
 - `PUT /api/admin/homepage-settings`
 - `POST /api/admin/imports/eggs-sessions/preview`
 - `POST /api/admin/imports/eggs-sessions/commit`
+- `POST /api/admin/imports/gauntlet-matches/preview`
+- `POST /api/admin/imports/gauntlet-matches/commit`
 - `POST /api/admin/imports/raw-hands/preview`
 - `POST /api/admin/imports/raw-hands/commit`
 - `PATCH, DELETE /api/admin/imports/sessions/[sessionId]`
@@ -67,7 +76,30 @@ Mutating privileged methods:
 - `PATCH, POST /api/admin/training-examples`
 - `PUT /api/admin/upcoming-events`
 
+Operator-protected generation methods (all POST):
+
+- `/api/articles/generate`
+- `/api/moments/generate`
+- `/api/player-session-recaps/generate`
+- `/api/profiles/generate` (editorial player copy, not consumer accounts)
+- `/api/recaps/generate`
+- `/api/social-captions/generate`
+- `/api/standings/generate`
+
+`GET` and `POST /api/operator-session` also require operator authorization.
+`DELETE /api/operator-session` only expires the caller's cookie and intentionally
+requires no operator role. No repository or provider is invoked there.
+
+Inventory: 31 API paths, 49 methods, 48 protected methods. The static inventory
+and built-app HTTP tests enumerate every exported method, checking rejection
+before work, anonymous 401 and non-operator 403. Dataset export retains both its
+operator cookie and independent export token; its bearer token is not reused as
+an Auth token. Successful privileged mutations are not exercised against live data.
+
 ## Database migration and rollback
+
+This is historical league migration documentation, not part of the EGGS shell
+change. The current phase preserves `profiles.auth_user_id` and applies no SQL.
 
 `sql/20260807_admin_operator_authorization.sql` is additive: it adds the nullable
 foreign-key column and a partial unique index, then bridges the existing eligible

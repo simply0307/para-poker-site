@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/modules/para-poker/lib/supabase";
 import { isMissingSchemaFieldError } from "@/modules/para-poker/lib/newsroom/schemaCompatibility";
 import {
   enrichHandWithPotUnits,
