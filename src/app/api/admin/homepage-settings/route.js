@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { readHomepageSettings, writeHomepageSettings } from "@/lib/newsroom/homepageSettings";
+import { readHomepageSettings, writeHomepageSettings } from "@/modules/para-poker/lib/newsroom/homepageSettings";
 import { requireOperator } from "@/lib/auth/operatorAuthorization";
 
 export const runtime = "nodejs";

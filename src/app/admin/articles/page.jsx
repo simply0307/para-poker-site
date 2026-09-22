@@ -1,11 +1,11 @@
-import { ArticleVideoManager } from "@/components/admin-newsroom/ArticleVideoManager";
-import { GenericDraftWorkspace } from "@/components/admin-newsroom/GenericDraftWorkspace";
-import { cleanName, formatDate, formatNumber, getPlayersIndex, getSessionsIndex, getStandingsRows, text } from "@/lib/newsroom/data";
-import { listArticleDrafts } from "@/lib/newsroom/drafts";
-import { readSeasonSettings } from "@/lib/newsroom/seasonSettings";
-import { DEFAULT_ARTICLE_CONTEXT_SELECTION } from "@/lib/newsroom/articleContextSelection";
-import { buildMomentsViewModel } from "@/lib/newsroom/viewModels/moments";
-import { getArticleVideoAttachments } from "@/lib/newsroom/articleVideoAttachments";
+import { ArticleVideoManager } from "@/modules/para-poker/components/admin-newsroom/ArticleVideoManager";
+import { GenericDraftWorkspace } from "@/modules/para-poker/components/admin-newsroom/GenericDraftWorkspace";
+import { cleanName, formatDate, formatNumber, getPlayersIndex, getSessionsIndex, getStandingsRows, text } from "@/modules/para-poker/lib/newsroom/data";
+import { listArticleDrafts } from "@/modules/para-poker/lib/newsroom/drafts";
+import { readSeasonSettings } from "@/modules/para-poker/lib/newsroom/seasonSettings";
+import { DEFAULT_ARTICLE_CONTEXT_SELECTION } from "@/modules/para-poker/lib/newsroom/articleContextSelection";
+import { buildMomentsViewModel } from "@/modules/para-poker/lib/newsroom/viewModels/moments";
+import { getArticleVideoAttachments } from "@/modules/para-poker/lib/newsroom/articleVideoAttachments";
 
 export const dynamic = "force-dynamic";
 

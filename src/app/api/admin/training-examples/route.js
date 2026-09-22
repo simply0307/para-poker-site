@@ -5,7 +5,7 @@ import {
   getTrainingExampleForDraft,
   updateTrainingExampleForDraft,
   updateTrainingExampleReview,
-} from "@/lib/newsroom/trainingExamples";
+} from "@/modules/para-poker/lib/newsroom/trainingExamples";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

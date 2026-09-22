@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireOperator } from "@/lib/auth/operatorAuthorization";
-import { commitEggsSessionImport } from "@/lib/imports/eggsSessionImportRepository";
-import { parseRawHandCommitBody } from "@/lib/imports/rawHandCommitContract";
+import { commitEggsSessionImport } from "@/modules/para-poker/lib/imports/eggsSessionImportRepository";
+import { parseRawHandCommitBody } from "@/modules/para-poker/lib/imports/rawHandCommitContract";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

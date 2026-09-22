@@ -48,3 +48,8 @@ next-dev.out.log
 /eggs-poker/
 /gauntlet-online/
 /gauntlet-auth-hardening-worktree/
+
+# Local upstream snapshot and verification output
+/.reference/
+/artifacts/
+!.env.example

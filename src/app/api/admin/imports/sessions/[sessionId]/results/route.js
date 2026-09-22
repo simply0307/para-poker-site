@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireOperator } from "@/lib/auth/operatorAuthorization";
-import { readLeagueRules } from "@/lib/league/rulesRepository";
+import { readLeagueRules } from "@/modules/para-poker/lib/league/rulesRepository";
 import {
   backfillSessionPotNormalization,
   getSessionResultReview,
@@ -8,7 +8,7 @@ import {
   recalculatePlayerSessionStats,
   recalculateSeasonStats,
   saveConfirmedSessionResults,
-} from "@/lib/stats/statRepository";
+} from "@/modules/para-poker/lib/stats/statRepository";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

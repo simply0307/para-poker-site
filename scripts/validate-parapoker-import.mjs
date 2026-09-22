@@ -60,23 +60,23 @@ function chronologicalCsvRows(rows = []) {
     });
 }
 
-const rawParser = read("src/lib/imports/rawHandHistoryParser.js");
-const rawArtifact = read("src/lib/imports/rawHandImportArtifact.js");
-const rawRepository = read("src/lib/imports/rawHandImportRepository.js");
-const commitContract = read("src/lib/imports/rawHandCommitContract.js");
-const rawPanel = read("src/components/admin-newsroom/RawHandImportPanel.jsx");
-const importManager = read("src/components/admin-newsroom/ImportSessionManager.jsx");
-const resultReviewPanel = read("src/components/admin-newsroom/SessionResultReviewPanel.jsx");
+const rawParser = read("src/modules/para-poker/lib/imports/rawHandHistoryParser.js");
+const rawArtifact = read("src/modules/para-poker/lib/imports/rawHandImportArtifact.js");
+const rawRepository = read("src/modules/para-poker/lib/imports/rawHandImportRepository.js");
+const commitContract = read("src/modules/para-poker/lib/imports/rawHandCommitContract.js");
+const rawPanel = read("src/modules/para-poker/components/admin-newsroom/RawHandImportPanel.jsx");
+const importManager = read("src/modules/para-poker/components/admin-newsroom/ImportSessionManager.jsx");
+const resultReviewPanel = read("src/modules/para-poker/components/admin-newsroom/SessionResultReviewPanel.jsx");
 const adminPage = read("src/app/admin/imports/page.jsx");
 const previewRoute = read("src/app/api/admin/imports/raw-hands/preview/route.js");
 const commitRoute = read("src/app/api/admin/imports/raw-hands/commit/route.js");
 const sessionImportRoute = read("src/app/api/admin/imports/sessions/[sessionId]/route.js");
 const sessionResultsRoute = read("src/app/api/admin/imports/sessions/[sessionId]/results/route.js");
-const handHistory = read("src/lib/poker/handHistory.js");
-const handHistoryUi = read("src/components/poker/HandActionLog.jsx");
-const adminRoutes = read("src/lib/newsroom/adminRoutes.js");
+const handHistory = read("src/modules/para-poker/lib/poker/handHistory.js");
+const handHistoryUi = read("src/modules/para-poker/components/poker/HandActionLog.jsx");
+const adminRoutes = read("src/modules/para-poker/lib/newsroom/adminRoutes.js");
 const revisionMigration = read("sql/20260805213435_raw_hand_evidence_revisions.sql");
-const { nextSessionNumber, positiveSessionNumber } = await import("../src/lib/imports/sessionNumber.js");
+const { nextSessionNumber, positiveSessionNumber } = await import("../src/modules/para-poker/lib/imports/sessionNumber.js");
 
 assert.match(rawPanel, /accept="\.csv,text\/csv"/, "Import panel must accept CSV uploads.");
 assert.match(rawPanel, /fetch\("\/api\/admin\/imports\/raw-hands\/preview"/, "Import panel must preview through the raw-hand API.");

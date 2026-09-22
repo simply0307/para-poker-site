@@ -1,7 +1,7 @@
-import { AdminShell } from "@/components/admin-newsroom/AdminShell";
-import { PromptStudioForm } from "@/components/admin-newsroom/PromptStudioForm";
-import { readPromptPresetSettings } from "@/lib/newsroom/promptPresetStore";
-import { readSeasonSettings } from "@/lib/newsroom/seasonSettings";
+import { AdminShell } from "@/modules/para-poker/components/admin-newsroom/AdminShell";
+import { PromptStudioForm } from "@/modules/para-poker/components/admin-newsroom/PromptStudioForm";
+import { readPromptPresetSettings } from "@/modules/para-poker/lib/newsroom/promptPresetStore";
+import { readSeasonSettings } from "@/modules/para-poker/lib/newsroom/seasonSettings";
 
 export const dynamic = "force-dynamic";
 

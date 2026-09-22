@@ -1,6 +1,6 @@
-import { AdminCard, AdminShell, AdminStat } from "@/components/admin-newsroom/AdminShell";
-import { getAdminDashboardRoutes } from "@/lib/newsroom/adminRoutes";
-import { readSeasonSettings } from "@/lib/newsroom/seasonSettings";
+import { AdminCard, AdminShell, AdminStat } from "@/modules/para-poker/components/admin-newsroom/AdminShell";
+import { getAdminDashboardRoutes } from "@/modules/para-poker/lib/newsroom/adminRoutes";
+import { readSeasonSettings } from "@/modules/para-poker/lib/newsroom/seasonSettings";
 
 export default async function AdminHome() {
   const adminRoutes = getAdminDashboardRoutes();

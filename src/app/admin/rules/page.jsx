@@ -1,7 +1,7 @@
-import { AdminShell } from "@/components/admin-newsroom/AdminShell";
-import { LeagueRulesForm } from "@/components/admin-newsroom/LeagueRulesForm";
-import { previewStandingsFromRules, readLeagueRules } from "@/lib/league/rulesRepository";
-import { readSeasonSettings } from "@/lib/newsroom/seasonSettings";
+import { AdminShell } from "@/modules/para-poker/components/admin-newsroom/AdminShell";
+import { LeagueRulesForm } from "@/modules/para-poker/components/admin-newsroom/LeagueRulesForm";
+import { previewStandingsFromRules, readLeagueRules } from "@/modules/para-poker/lib/league/rulesRepository";
+import { readSeasonSettings } from "@/modules/para-poker/lib/newsroom/seasonSettings";
 
 export const dynamic = "force-dynamic";
 

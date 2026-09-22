@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireOperator } from "@/lib/auth/operatorAuthorization";
-import { deleteImportedSession, updateImportedSession } from "@/lib/imports/rawHandImportRepository";
+import { deleteImportedSession, updateImportedSession } from "@/modules/para-poker/lib/imports/rawHandImportRepository";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

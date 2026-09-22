@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireOperator } from "@/lib/auth/operatorAuthorization";
-import { persistRawHandImportPreview } from "@/lib/imports/rawHandImportRepository";
+import { persistRawHandImportPreview } from "@/modules/para-poker/lib/imports/rawHandImportRepository";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

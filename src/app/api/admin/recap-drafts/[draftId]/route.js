@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireOperator } from "@/lib/auth/operatorAuthorization";
-import { deleteDraft, updateDraft } from "@/lib/newsroom/drafts";
+import { deleteDraft, updateDraft } from "@/modules/para-poker/lib/newsroom/drafts";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

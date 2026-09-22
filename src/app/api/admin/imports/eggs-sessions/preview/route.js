@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { persistEggsSessionImportPreview } from "@/lib/imports/eggsSessionImportRepository";
+import { persistEggsSessionImportPreview } from "@/modules/para-poker/lib/imports/eggsSessionImportRepository";
 import { requireOperator } from "@/lib/auth/operatorAuthorization";
 
 export const runtime = "nodejs";

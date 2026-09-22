@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { DATASET_SPLITS } from "@/lib/newsroom/trainingConstants";
-import { listExportableTrainingExamples, trainingMessagesForExample } from "@/lib/newsroom/trainingExamples";
+import { DATASET_SPLITS } from "@/modules/para-poker/lib/newsroom/trainingConstants";
+import { listExportableTrainingExamples, trainingMessagesForExample } from "@/modules/para-poker/lib/newsroom/trainingExamples";
 import { requireOperator } from "@/lib/auth/operatorAuthorization";
 
 export const runtime = "nodejs";

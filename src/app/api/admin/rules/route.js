@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireOperator } from "@/lib/auth/operatorAuthorization";
-import { applyLeagueRules, previewStandingsFromRules, readLeagueRules, saveLeagueRules } from "@/lib/league/rulesRepository";
+import { applyLeagueRules, previewStandingsFromRules, readLeagueRules, saveLeagueRules } from "@/modules/para-poker/lib/league/rulesRepository";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

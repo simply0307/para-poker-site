@@ -1,30 +1,77 @@
-# Para-Poker Site
+# EGGS Web
 
-Next.js app for the Para-Poker League public site and admin newsroom. Supabase
-stores league data, newsroom drafts, published text, hand history, and passive
-generation-capture records on the server side.
+An EGGS application shell with Para Poker League as its first project module.
+This is an incremental adaptation of `simply0307/para-poker-site` at
+`ca431bb734fab97c8da1dfeae0d515cf2ac1305f`, preserving its public dossiers,
+competition records and operator newsroom.
+
+Read [the architecture audit](docs/eggs-architecture-audit.md) for the current
+identity boundaries, proposed additive schema, file map, risks and migration
+sequence. `profiles.auth_user_id` remains the existing operator relationship;
+consumer `eggs_profiles` and reviewed player claims are proposed, not deployed.
 
 ## Development
 
-On Windows PowerShell, run:
+On Windows PowerShell, run (Node 22 or later):
 
 ```powershell
+npm.cmd ci
 npm.cmd run dev
 ```
 
 Then open http://localhost:3000.
 
+The EGGS shell runs without credentials. League routes show an unavailable
+state until the three variables in `.env.example` are configured in `.env.local`.
+Only use the intended league database; do not copy credentials into client code.
+The linked Supabase project was inactive during the audit, so live RLS, grants,
+and login remain unverified. No real data or synthetic profiles are bundled.
+
 ## Routes
 
-- `/` is the public league homepage.
-- `/sessions` and `/sessions/[sessionId]` show public session coverage.
-- `/players` and `/players/[playerId]` show public player pages.
-- `/standings`, `/moments`, and `/articles` are public archive/newsroom surfaces.
+- `/` is EGGS home; `/para` is the competition hub.
+- `/para/poker` is the existing league homepage.
+- `/para/poker/sessions` and `/para/poker/sessions/[sessionId]` show session coverage.
+- `/para/poker/players` and `/para/poker/players/[playerId]` show player dossiers.
+- `/para/poker/standings`, `/para/poker/moments`, and `/para/poker/articles` retain the league archive.
+- Old public league paths redirect with 307 during review, preserving descendants
+  and query strings. The original league domain's root needs a separate cutover decision.
+- `/music`, `/library`, `/profile`, `/login` explain planned features. Consumer
+  sign-in is not active; unknown `/profile/[handle]` requests return 404.
 - `/admin` is the authenticated admin newsroom and league ops entry.
 - `/admin/sessions/[sessionId]` is the main recap generation/edit/publish desk.
 - `/admin/newsroom/dataset` is an optional future review tool for passively
   captured generation examples. It is not part of everyday recap publishing.
 - `/admin/imports` previews and commits strict EGGS completed-session JSON or legacy raw-hand evidence.
+
+League views, components, repositories and import/stat utilities live under
+`src/modules/para-poker`. `src/app/para/poker` contains thin route adapters.
+Existing admin and API addresses, SQL files, and local newsroom settings remain
+stable. League route adapters render dynamically so unavailable configuration
+is not cached into the public archive. Original view/data behavior is retained.
+
+## Verification
+
+```powershell
+npm.cmd run build
+npm.cmd run lint
+npm.cmd run test:admin-auth
+npm.cmd run test:imports:pure
+npm.cmd run test:imports:acceptance
+npm.cmd run test:shell
+npm.cmd run validate:homepage
+npm.cmd run validate:stats
+npm.cmd run validate:training
+npm.cmd run validate:parapoker-import
+```
+
+`test:shell` requires a production build. It starts isolated loopback servers,
+uses a disposable HTTP fixture for Supabase responses, and checks actual public
+rendering, redirects, missing profiles, operator sessions, denied generation
+requests and browser credential boundaries. It never writes to a real database.
+Existing PGlite acceptance tests use disposable in-memory databases. Neither is
+proof of deployed schema or live-data parity. The separate destructive database
+integration suite remains opt-in and must use a confirmed disposable database.
 
 ## Data And Newsroom Flow
 

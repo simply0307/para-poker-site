@@ -1,9 +1,9 @@
-import { NextResponse } from "next/server";
 import { requireOperator } from "@/lib/auth/operatorAuthorization";
-import { buildPlayerSessionRecapInputPacket } from "@/lib/newsroom/contextPackets";
-import { callNewsroomAiJson } from "@/lib/newsroom/aiClient";
-import { logGeneration, saveNewsroomDraft } from "@/lib/newsroom/drafts";
-import { articleDraftSchema, validateDraftShape } from "@/lib/newsroom/schemas";
+import { NextResponse } from "next/server";
+import { buildPlayerSessionRecapInputPacket } from "@/modules/para-poker/lib/newsroom/contextPackets";
+import { callNewsroomAiJson } from "@/modules/para-poker/lib/newsroom/aiClient";
+import { logGeneration, saveNewsroomDraft } from "@/modules/para-poker/lib/newsroom/drafts";
+import { articleDraftSchema, validateDraftShape } from "@/modules/para-poker/lib/newsroom/schemas";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

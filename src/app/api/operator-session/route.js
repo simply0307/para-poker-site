@@ -16,7 +16,7 @@ function publicOperator(operator) {
 export async function GET(request) {
   const authorization = await requireOperator(request);
   if (!authorization.ok) return authorization.response;
-  return NextResponse.json({ operator: publicOperator(authorization.operator) });
+  return NextResponse.json({ operator: publicOperator(authorization.operator) }, { headers: { "Cache-Control": "no-store" } });
 }
 
 export async function POST(request) {

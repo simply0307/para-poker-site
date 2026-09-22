@@ -1,6 +1,6 @@
-import { AdminShell } from "@/components/admin-newsroom/AdminShell";
-import { UpcomingEventsForm } from "@/components/admin-newsroom/UpcomingEventsForm";
-import { readUpcomingEventsSettings } from "@/lib/newsroom/upcomingEvents";
+import { AdminShell } from "@/modules/para-poker/components/admin-newsroom/AdminShell";
+import { UpcomingEventsForm } from "@/modules/para-poker/components/admin-newsroom/UpcomingEventsForm";
+import { readUpcomingEventsSettings } from "@/modules/para-poker/lib/newsroom/upcomingEvents";
 
 export const dynamic = "force-dynamic";
 

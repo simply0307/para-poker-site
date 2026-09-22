@@ -1,5 +1,10 @@
+import { legacyPokerRedirects } from "./src/modules/para-poker/routes.mjs";
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  async redirects() {
+    return legacyPokerRedirects;
+  },
   async headers() {
     return [
       {

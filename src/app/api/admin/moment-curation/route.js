@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireOperator } from "@/lib/auth/operatorAuthorization";
-import { readMomentCurationSettings, writeMomentCurationSettings } from "@/lib/newsroom/momentCurationSettings";
+import { readMomentCurationSettings, writeMomentCurationSettings } from "@/modules/para-poker/lib/newsroom/momentCurationSettings";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

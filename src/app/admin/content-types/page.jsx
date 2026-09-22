@@ -1,5 +1,5 @@
-import { AdminCard, AdminShell } from "@/components/admin-newsroom/AdminShell";
-import { getDraftTypes } from "@/lib/newsroom/draftTypes";
+import { AdminCard, AdminShell } from "@/modules/para-poker/components/admin-newsroom/AdminShell";
+import { getDraftTypes } from "@/modules/para-poker/lib/newsroom/draftTypes";
 
 export default function AdminContentTypesPage() {
   const types = getDraftTypes();

@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { AdminShell } from "@/components/admin-newsroom/AdminShell";
-import { cleanName, getPlayersIndex, text } from "@/lib/newsroom/data";
+import { AdminShell } from "@/modules/para-poker/components/admin-newsroom/AdminShell";
+import { cleanName, getPlayersIndex, text } from "@/modules/para-poker/lib/newsroom/data";
 
 export const revalidate = 60;
 

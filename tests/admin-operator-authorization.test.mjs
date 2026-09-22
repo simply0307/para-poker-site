@@ -53,6 +53,20 @@ test("an authenticated non-operator is 403", async () => {
   assert.equal(result.response.status, 403);
 });
 
+test("malformed cookies fail closed and consumer sessions do not grant operator access", async () => {
+  for (const cookie of [`${OPERATOR_SESSION_COOKIE}=%zz`, "eggs_session=operator-token"]) {
+    const result = await authorize("https://league.test/api/admin/rules", { headers: { Cookie: cookie } });
+    assert.equal(result.response.status, 401);
+  }
+});
+
+test("operator lookup outage fails closed", async () => {
+  const result = await authorize("https://league.test/api/admin/rules", { headers: { Authorization: "Bearer operator-token" } }, {
+    resolveProfile: async () => { throw new Error("database unavailable"); },
+  });
+  assert.equal(result.response.status, 503);
+});
+
 test("existing admin and owner roles are authorized by stable auth user ID", async () => {
   assert.deepEqual([...ALLOWED_OPERATOR_ROLES].sort(), ["admin", "owner"]);
   for (const role of ALLOWED_OPERATOR_ROLES) {
@@ -127,7 +141,7 @@ test("every exported /api/admin method invokes the shared guard", async () => {
 });
 
 test("public league surfaces stay outside the admin boundary", () => {
-  for (const pathname of ["/", "/players", "/players/player-1", "/sessions/S0-001", "/standings"]) {
+  for (const pathname of ["/", "/para/poker/players", "/para/poker/players/player-1", "/para/poker/sessions/S0-001", "/para/poker/standings"]) {
     assert.equal(isPrivilegedAdminApiPath(pathname), false);
     assert.equal(isAdminWorkspacePath(pathname), false);
   }

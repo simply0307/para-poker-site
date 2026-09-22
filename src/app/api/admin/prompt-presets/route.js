@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireOperator } from "@/lib/auth/operatorAuthorization";
-import { readPromptPresetSettings, savePromptPreset } from "@/lib/newsroom/promptPresetStore";
+import { readPromptPresetSettings, savePromptPreset } from "@/modules/para-poker/lib/newsroom/promptPresetStore";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

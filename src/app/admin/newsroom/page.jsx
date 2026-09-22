@@ -1,5 +1,5 @@
-import { AdminShell } from "@/components/admin-newsroom/AdminShell";
-import { loadNewsroomEditorialDocs } from "@/lib/newsroom/editorialDocs";
+import { AdminShell } from "@/modules/para-poker/components/admin-newsroom/AdminShell";
+import { loadNewsroomEditorialDocs } from "@/modules/para-poker/lib/newsroom/editorialDocs";
 
 export const dynamic = "force-dynamic";
 

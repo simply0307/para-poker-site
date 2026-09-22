@@ -19,7 +19,7 @@ export default function OperatorLoginPage() {
         ) : (
           <p role="alert" className="mt-8 rounded border border-red-300 bg-red-50 p-4 font-bold text-red-800">Operator authentication is unavailable.</p>
         )}
-        <Link href="/" className="mt-6 inline-block text-sm font-black uppercase tracking-wide text-zinc-600 underline">Return to public site</Link>
+        <Link href="/para/poker" className="mt-6 inline-block text-sm font-black uppercase tracking-wide text-zinc-600 underline">Return to public site</Link>
       </section>
     </main>
   );

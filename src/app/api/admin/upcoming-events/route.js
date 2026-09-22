@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireOperator } from "@/lib/auth/operatorAuthorization";
-import { readUpcomingEventsSettings, writeUpcomingEventsSettings } from "@/lib/newsroom/upcomingEvents";
+import { readUpcomingEventsSettings, writeUpcomingEventsSettings } from "@/modules/para-poker/lib/newsroom/upcomingEvents";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

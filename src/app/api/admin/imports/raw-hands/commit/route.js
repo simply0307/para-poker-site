@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireOperator } from "@/lib/auth/operatorAuthorization";
-import { commitRawHandImport } from "@/lib/imports/rawHandImportRepository";
-import { parseRawHandCommitBody } from "@/lib/imports/rawHandCommitContract";
+import { commitRawHandImport } from "@/modules/para-poker/lib/imports/rawHandImportRepository";
+import { parseRawHandCommitBody } from "@/modules/para-poker/lib/imports/rawHandCommitContract";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

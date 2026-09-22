@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireOperator } from "@/lib/auth/operatorAuthorization";
-import { readPublicCopySettings, writePublicCopySettings } from "@/lib/newsroom/publicCopySettings";
+import { readPublicCopySettings, writePublicCopySettings } from "@/modules/para-poker/lib/newsroom/publicCopySettings";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

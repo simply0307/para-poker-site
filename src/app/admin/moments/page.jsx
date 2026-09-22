@@ -1,10 +1,10 @@
-import { GenericDraftWorkspace } from "@/components/admin-newsroom/GenericDraftWorkspace";
-import { MomentCurationPanel } from "@/components/admin-newsroom/MomentCurationPanel";
-import { MomentVideoManager } from "@/components/admin-newsroom/MomentVideoManager";
-import { cleanName, text } from "@/lib/newsroom/data";
-import { listNewsroomDrafts } from "@/lib/newsroom/drafts";
-import { readMomentCurationSettings } from "@/lib/newsroom/momentCurationSettings";
-import { buildMomentsViewModel } from "@/lib/newsroom/viewModels/moments";
+import { GenericDraftWorkspace } from "@/modules/para-poker/components/admin-newsroom/GenericDraftWorkspace";
+import { MomentCurationPanel } from "@/modules/para-poker/components/admin-newsroom/MomentCurationPanel";
+import { MomentVideoManager } from "@/modules/para-poker/components/admin-newsroom/MomentVideoManager";
+import { cleanName, text } from "@/modules/para-poker/lib/newsroom/data";
+import { listNewsroomDrafts } from "@/modules/para-poker/lib/newsroom/drafts";
+import { readMomentCurationSettings } from "@/modules/para-poker/lib/newsroom/momentCurationSettings";
+import { buildMomentsViewModel } from "@/modules/para-poker/lib/newsroom/viewModels/moments";
 
 export const dynamic = "force-dynamic";
 

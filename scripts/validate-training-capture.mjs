@@ -18,12 +18,12 @@ function oneJsonObjectPerLine(jsonl) {
 
 const sql = read("sql/20260712_recap_training_capture.sql");
 const passiveSql = read("sql/20260712_passive_training_capture.sql");
-const drafts = read("src/lib/newsroom/drafts.js");
+const drafts = read("src/modules/para-poker/lib/newsroom/drafts.js");
 const exportRoute = read("src/app/api/admin/newsroom/dataset/export/route.js");
-const trainingRepo = read("src/lib/newsroom/trainingExamples.js");
-const sessionEditor = read("src/components/admin-newsroom/SessionRecapDraftEditor.jsx");
-const genericEditor = read("src/components/admin-newsroom/GenericDraftWorkspace.jsx");
-const adminShell = read("src/components/admin-newsroom/AdminShell.jsx");
+const trainingRepo = read("src/modules/para-poker/lib/newsroom/trainingExamples.js");
+const sessionEditor = read("src/modules/para-poker/components/admin-newsroom/SessionRecapDraftEditor.jsx");
+const genericEditor = read("src/modules/para-poker/components/admin-newsroom/GenericDraftWorkspace.jsx");
+const adminShell = read("src/modules/para-poker/components/admin-newsroom/AdminShell.jsx");
 
 assert.match(sql, /prevent_training_original_mutation/, "Training SQL must include immutable original-output trigger.");
 assert.match(sql, /old\.original_output is distinct from new\.original_output/, "Original output mutation must be blocked.");

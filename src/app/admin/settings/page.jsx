@@ -1,17 +1,17 @@
-import { AdminShell } from "@/components/admin-newsroom/AdminShell";
-import { HomepageSettingsForm } from "@/components/admin-newsroom/HomepageSettingsForm";
-import { PageHeroSettingsForm } from "@/components/admin-newsroom/PageHeroSettingsForm";
-import { PublicCopySettingsForm } from "@/components/admin-newsroom/PublicCopySettingsForm";
-import { SeasonSettingsForm } from "@/components/admin-newsroom/SeasonSettingsForm";
-import { getPlayersIndex, getSessionsIndex, formatDate } from "@/lib/newsroom/data";
-import { readHomepageSettings } from "@/lib/newsroom/homepageSettings";
-import { readPageHeroSettings } from "@/lib/newsroom/pageHeroSettings";
-import { readSeasonSettings } from "@/lib/newsroom/seasonSettings";
-import { getPublishedArticlesIndex } from "@/lib/newsroom/repositories/draftRepository";
-import { listNewsroomDrafts } from "@/lib/newsroom/drafts";
-import { readUpcomingEventsSettings } from "@/lib/newsroom/upcomingEvents";
-import { buildMomentsViewModel } from "@/lib/newsroom/viewModels/moments";
-import { readPublicCopySettings } from "@/lib/newsroom/publicCopySettings";
+import { AdminShell } from "@/modules/para-poker/components/admin-newsroom/AdminShell";
+import { HomepageSettingsForm } from "@/modules/para-poker/components/admin-newsroom/HomepageSettingsForm";
+import { PageHeroSettingsForm } from "@/modules/para-poker/components/admin-newsroom/PageHeroSettingsForm";
+import { PublicCopySettingsForm } from "@/modules/para-poker/components/admin-newsroom/PublicCopySettingsForm";
+import { SeasonSettingsForm } from "@/modules/para-poker/components/admin-newsroom/SeasonSettingsForm";
+import { getPlayersIndex, getSessionsIndex, formatDate } from "@/modules/para-poker/lib/newsroom/data";
+import { readHomepageSettings } from "@/modules/para-poker/lib/newsroom/homepageSettings";
+import { readPageHeroSettings } from "@/modules/para-poker/lib/newsroom/pageHeroSettings";
+import { readSeasonSettings } from "@/modules/para-poker/lib/newsroom/seasonSettings";
+import { getPublishedArticlesIndex } from "@/modules/para-poker/lib/newsroom/repositories/draftRepository";
+import { listNewsroomDrafts } from "@/modules/para-poker/lib/newsroom/drafts";
+import { readUpcomingEventsSettings } from "@/modules/para-poker/lib/newsroom/upcomingEvents";
+import { buildMomentsViewModel } from "@/modules/para-poker/lib/newsroom/viewModels/moments";
+import { readPublicCopySettings } from "@/modules/para-poker/lib/newsroom/publicCopySettings";
 
 export const dynamic = "force-dynamic";
 

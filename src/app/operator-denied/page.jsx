@@ -9,7 +9,7 @@ export default function OperatorDeniedPage() {
         <p className="mt-4 leading-7 text-zinc-600">Your identity was authenticated, but it is not linked to an authorized admin or owner profile.</p>
         <div className="mt-8 flex gap-4">
           <Link href="/operator-login" className="rounded bg-zinc-950 px-4 py-3 font-black uppercase tracking-wide text-white">Use another account</Link>
-          <Link href="/" className="px-4 py-3 font-black uppercase tracking-wide text-zinc-600">Public site</Link>
+          <Link href="/para/poker" className="px-4 py-3 font-black uppercase tracking-wide text-zinc-600">Public site</Link>
         </div>
       </section>
     </main>

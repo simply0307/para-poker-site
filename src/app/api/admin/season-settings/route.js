@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireOperator } from "@/lib/auth/operatorAuthorization";
-import { readSeasonSettings, writeSeasonSettings } from "@/lib/newsroom/seasonSettings";
+import { readSeasonSettings, writeSeasonSettings } from "@/modules/para-poker/lib/newsroom/seasonSettings";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

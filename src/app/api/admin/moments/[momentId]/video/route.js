@@ -1,15 +1,15 @@
 import { NextResponse } from "next/server";
 import { requireOperator } from "@/lib/auth/operatorAuthorization";
 import { supabase } from "@/lib/supabase";
-import { getMomentNewsroomData, text } from "@/lib/newsroom/data";
-import { createDataOverride } from "@/lib/newsroom/dataOverrides";
+import { getMomentNewsroomData, text } from "@/modules/para-poker/lib/newsroom/data";
+import { createDataOverride } from "@/modules/para-poker/lib/newsroom/dataOverrides";
 import {
   ensureMomentVideoBucket,
   getMomentVideoAttachment,
   MOMENT_VIDEO_BUCKET,
   MOMENT_VIDEO_FIELD_PATH,
   normalizeMomentVideo,
-} from "@/lib/newsroom/momentVideoAttachments";
+} from "@/modules/para-poker/lib/newsroom/momentVideoAttachments";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

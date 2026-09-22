@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { AdminShell } from "@/components/admin-newsroom/AdminShell";
-import { formatDate, getSessionsIndex, text } from "@/lib/newsroom/data";
-import { readSeasonSettings } from "@/lib/newsroom/seasonSettings";
+import { AdminShell } from "@/modules/para-poker/components/admin-newsroom/AdminShell";
+import { formatDate, getSessionsIndex, text } from "@/modules/para-poker/lib/newsroom/data";
+import { readSeasonSettings } from "@/modules/para-poker/lib/newsroom/seasonSettings";
 
 export const revalidate = 60;
 

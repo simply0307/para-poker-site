@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireOperator } from "@/lib/auth/operatorAuthorization";
-import { readPageHeroSettings, writePageHeroSettings } from "@/lib/newsroom/pageHeroSettings";
+import { readPageHeroSettings, writePageHeroSettings } from "@/modules/para-poker/lib/newsroom/pageHeroSettings";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

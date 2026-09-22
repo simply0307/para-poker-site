@@ -1,5 +1,5 @@
-import { AdminCard, AdminPlaceholder, AdminShell } from "@/components/admin-newsroom/AdminShell";
-import { DRAFT_TYPE_KEYS, getDraftTypes } from "@/lib/newsroom/draftTypes";
+import { AdminCard, AdminPlaceholder, AdminShell } from "@/modules/para-poker/components/admin-newsroom/AdminShell";
+import { DRAFT_TYPE_KEYS, getDraftTypes } from "@/modules/para-poker/lib/newsroom/draftTypes";
 
 const deskOverrides = {
   [DRAFT_TYPE_KEYS.SESSION_RECAP]: "/admin/sessions",

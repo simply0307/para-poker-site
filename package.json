@@ -1,12 +1,12 @@
 {
-  "name": "para-poker-site",
+  "name": "eggs-web",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint",
+    "lint": "eslint src scripts tests next.config.mjs eslint.config.mjs postcss.config.mjs",
     "validate:training": "node scripts/validate-training-capture.mjs",
     "validate:homepage": "node scripts/validate-homepage-settings.mjs",
     "validate:parapoker-import": "node scripts/validate-parapoker-import.mjs",
@@ -14,20 +14,22 @@
     "test:imports:pure": "node --test tests/raw-hand-import-artifact.test.mjs tests/eggs-session-package-import.test.mjs tests/gauntlet-match-import.test.mjs",
     "test:imports:acceptance": "node --test tests/eggs-session-package-acceptance.test.mjs tests/gauntlet-match-acceptance.test.mjs",
     "test:imports:integration": "node --test tests/raw-hand-import-database.test.mjs",
-    "test:admin-auth": "node --test tests/admin-operator-authorization.test.mjs"
+    "test:admin-auth": "node --test tests/admin-operator-authorization.test.mjs",
+    "test:shell": "node --test tests/eggs-shell-http.test.mjs"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.108.2",
+    "@supabase/supabase-js": "2.108.2",
     "ajv": "8.20.0",
-    "next": "16.3.0",
+    "next": "16.3.6",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "server-only": "0.0.1"
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.3.14",
     "@tailwindcss/postcss": "^4",
     "eslint": "^9",
-    "eslint-config-next": "16.3.0",
+    "eslint-config-next": "16.3.6",
     "pg": "^8.22.0",
     "tailwindcss": "^4"
   }

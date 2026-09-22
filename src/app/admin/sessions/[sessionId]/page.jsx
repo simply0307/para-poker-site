@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getLatestDraft } from "@/lib/newsroom/data";
-import { getSessionNewsroomData, formatDate, text } from "@/lib/newsroom/data";
-import { getSessionRecapVariationOptions } from "@/lib/newsroom/sessionRecapAssignment";
-import { buildSessionViewModel } from "@/lib/newsroom/viewModels/session";
-import { AppliedOverridesPanel } from "@/components/admin-newsroom/AppliedOverridesPanel";
-import { AdminShell, AdminStat } from "@/components/admin-newsroom/AdminShell";
-import { SessionRecapDraftEditor } from "@/components/admin-newsroom/SessionRecapDraftEditor";
+import { getLatestDraft } from "@/modules/para-poker/lib/newsroom/data";
+import { getSessionNewsroomData, formatDate, text } from "@/modules/para-poker/lib/newsroom/data";
+import { getSessionRecapVariationOptions } from "@/modules/para-poker/lib/newsroom/sessionRecapAssignment";
+import { buildSessionViewModel } from "@/modules/para-poker/lib/newsroom/viewModels/session";
+import { AppliedOverridesPanel } from "@/modules/para-poker/components/admin-newsroom/AppliedOverridesPanel";
+import { AdminShell, AdminStat } from "@/modules/para-poker/components/admin-newsroom/AdminShell";
+import { SessionRecapDraftEditor } from "@/modules/para-poker/components/admin-newsroom/SessionRecapDraftEditor";
 
 export const dynamic = "force-dynamic";
 
@@ -27,7 +27,7 @@ export default async function AdminSessionNewsroomPage({ params }) {
       actions={
         <>
           <Link className="rounded-md border border-zinc-400 px-3 py-2 text-sm font-black" href="/admin">Admin home</Link>
-          <Link className="rounded-md border border-zinc-400 px-3 py-2 text-sm font-black" href={`/sessions/${encodeURIComponent(text(sessionData.session.session_code || sessionId))}`}>Public session</Link>
+          <Link className="rounded-md border border-zinc-400 px-3 py-2 text-sm font-black" href={`/para/poker/sessions/${encodeURIComponent(text(sessionData.session.session_code || sessionId))}`}>Public session</Link>
           <Link className="rounded-md border border-zinc-400 px-3 py-2 text-sm font-black" href="/admin/newsroom">Prompt library</Link>
         </>
       }

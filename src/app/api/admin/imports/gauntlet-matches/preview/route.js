@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { persistGauntletMatchPreview } from "@/lib/imports/gauntletMatchImportRepository";
+import { persistGauntletMatchPreview } from "@/modules/para-poker/lib/imports/gauntletMatchImportRepository";
 import { requireOperator } from "@/lib/auth/operatorAuthorization";
 
 export const runtime = "nodejs";

@@ -1,6 +1,6 @@
-import { GenericDraftWorkspace } from "@/components/admin-newsroom/GenericDraftWorkspace";
-import { listNewsroomDrafts } from "@/lib/newsroom/drafts";
-import { readSeasonSettings } from "@/lib/newsroom/seasonSettings";
+import { GenericDraftWorkspace } from "@/modules/para-poker/components/admin-newsroom/GenericDraftWorkspace";
+import { listNewsroomDrafts } from "@/modules/para-poker/lib/newsroom/drafts";
+import { readSeasonSettings } from "@/modules/para-poker/lib/newsroom/seasonSettings";
 
 export const dynamic = "force-dynamic";
 

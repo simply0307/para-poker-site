@@ -1,13 +1,13 @@
 import Link from "next/link";
-import { AdminShell, AdminStat } from "@/components/admin-newsroom/AdminShell";
-import { ImportSessionManager } from "@/components/admin-newsroom/ImportSessionManager";
-import { EggsSessionImportPanel } from "@/components/admin-newsroom/EggsSessionImportPanel";
-import { GauntletMatchImportPanel } from "@/components/admin-newsroom/GauntletMatchImportPanel";
-import { RawHandImportPanel } from "@/components/admin-newsroom/RawHandImportPanel";
-import { SessionResultReviewPanel } from "@/components/admin-newsroom/SessionResultReviewPanel";
-import { buildImportHealthViewModel } from "@/lib/newsroom/importHealth";
-import { formatNumber, safeQuery, supabase } from "@/lib/newsroom/data";
-import { readSeasonSettings } from "@/lib/newsroom/seasonSettings";
+import { AdminShell, AdminStat } from "@/modules/para-poker/components/admin-newsroom/AdminShell";
+import { ImportSessionManager } from "@/modules/para-poker/components/admin-newsroom/ImportSessionManager";
+import { EggsSessionImportPanel } from "@/modules/para-poker/components/admin-newsroom/EggsSessionImportPanel";
+import { GauntletMatchImportPanel } from "@/modules/para-poker/components/admin-newsroom/GauntletMatchImportPanel";
+import { RawHandImportPanel } from "@/modules/para-poker/components/admin-newsroom/RawHandImportPanel";
+import { SessionResultReviewPanel } from "@/modules/para-poker/components/admin-newsroom/SessionResultReviewPanel";
+import { buildImportHealthViewModel } from "@/modules/para-poker/lib/newsroom/importHealth";
+import { formatNumber, safeQuery, supabase } from "@/modules/para-poker/lib/newsroom/data";
+import { readSeasonSettings } from "@/modules/para-poker/lib/newsroom/seasonSettings";
 
 export const dynamic = "force-dynamic";
 
@@ -112,7 +112,7 @@ export default async function AdminImportsPage() {
                       <Link className="text-amber-700 hover:text-amber-900" href={`/admin/sessions/${encodeURIComponent(session.sessionCode)}`}>
                         Draft desk
                       </Link>
-                      <Link className="text-zinc-600 hover:text-zinc-950" href={`/sessions/${encodeURIComponent(session.sessionCode)}`}>
+                      <Link className="text-zinc-600 hover:text-zinc-950" href={`/para/poker/sessions/${encodeURIComponent(session.sessionCode)}`}>
                         Public page
                       </Link>
                     </div>

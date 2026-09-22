@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { AdminShell, AdminStat } from "@/components/admin-newsroom/AdminShell";
-import { BulkSplitActions, DatasetReviewActions } from "@/components/admin-newsroom/DatasetReviewActions";
-import { listTrainingExamples } from "@/lib/newsroom/trainingExamples";
+import { AdminShell, AdminStat } from "@/modules/para-poker/components/admin-newsroom/AdminShell";
+import { BulkSplitActions, DatasetReviewActions } from "@/modules/para-poker/components/admin-newsroom/DatasetReviewActions";
+import { listTrainingExamples } from "@/modules/para-poker/lib/newsroom/trainingExamples";
 
 export const dynamic = "force-dynamic";
 

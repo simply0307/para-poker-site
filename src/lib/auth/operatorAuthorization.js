@@ -1,11 +1,7 @@
+import "server-only";
 import { authorizeOperatorRequest } from "@/lib/auth/operatorAuthorizationCore.mjs";
-import { supabase, supabaseAuth } from "@/lib/supabase";
-
-async function verifyAccessToken(accessToken) {
-  const { data, error } = await supabaseAuth.auth.getUser(accessToken);
-  if (error || !data?.user?.id) throw error || new Error("Invalid access token.");
-  return { id: data.user.id };
-}
+import { supabase } from "@/lib/supabase";
+import { verifyAccessToken } from "@/lib/auth/verifiedIdentity";
 
 async function resolveProfile(authUserId) {
   const { data, error } = await supabase
