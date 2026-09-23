@@ -1,0 +1,218 @@
+import { getPublishedDraft } from "@/modules/para-poker/lib/newsroom/repositories/draftRepository";
+import { applyOverridesToEntity, applyOverridesToList, readActiveDataOverrides } from "@/modules/para-poker/lib/newsroom/applyDataOverrides";
+import { cleanName, getPlayerNewsroomData, getPlayerSessionMap } from "@/modules/para-poker/lib/newsroom/repositories/playerRepository";
+
+function present(value) {
+  return value !== null && value !== undefined && value !== "";
+}
+
+function numberValue(value) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function maxNumber(rows, keys) {
+  const values = rows.flatMap((row) => keys.map((key) => numberValue(row?.[key]))).filter((value) => value !== null);
+  return values.length ? Math.max(...values) : null;
+}
+
+function sumNumber(rows, keys) {
+  const values = rows.flatMap((row) => keys.map((key) => numberValue(row?.[key]))).filter((value) => value !== null);
+  return values.length ? values.reduce((sum, value) => sum + value, 0) : null;
+}
+
+function bestFinish(results) {
+  const finishes = results.map((row) => numberValue(row.finish)).filter((value) => value !== null);
+  return finishes.length ? Math.min(...finishes) : null;
+}
+
+function firstPresent(...values) {
+  return values.find((value) => present(value));
+}
+
+function sessionSortValue(row = {}) {
+  const session = row.session || {};
+  const playedAt = Date.parse(session.played_at || "");
+  if (Number.isFinite(playedAt)) return playedAt;
+  const sessionNumber = Number(session.session_number || 0);
+  return Number.isFinite(sessionNumber) ? sessionNumber : 0;
+}
+
+function buildCurrentForm(recentSessions = []) {
+  const resultRows = (recentSessions || []).map((row) => row.result || row).filter(Boolean);
+  const finishes = resultRows.map((row) => numberValue(row.finish)).filter((value) => value !== null);
+  const wins = finishes.filter((finish) => finish === 1).length;
+  const topFinishes = finishes.filter((finish) => finish <= 3).length;
+  const points = sumNumber(resultRows, ["league_points", "points"]);
+  const latest = recentSessions[0] || null;
+  const latestSession = latest?.session || {};
+  const latestLabel = firstPresent(latestSession.session_code, latestSession.session_number, latest?.session_id);
+
+  return {
+    sessions: recentSessions.length || null,
+    wins: wins || null,
+    topFinishes: topFinishes || null,
+    points,
+    latestLabel,
+    finishes,
+    line: recentSessions.length
+      ? [
+          `${recentSessions.length} archived session${recentSessions.length === 1 ? "" : "s"}`,
+          wins ? `${wins} win${wins === 1 ? "" : "s"}` : "",
+          topFinishes ? `${topFinishes} top-three finish${topFinishes === 1 ? "" : "es"}` : "",
+        ].filter(Boolean).join(" / ")
+      : "",
+  };
+}
+
+function playerImage(player) {
+  return firstPresent(player.avatar_url, player.image_url, player.photo_url, player.profile_image_url, player.headshot_url);
+}
+
+function buildPlayerPokerStats(player, sessionStats = [], sessionResults = [], notableHands = [], standings = null, seasonStats = null, careerStats = null) {
+  if (seasonStats) {
+    return {
+      hands: seasonStats.hands || null,
+      vpip: seasonStats.vpip_pct || seasonStats.vpip || null,
+      pfr: seasonStats.pfr_pct || seasonStats.pfr || null,
+      vpipSource: seasonStats.vpip_pct || seasonStats.vpip ? "season" : "unavailable",
+      pfrSource: seasonStats.pfr_pct || seasonStats.pfr ? "season" : "unavailable",
+      sessions: standings?.sessions_played || seasonStats.sessions_played || null,
+      points: standings?.total_points || standings?.points || standings?.league_points || seasonStats.total_points || null,
+      bestFinish: standings?.best_finish || seasonStats.best_finish || null,
+      biggestPot: seasonStats.biggest_pot_won || null,
+      biggestPotBb: seasonStats.biggest_pot_won_bb || null,
+      wins: standings?.wins || seasonStats.wins || null,
+      topFinishes: standings?.top_3s || standings?.top_4s || seasonStats.top_3s || seasonStats.top_4s || null,
+      totalCollected: seasonStats.total_collected || null,
+      totalCollectedBb: seasonStats.total_collected_bb || null,
+      folds: seasonStats.folds || null,
+      foldPct: seasonStats.fold_pct || null,
+      career: careerStats || null,
+      source: {
+        vpip: seasonStats.vpip_pct || seasonStats.vpip ? "season" : "missing",
+        pfr: seasonStats.pfr_pct || seasonStats.pfr ? "season" : "missing",
+      },
+    };
+  }
+
+  const latestWithVpip = sessionStats.find((row) => present(row.vpip_pct) || present(row.vpip));
+  const latestWithPfr = sessionStats.find((row) => present(row.pfr_pct) || present(row.pfr));
+  const totalHands = sumNumber(sessionStats, ["hands", "hands_played", "hand_count"]);
+  const biggestPot = Math.max(
+    0,
+    ...sessionStats.map((row) => Number(row.biggest_pot_won || row.biggest_pot || row.largest_pot || 0)),
+    ...notableHands.map((row) => Number(row.pot_collected || 0))
+  );
+
+  return {
+    hands: totalHands || null,
+    vpip: latestWithVpip ? latestWithVpip.vpip_pct || latestWithVpip.vpip : null,
+    pfr: latestWithPfr ? latestWithPfr.pfr_pct || latestWithPfr.pfr : null,
+    vpipSource: latestWithVpip ? "stored" : "unavailable",
+    pfrSource: latestWithPfr ? "stored" : "unavailable",
+    sessions: standings?.sessions_played || sessionResults.length || sessionStats.length || null,
+    points: standings?.total_points || standings?.points || standings?.league_points || sessionResults.reduce((sum, row) => sum + Number(row.league_points || row.points || 0), 0) || null,
+    bestFinish: standings?.best_finish || bestFinish(sessionResults),
+    biggestPot: biggestPot || null,
+    biggestPotBb: maxNumber(sessionStats, ["biggest_pot_won_bb"]),
+    wins: standings?.wins || null,
+    topFinishes: standings?.top_3s || standings?.top_4s || null,
+    totalCollected: sumNumber(sessionStats, ["total_collected"]),
+    totalCollectedBb: sumNumber(sessionStats, ["total_collected_bb"]),
+    folds: sumNumber(sessionStats, ["folds"]),
+    foldPct: null,
+    career: careerStats || null,
+    source: {
+      vpip: latestWithVpip ? "stored" : "missing",
+      pfr: latestWithPfr ? "stored" : "missing",
+    },
+  };
+}
+
+export async function buildPlayerViewModel(playerIdOrSlug, options = {}) {
+  const activeSeasonCode = options.seasonCode || "S0";
+  const playerData = await getPlayerNewsroomData(playerIdOrSlug, activeSeasonCode);
+  if (!playerData?.player) return null;
+
+  const overrides = await readActiveDataOverrides();
+  const playerOverride = applyOverridesToEntity(playerData.player, "player", overrides);
+  const standingsOverride = applyOverridesToList(playerData.standings || [], "standings", overrides);
+  const statsOverride = applyOverridesToList(playerData.sessionStats || [], "player", overrides);
+  const resultsOverride = applyOverridesToList(playerData.sessionResults || [], "player", overrides);
+  const momentsOverride = applyOverridesToList(playerData.moments || [], "moment", overrides);
+  const contestedMomentsOverride = applyOverridesToList(playerData.contestedMoments || [], "moment", overrides);
+  const player = playerOverride.value;
+  const standings = standingsOverride.value;
+  const seasonStats = playerData.seasonStats || [];
+  const careerStats = playerData.careerStats || [];
+  const sessionStats = statsOverride.value;
+  const sessionResults = resultsOverride.value;
+  const moments = momentsOverride.value;
+  const contestedMoments = contestedMomentsOverride.value;
+  const appliedOverrides = [
+    ...playerOverride.appliedOverrides,
+    ...standingsOverride.appliedOverrides,
+    ...statsOverride.appliedOverrides,
+    ...resultsOverride.appliedOverrides,
+    ...momentsOverride.appliedOverrides,
+    ...contestedMomentsOverride.appliedOverrides,
+  ];
+  const [publishedDraft, sessionMap] = await Promise.all([
+    getPublishedDraft({ scope: "player", sourcePlayerId: player.id }),
+    getPlayerSessionMap(),
+  ]);
+  const standing = standings[0] || {};
+  const seasonStat = seasonStats[0] || null;
+  const careerStat = careerStats[0] || null;
+  const pokerStats = buildPlayerPokerStats(player, sessionStats, sessionResults, moments, standing, seasonStat, careerStat);
+  const displayName = cleanName(player.display_name || player.pokernow_name || player.slug);
+  const statCards = [
+    ["Rank", firstPresent(standing.rank, standing.current_rank)],
+    ["Points", firstPresent(standing.points, standing.league_points, standing.total_points, pokerStats.points)],
+    ["Tracked hands", pokerStats.hands],
+    ["Biggest pot", pokerStats.biggestPotBb ? `${pokerStats.biggestPotBb} BB` : maxNumber(sessionStats, ["biggest_pot_won", "biggest_pot", "largest_pot"]) || pokerStats.biggestPot],
+    ["Best result", pokerStats.bestFinish ? `#${pokerStats.bestFinish}` : ""],
+    ["Sessions", pokerStats.sessions],
+  ].filter(([, value]) => present(value));
+  const recentSessions = (sessionStats.length ? sessionStats : sessionResults)
+    .map((row) => ({
+      ...row,
+      session: sessionMap.get(String(row.session_id)) || null,
+      result: sessionResults.find((result) => String(result.session_id) === String(row.session_id)) || row,
+    }))
+    .filter((row) => !row.session?.season_code || row.session.season_code === activeSeasonCode)
+    .sort((left, right) => sessionSortValue(right) - sessionSortValue(left))
+    .slice(0, 8);
+  const currentForm = buildCurrentForm(recentSessions);
+
+  return {
+    player,
+    rawPlayer: playerData.player,
+    displayName,
+    image: playerImage(player),
+    publishedDraft,
+    standings,
+    seasonStats,
+    seasonStat,
+    careerStats,
+    careerStat,
+    standing,
+    rank: firstPresent(standing.rank, standing.current_rank),
+    points: firstPresent(standing.points, standing.league_points, standing.total_points, pokerStats.points),
+    sessionsPlayed: pokerStats.sessions,
+    sessionStats,
+    sessionResults,
+    recentSessions,
+    currentForm,
+    moments,
+    wonMoments: moments,
+    contestedMoments,
+    involvedMoments: [...moments, ...contestedMoments],
+    notableHands: moments,
+    pokerStats,
+    statCards,
+    statCardMap: new Map(statCards.map(([label, value]) => [label, value])),
+    appliedOverrides,
+  };
+}

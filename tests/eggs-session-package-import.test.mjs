@@ -5,8 +5,8 @@ import {
   EGGS_SCHEMA_CHECKSUM,
   buildEggsSessionImportArtifact,
   computeEggsPackageChecksum,
-} from "../src/lib/imports/eggsSessionPackageArtifact.js";
-import { preserveAuthoritativeResultEvidence } from "../src/lib/imports/authoritativeResultReview.js";
+} from "../src/modules/para-poker/lib/imports/eggsSessionPackageArtifact.js";
+import { preserveAuthoritativeResultEvidence } from "../src/modules/para-poker/lib/imports/authoritativeResultReview.js";
 
 const fixtureUrl = new URL("./fixtures/para-completed-session-v2.json", import.meta.url);
 const fixtureBytes = fs.readFileSync(fixtureUrl);
@@ -57,7 +57,7 @@ test("the checked-in producer fixture is a valid deterministic EGGS import", () 
 
 test("the direct adapter preserves authority evidence without invoking the raw parser", () => {
   const result = artifact();
-  const source = fs.readFileSync(new URL("../src/lib/imports/eggsSessionPackageArtifact.js", import.meta.url), "utf8");
+  const source = fs.readFileSync(new URL("../src/modules/para-poker/lib/imports/eggsSessionPackageArtifact.js", import.meta.url), "utf8");
   assert.doesNotMatch(source, /rawHandHistoryParser/u);
   assert.equal(result.manifest.publicEvents.some((event) => event.type === "holeCardsDealt"), false);
   const ability = result.manifest.publicEvents.find((event) => event.type === "factionAbilityUsed");

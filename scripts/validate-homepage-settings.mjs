@@ -5,18 +5,18 @@ function read(path) {
   return readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 }
 
-const constants = read("src/lib/newsroom/homepageSettingsConstants.js");
-const normalizer = read("src/lib/newsroom/homepageSettings.js");
-const viewModel = read("src/lib/newsroom/viewModels/home.js");
-const form = read("src/components/admin-newsroom/HomepageSettingsForm.jsx");
-const publicCopy = read("src/lib/newsroom/publicCopySettings.js");
-const publicCopyForm = read("src/components/admin-newsroom/PublicCopySettingsForm.jsx");
-const settingsPage = read("src/app/admin/settings/page.jsx");
-const momentsViewModel = read("src/lib/newsroom/viewModels/moments.js");
-const momentsPage = read("src/app/moments/page.jsx");
-const modules = read("src/components/newsroom/HomepageModules.jsx");
-const shell = read("src/components/newsroom/NewsroomShell.jsx");
-const publicNav = read("src/components/newsroom/PublicNav.jsx");
+const constants = read("src/modules/para-poker/lib/newsroom/homepageSettingsConstants.js");
+const normalizer = read("src/modules/para-poker/lib/newsroom/homepageSettings.js");
+const viewModel = read("src/modules/para-poker/lib/newsroom/viewModels/home.js");
+const form = read("src/modules/para-poker/components/admin-newsroom/HomepageSettingsForm.jsx");
+const publicCopy = read("src/modules/para-poker/lib/newsroom/publicCopySettings.js");
+const publicCopyForm = read("src/modules/para-poker/components/admin-newsroom/PublicCopySettingsForm.jsx");
+const settingsPage = read("src/app/admin/(para-poker)/settings/page.jsx");
+const momentsViewModel = read("src/modules/para-poker/lib/newsroom/viewModels/moments.js");
+const momentsPage = read("src/modules/para-poker/pages/moments/page.jsx");
+const modules = read("src/modules/para-poker/components/newsroom/HomepageModules.jsx");
+const shell = read("src/modules/para-poker/components/newsroom/NewsroomShell.jsx");
+const publicNav = read("src/modules/para-poker/components/newsroom/PublicNav.jsx");
 const currentSettings = JSON.parse(read("newsroom-library/settings/homepage.json"));
 
 for (const type of ["hero_board", "stat_strip", "latest_session", "upcoming_events", "current_standings", "featured_players", "featured_moments", "latest_articles", "social_caption_block", "top_performers", "recent_form"]) {

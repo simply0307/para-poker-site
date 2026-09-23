@@ -3,7 +3,7 @@ import {
   aggregatePlayerStats,
   derivePlayerSessionStatsFromRows,
   deriveSessionResultSuggestionsFromRows,
-} from "../src/lib/stats/calculators.js";
+} from "../src/modules/para-poker/lib/stats/calculators.js";
 
 const session = { id: "fixture-session", session_code: "S0-FIXTURE", season_code: "S0" };
 const actions = [

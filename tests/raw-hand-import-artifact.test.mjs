@@ -6,10 +6,10 @@ import {
   canonicalJson,
   computePreviewChecksum,
   sha256Utf8,
-} from "../src/lib/imports/rawHandImportArtifact.js";
-import { parseRawHandCommitBody } from "../src/lib/imports/rawHandCommitContract.js";
-import { rawHandImportStateReducer } from "../src/lib/imports/rawHandImportUiState.js";
-import { isMissingSchemaFieldError } from "../src/lib/newsroom/schemaCompatibility.js";
+} from "../src/modules/para-poker/lib/imports/rawHandImportArtifact.js";
+import { parseRawHandCommitBody } from "../src/modules/para-poker/lib/imports/rawHandCommitContract.js";
+import { rawHandImportStateReducer } from "../src/modules/para-poker/lib/imports/rawHandImportUiState.js";
+import { isMissingSchemaFieldError } from "../src/modules/para-poker/lib/newsroom/schemaCompatibility.js";
 
 const fixtureBytes = fs.readFileSync(new URL("./fixtures/parapoker-local-match-entry-order-hand-history.csv", import.meta.url));
 const metadata = {
