@@ -45,13 +45,19 @@ Both roles' direct calls were denied; service-role execution remained; the owner
 
 **Leaked passwords:** The live staging security advisor reports protection disabled. Supabase's [password-security documentation](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection) requires Pro or above for the built-in feature. It cannot be marked enabled or verified under the current $0 constraint. No upgrade or substitute check was introduced. This remains a launch-security decision/blocker.
 
-## Hosted consumer flow still required
+## Existing confirmed account: hosted continuation
 
 The previous real staging account is already confirmed. Its earlier signup/email delivery, login, profile privacy changes, and claim submission/withdrawal have evidence, but the PKCE callback was not proven. Reusing its consumed confirmation link cannot fix that. Supabase's [default SMTP restrictions](https://supabase.com/docs/guides/auth/auth-smtp) also prevent assuming that an arbitrary new alias can receive mail.
 
-A fresh signup requires either explicit permission to reset only the existing disposable staging identity/profile, preserving durable claims and handle reservations, or an unused accessible address that the configured sender permits. Preserve the existing test identity until that choice is made. The password and confirmation link stay out of reports/chat. The user must complete credential entry and click the new confirmation link in the same browser that submits signup.
+The user directed continuation with the existing confirmed account. Do not delete or reset that identity/profile to replay signup. Its permanent handle, withdrawn claim and pending claim remain intact. A new signup is unnecessary for the remaining profile/claim/session flow. The original PKCE callback remains unverified; password login and session refresh are not substitutes for that callback evidence. If a separate email-link test is needed later, preserve this account and keep credentials/confirmation links out of reports and chat.
 
-After confirmation, verify callback/session establishment, password login, profile creation, private/public and unrelated-user visibility, direct user-token PostgREST/RLS, synthetic player claim and operator review, hidden-default link, explicit Poker-summary opt-in, token refresh, logout, and old-session/token denial. Do not mark local fixture results as hosted passes.
+On the unchanged hosted build, the existing consumer session successfully refreshed: staging Auth logs record a successful `refresh_token` grant with HTTP 200, followed by successful user verification; its session update timestamp advanced. The profile and existing pending/withdrawn claims loaded through the app's user-token PostgREST calls.
+
+The profile was switched to private through the normal UI: an anonymous request returned 404 without its bio. Switching back to public through the same UI returned 200 with its intended presentation, without the private claim evidence or an unapproved Poker connection. Six direct anonymous PostgREST checks passed: the public profile projection was visible; hidden associations returned zero rows; Auth UUID, claim evidence, operator review queue, and private handle-registry access were denied.
+
+The next checkpoint is staging operator sign-in. The staging review page correctly redirected this consumer-only session to `/operator-login`. Password attempts returned `invalid_credentials`; no operator session was established. The existing staging admin mapping was verified and remains unchanged. Preserve the working consumer session while the user completes staging operator login or recovers this same staging identity. Do not replace the operator mapping or use production credentials. Operator approval, summary opt-in and final logout/session invalidation remain pending. No new deployment or infrastructure was created for this continuation.
+
+Complete operator review, hidden-default link, explicit Poker-summary opt-in, logout and old-session/token denial with the existing account. Record any remaining callback or unrelated-user-token gaps explicitly; do not mark local fixture results as hosted passes.
 
 ## Production rollout boundary
 
