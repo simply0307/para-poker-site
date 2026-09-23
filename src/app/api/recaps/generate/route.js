@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { requireOperator } from "@/lib/auth/operatorAuthorization";
 import { revalidatePath } from "next/cache";
 import { buildSessionRecapInputPacket } from "@/lib/newsroom/contextPackets";
 import { callNewsroomAiJson, getNewsroomAiDiagnostics } from "@/lib/newsroom/aiClient";
@@ -10,6 +11,9 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(request) {
+  const authorization = await requireOperator(request);
+  if (!authorization.ok) return authorization.response;
+
   try {
     console.info("[api/recaps/generate] env diagnostics", getNewsroomAiDiagnostics());
 

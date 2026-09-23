@@ -7,6 +7,7 @@ function getProviderConfig() {
     return {
       provider: "gemini",
       apiKey: process.env.GEMINI_API_KEY,
+      baseUrl: process.env.GOOGLE_GEMINI_BASE_URL || "https://generativelanguage.googleapis.com",
       model: process.env.GEMINI_MODEL || "gemini-2.5-flash-lite",
       fallbackModels: parseModelList(process.env.GEMINI_FALLBACK_MODELS),
     };
@@ -188,11 +189,12 @@ async function callGeminiJson({ config, scope, schema, packet }) {
 }
 
 async function callGeminiModelJson({ config, scope, schema, packet }) {
-  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(config.model)}:generateContent?key=${encodeURIComponent(config.apiKey)}`;
+  const endpoint = `${config.baseUrl.replace(/\/+$/, "")}/v1beta/models/${encodeURIComponent(config.model)}:generateContent`;
   const response = await fetch(endpoint, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      "x-goog-api-key": config.apiKey,
     },
     body: JSON.stringify({
       systemInstruction: {
