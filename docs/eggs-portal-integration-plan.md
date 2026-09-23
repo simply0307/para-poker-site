@@ -4,6 +4,12 @@ Checkpoint: September 23, 2026, continuing `bd58480` on `codex/eggs-shell`.
 This is a local portal change and a read-only cross-project audit. It does not
 authorize a deployment, production migration, Auth change, or paid resource.
 
+The subsequent explicit decision makes `creative-systems-eggs` the eventual
+shared production backend for EGGS, Para Poker, Gauntlet and Reath. See the
+[current verification and migration design](shared-production-readiness-20260923.md)
+for the new evidence, access blockers, namespace rehearsal and approval sequence.
+No Gauntlet or Reath production migration is authorized by that design decision.
+
 ## Shared production backend
 
 Use the existing `creative-systems-eggs` Supabase project
