@@ -1,5 +1,7 @@
 # EGGS staging: cost, isolation and verification record
 
+Latest checkpoint: [PR #2 rebase and staging security verification](eggs-identity-rebase-staging-20260923.md). The provisioning details and credit balances below are historical; current production is PR #3 / `629e5b4`.
+
 Verified September 23, 2026. Application and migration commit: `53859654f357fbda8211fa8703bc6a60cf97a8a7`.
 Consumer rollout is disabled. No production migration or production Auth update
 was performed. The [implementation report](eggs-consumer-identity-implementation.md)

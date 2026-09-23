@@ -1,5 +1,7 @@
 # EGGS consumer identity: manual claims and production review
 
+Latest checkpoint: [PR #2 rebase and staging security verification](eggs-identity-rebase-staging-20260923.md). PR #3 / `629e5b4` is the production baseline; its authorization and Gemini fixes are preserved. That checkpoint supersedes the test counts and unresolved security-test status below.
+
 Reviewed September 23, 2026. Continues commit `64192b0` and
 [draft PR #2](https://github.com/simply0307/para-poker-site/pull/2).
 **Local implementation and validation are complete. Isolated $0 hosted staging

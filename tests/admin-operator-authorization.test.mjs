@@ -154,7 +154,7 @@ const generationRoutes = [
 ];
 
 async function generationHandler(route, authDependencies, calls) {
-  const source = await readFile(path.resolve(`src/app/api/${route}/generate/route.js`), "utf8");
+  const source = await readFile(path.resolve(`src/app/api/(para-poker)/${route}/generate/route.js`), "utf8");
   // Execute the real POST body with isolated I/O dependencies. No production DB or AI is contacted.
   const handlerSource = source.slice(source.indexOf("export async function POST(")).replace(/^export /, "");
   assert.ok(handlerSource.startsWith("async function POST("));
