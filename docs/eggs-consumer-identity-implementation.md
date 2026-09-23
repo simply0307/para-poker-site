@@ -2,8 +2,9 @@
 
 Reviewed September 23, 2026. Continues commit `64192b0` and
 [draft PR #2](https://github.com/simply0307/para-poker-site/pull/2).
-**Local implementation and validation are complete. Hosted staging is blocked.
-Production migration, Auth changes and consumer rollout have not occurred.**
+**Local implementation and validation are complete. Isolated $0 hosted staging
+is provisioned; end-to-end Auth verification awaits an authorized test mailbox.
+Production migration, production Auth changes and consumer rollout have not occurred.**
 `EGGS_CONSUMER_ENABLED` remains false by default.
 
 This report supersedes claim/deletion proposals and test counts in the
@@ -12,7 +13,7 @@ This report supersedes claim/deletion proposals and test counts in the
 
 ## Migration and exact comparison
 
-The existing, still-unapplied candidate was revised in place:
+The existing candidate, still unapplied to production, was revised in place:
 [20260922231308_eggs_consumer_identity_reviewed_claims.sql](../supabase/migrations/20260922231308_eggs_consumer_identity_reviewed_claims.sql).
 There is no second production migration. Its SHA-256 with LF line endings is
 `4413c817e9bd5e0473e093e4c3894c18ffc4f6fcfe8a1a702d7a8ad6a37aa292`.
@@ -168,20 +169,32 @@ fixtures. Local results do not establish hosted success.
 
 ## Hosted staging results
 
-**Not run: no approved hosted staging target or accessible test mailbox.**
-The project inventory contains live `creative-systems-eggs`
-(`uzderzjbitmghfvrllvz`) and an unrelated inactive project. The live project's
-branch list is empty. No project was repurposed, branch created, paid resource
-provisioned, hosted identity created or live migration applied.
+Separate [EGGS staging](https://eggs-consumer-staging.netlify.app) now uses
+Supabase `xokrweqdvkfcexczsewl`, created after an exact $0/month quote in the
+existing Free organization. The new Netlify site is Git-connected to
+`simply0307/para-poker-site`, branch `codex/eggs-shell`. Neither legacy Poker
+site was repointed. The inactive `creative os` project was restored for its
+read-only audit, found to contain useful Reath records, and returned to INACTIVE
+without repurposing it. See the [cost and isolation record](eggs-zero-cost-staging.md).
 
-Organization selection for staging cost lookup and mailbox/access details
-have been requested. Provisioning additionally requires quoted-cost confirmation
-under the Supabase tool's rules. An existing user-provided staging target also
-satisfies the infrastructure gate.
+The staging database contains the 17-table audited legacy schema fixture without
+production rows, followed by the exact revised consumer candidate. Real hosted
+Auth tables were preserved. Staging-only Auth Site URL and callback are the
+new staging origin and its exact `/auth/callback`. Email confirmation remains
+enabled. Eight anonymous PostgREST checks pass; no hosted account was created.
+
+`EGGS_CONSUMER_ENABLED=false` remains set on the new site. Its published app
+shows accounts unavailable and the profile API returns 503/no-store. The saved
+Supabase environment variables were configured after its first deployment;
+one staging-only redeploy is still required before enabled Auth testing.
+That redeploy should wait for the authorized mailbox and a fresh Free-credit
+check. No production credentials are installed on staging.
 
 | Required hosted check | Result |
 | --- | --- |
-| Real signup and confirmation email delivery | Blocked on isolated Auth target and mailbox |
+| Anonymous PostgREST access | Eight checks passed: public projections allowed; Auth UUIDs, claims, writes, review and private schema denied |
+| Disabled hosted app | Home/login/profile load; login shows unavailable; profile API 503 with private,no-store |
+| Real signup and confirmation email delivery | Blocked on authorized mailbox/access; isolated Auth target is ready |
 | PKCE callback | Not verified against hosted Auth |
 | Login and token refresh | Not verified against hosted Auth |
 | Logout/session invalidation and old access/refresh replay | Not verified against hosted Auth/PostgREST |
@@ -194,7 +207,7 @@ satisfies the infrastructure gate.
 ## Live launch-security findings
 
 Read-only checks confirm no `public.eggs_profiles`, no `eggs_private` schema
-and eight historical migration entries. The candidate remains unapplied.
+and eight historical migration entries. The candidate remains unapplied to production.
 Production data and Auth settings were not changed.
 
 1. **Leaked-password protection is disabled.** The live security advisor still
@@ -237,21 +250,25 @@ no claim-retention policy, scheduler or worker blockers.
 
 The sequence below is a review plan, not authorization to execute it:
 
-1. Choose canonical HTTPS EGGS origin and isolated staging hostname. Obtain an
-   approved staging target, cost consent if provisioning, and test mailbox with
-   an authorized way to inspect confirmations. Use verified SMTP where required;
-   do not bypass confirmation or use production test accounts.
-2. Audit the actual staging baseline. A branch must not be assumed to contain
-   production's historical catalog: this repo lacks its eight migration files.
-   Reproduce the audited baseline without production personal data, verify
-   grants/RLS/Auth roles/event triggers, then apply this exact candidate once.
-   Seed synthetic players and an authorized staging operator mapping.
-3. Set staging Site URL to its exact origin, allow its exact
-   `<STAGING_ORIGIN>/auth/callback`, and set matching app `EGGS_SITE_URL`.
-   Enable consumers only there. Complete every hosted check above using real
+1. Choose canonical HTTPS EGGS production origin and obtain a test mailbox with
+   an authorized way to inspect confirmations. The separate $0 staging target
+   and exact staging callback already exist. Use verified SMTP where required;
+   stop if it needs paid service. Do not bypass confirmation or use production
+   test accounts. Check shared Free quotas before further testing/deploys.
+2. Verify the recorded staging baseline and candidate hashes/ledger. Both were
+   applied there once; do not reapply them. This repo lacks production's eight
+   historical migration files, so staging uses the audited schema fixture with
+   native hosted Auth and no production personal data. Seed synthetic players
+   and an authorized staging operator mapping. Its platform event triggers
+   differ from production; the legacy event-trigger security test remains due.
+3. Recheck staging Site URL, exact callback and app `EGGS_SITE_URL`. Redeploy
+   only the new staging site to consume its saved isolated credentials.
+   Enable consumers only there for the authorized test window. Complete every
+   hosted check above using real
    confirmation delivery/user tokens, including signed-out token replay,
    unrelated/unconfirmed denial, privacy, conflicts and summary opt-in.
-   Record sanitized evidence without tokens, codes or passwords.
+   Record sanitized evidence without tokens, codes or passwords. Return staging
+   consumer access to disabled after the test window. Production stays disabled.
 4. Test the function-grant correction in hosted staging, including automatic RLS
    on a newly created disposable public table. Resolve leaked-password protection
    there and verify rejection. Review remaining advisors.
