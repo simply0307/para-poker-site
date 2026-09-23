@@ -140,15 +140,14 @@ UUID types. No name/email inference or automatic association is performed.
 | Concurrent review | Lock reviewer authorization and then the claimant profile, player and claim. Approval and attribution commit together. Competing links raise `23505`; the loser stays pending with no review timestamps. Repeating the same completed decision is idempotent. |
 | Claim submission retry | Pending profile/player pairs have a unique index. A duplicate insert returns `23505`; a future user-token client should fetch its existing pending claim. It does not create a second row or silently change evidence. |
 | Withdrawal / transfers | Owners may withdraw their own pending claims through the restricted RPC. Approved links cannot be reassigned, revoked or transferred in this phase. |
-| Deletion / history, previously undecided | Auth deletion cascades to the consumer profile; profile deletion detaches links, withdraws pending claims, nulls claimant identity and clears claim/review free text. Minimal decision/player/role/timestamp history remains. Reviewer deletion sets reviewer Auth FKs to null. The existing operator profile retains its original SET NULL behavior. |
+| Deletion / history | Superseded by the current implementation report: detach live profile links without changing claim status/evidence; preserve durable claimant/reviewer references and permanent handle reservations. Existing operator SET NULL behavior remains. |
 | Preferences and avatars | No preference table without a concrete setting; no avatar storage authorization. Music/library/social/song features remain deferred. |
 
-The deletion/retention decision is a **proposed policy for review**, not a claim
-of an already approved retention schedule. While an account remains present,
-its private claim evidence remains stored; no automatic retention timer is
-introduced. Deleting only a reviewer leaves the claimant's claim/review text
-intact and removes the reviewer Auth FK. Retained player IDs and review times
-may still permit inference; this is minimization, not guaranteed anonymization.
+The original deletion proposal is superseded by the user's September 23
+instruction: claims and evidence have no automatic expiration. See the current
+implementation report for account/reviewer deletion behavior and tests.
+Durable UUIDs and review times remain pseudonymous audit references, not
+guaranteed anonymization.
 
 The migration checks the relevant audited schema, exact operator FK/index,
 role privileges and legacy RLS boundary before DDL. It refuses an unknown
@@ -236,8 +235,9 @@ Existing live advisors, separate from test failures:
 
 ## Production review boundary
 
-Review the candidate SQL and the decisions above, particularly immutable/reusable
-handles, verified-email admission, no transfer path, and claim retention/deletion.
+This is a historical checkpoint. Use the current
+[implementation review and rollout sequence](eggs-consumer-identity-implementation.md)
+for permanent handle reservations, manual claim decisions and persistent evidence.
 Then explicitly authorize any production application as a separate action.
 Recheck schema, mappings, grants, roles, Auth settings and migration history at
 that time; obtain the normal database recovery checkpoint and preserve the eight

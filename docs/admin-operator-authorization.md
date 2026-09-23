@@ -68,7 +68,6 @@ Mutating privileged methods:
 - `POST, DELETE /api/admin/moments/[momentId]/video`
 - `PUT /api/admin/page-heroes`
 - `POST /api/admin/player-claims/[claimId]/review`
-- `POST /api/admin/player-claims/[claimId]/hold`
 - `POST /api/admin/prompt-presets`
 - `DELETE /api/admin/prompt-presets/[presetId]`
 - `PUT /api/admin/public-copy`
@@ -93,7 +92,7 @@ Operator-protected generation methods (all POST):
 `DELETE /api/operator-session` only expires the caller's cookie and intentionally
 requires no operator role. No repository or provider is invoked there.
 
-Operator inventory: 34 API paths, 52 methods, 51 protected methods. Consumer
+Operator inventory: 33 API paths, 51 methods, 50 protected methods. Consumer
 `/api/eggs/**` routes are counted separately and do not use operator authorization.
 The new claim routes additionally use the verified operator's user-token client
 and a fresh database role/session check; no service client writes the decision.

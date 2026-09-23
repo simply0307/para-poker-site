@@ -15,7 +15,7 @@ current boundaries and validation. The [consumer identity proposal](docs/eggs-co
 is retained for comparison. The [Phase 2 audit](docs/eggs-phase2-identity-audit.md)
 documents the verified live database and a tested additive migration candidate.
 The [consumer implementation report](docs/eggs-consumer-identity-implementation.md)
-contains the revised handle-retirement/retention SQL, authentication and claim
+contains the revised handle-reservation SQL, authentication and claim
 flows, verification results, production plan and rollback limits.
 The consumer migration remains unapplied to production.
 
@@ -38,8 +38,9 @@ read-only audit. Schema, RLS, grants and Auth settings were verified; live accou
 login/session behavior remains a later rollout check. No live data is bundled;
 synthetic identity fixtures are confined to local database and HTTP tests.
 Consumer development additionally needs the reviewed schema in a disposable
-environment, `EGGS_SITE_URL`, and `EGGS_CONSUMER_ENABLED=true`. Keep both consumer
-and retention flags false against production until the rollout plan is approved.
+environment, `EGGS_SITE_URL`, and `EGGS_CONSUMER_ENABLED=true`. Keep consumer
+rollout disabled against production until the canonical EGGS domain is chosen
+and the rollout plan is approved.
 
 ## Routes
 
@@ -56,8 +57,8 @@ and retention flags false against production until the rollout plan is approved.
   behind the disabled consumer flag. Public `/profile/[handle]` pages expose only
   public presentation and an explicitly enabled Poker summary; private/unknown
   handles return 404.
-- `/admin/player-claims` uses the existing operator boundary for decisions,
-  evidence holds and retention health.
+- `/admin/player-claims` uses the existing operator boundary for manual claim
+  decisions. Claims and their private evidence have no automatic expiration.
 - `/admin` remains the authenticated Para Poker newsroom and league ops entry;
   it is not a universal EGGS administrator surface.
 - `/admin/sessions/[sessionId]` is the main recap generation/edit/publish desk.
@@ -91,7 +92,7 @@ suite. Its default runner explicitly disables the destructive remote test, which
 reports a skip. The HTTP suite starts isolated loopback servers,
 uses a disposable HTTP fixture for Supabase responses, and checks actual public
 rendering, redirects, missing profiles, operator sessions, denied generation
-requests across all 51 protected operator API methods and browser credential
+requests across all 50 protected operator API methods and browser credential
 boundaries. Consumer tests cover PKCE, refresh/logout, owner access, public
 visibility and operator/consumer separation with real SDK HTTP requests.
 The HTTP fixtures never write to a real database.
@@ -102,8 +103,8 @@ integration suite remains opt-in and must use a confirmed disposable database.
 `npm run test:identity` tests the unapplied consumer migration in a fresh local
 PostgreSQL 17 cluster, including RLS and real concurrent claim approval conflicts.
 It never accepts a remote database URL. See the [Phase 2 report](docs/eggs-phase2-identity-audit.md#disposable-validation)
-for binary setup and the [current consumer report](docs/eggs-consumer-identity-implementation.md#9-verification-and-limits)
-for expanded RLS, handle retirement, evidence expiry and concurrency coverage.
+for binary setup and the [current consumer report](docs/eggs-consumer-identity-implementation.md#verification)
+for expanded RLS, permanent handles, persistent evidence and concurrency coverage.
 Missing local binaries produce an explicit
 skip; migration review requires a run that actually executes the database tests.
 

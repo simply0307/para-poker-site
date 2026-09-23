@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { consumerConfiguration, profileInput, requireSameOrigin, readConsumerJson, databaseError } from "../src/lib/eggs/consumerCore.mjs";
-import { runClaimRetention } from "../netlify/functions/_shared/claimRetention.mjs";
 
 test("consumer origins and request allowlists fail closed", async () => {
   const env = { EGGS_CONSUMER_ENABLED:"true", SUPABASE_URL:"https://fixture.supabase.co", SUPABASE_PUBLISHABLE_KEY:"fixture", EGGS_SITE_URL:"https://eggs.example" };
@@ -16,15 +15,4 @@ test("consumer origins and request allowlists fail closed", async () => {
   await assert.rejects(()=>readConsumerJson(huge),{status:413});
   assert.equal(databaseError({code:"23505",message:"secret database details"}).status,409);
   assert.ok(!databaseError({code:"unexpected",message:"secret database details"}).message.includes("secret"));
-});
-
-test("scheduled retention is bounded, idempotent and fails visibly without logging claim data",async()=>{
-  const calls=[]; const counts=[{redacted:500,withdrawn:2},{redacted:3,withdrawn:0}];
-  const result=await runClaimRetention({client:{rpc:async(...args)=>{calls.push(args);return {data:counts.shift(),error:null};}}});
-  assert.deepEqual(result,{redacted:503,withdrawn:2,batches:2});
-  assert.deepEqual(calls,[["run_poker_claim_retention"],["run_poker_claim_retention"]]);
-  assert.deepEqual(await runClaimRetention({client:{rpc:async()=>({data:{redacted:0,withdrawn:0}})}}),{redacted:0,withdrawn:0,batches:1});
-  await assert.rejects(()=>runClaimRetention({}),/missing its server configuration/u);
-  await assert.rejects(()=>runClaimRetention({client:{rpc:async()=>({error:{message:"private evidence"}})}}),error=>!error.message.includes("private evidence"));
-  await assert.rejects(()=>runClaimRetention({client:{rpc:async()=>({data:{redacted:500,withdrawn:0}})},maxBatches:2}),/batch limit/u);
 });

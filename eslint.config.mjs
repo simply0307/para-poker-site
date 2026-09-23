@@ -3,7 +3,6 @@ import nextVitals from "eslint-config-next/core-web-vitals";
 
 const eslintConfig = defineConfig([
   ...nextVitals,
-  { files: ["netlify/**/*.mts"], languageOptions: { ecmaVersion: "latest", sourceType: "module" } },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     ".reference/**",

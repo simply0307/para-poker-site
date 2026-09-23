@@ -69,7 +69,7 @@ test("consumer HTTP flow verifies Auth, scopes RLS requests, separates operators
 
   const players = await request("/api/eggs/poker/players?q=Test", { jar: alice });
   assert.equal((await players.json()).players[0].player_id, consumerIds.player);
-  assert.match(await (await request("/profile/claim", { jar: alice })).text(), /90 days/u);
+  assert.match(await (await request("/profile/claim", { jar: alice })).text(), /Supporting evidence stays attached/u);
   const claimResponse = await request("/api/eggs/poker/claims", { jar: alice, method: "POST", body: { player_id: consumerIds.player, evidence_note: "Private proof from fixture" } });
   assert.equal(claimResponse.status, 201, await claimResponse.clone().text());
   const claim = (await claimResponse.json()).claim;
@@ -85,7 +85,9 @@ test("consumer HTTP flow verifies Auth, scopes RLS requests, separates operators
   const operatorSession = fixture.issue(fixture.users.get("operator@fixture.invalid"));
   const operator = new CookieJar(); operator.values.set("para_league_operator", operatorSession.access_token);
   assert.equal((await request("/api/eggs/profile", { jar: operator })).status, 401);
-  assert.equal((await request("/api/admin/player-claims", { jar: operator })).status, 200);
+  const queueResponse=await request("/api/admin/player-claims", { jar: operator });
+  assert.equal(queueResponse.status,200);
+  assert.deepEqual(Object.keys(await queueResponse.json()),["claims"]);
   assert.equal((await request(`/api/admin/player-claims/${claim.id}/review`, { jar: operator, method: "POST", body: { decision: "approve", reason: "Verified ownership", reviewer_id: consumerIds.bob } })).status, 400);
   const approval = await request(`/api/admin/player-claims/${claim.id}/review`, { jar: operator, method: "POST", body: { decision: "approve", reason: "Verified ownership" } });
   assert.equal(approval.status, 200, await approval.clone().text());

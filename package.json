@@ -12,7 +12,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint src scripts tests netlify next.config.mjs eslint.config.mjs postcss.config.mjs",
+    "lint": "eslint src scripts tests next.config.mjs eslint.config.mjs postcss.config.mjs",
     "validate:training": "node scripts/validate-training-capture.mjs",
     "validate:homepage": "node scripts/validate-homepage-settings.mjs",
     "validate:parapoker-import": "node scripts/validate-parapoker-import.mjs",

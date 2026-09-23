@@ -65,7 +65,7 @@ export async function consumerFixture() {
     return session;
   }
   const dto = claim => ({ ...claim, handle: profiles.find(profile => profile.id === claim.claimant_profile_id)?.handle || null,
-    player_name: players.find(player => player.player_id === claim.player_id)?.display_name, holds: claim.holds || [], hold_active: false });
+    player_name: players.find(player => player.player_id === claim.player_id)?.display_name });
   const server = createServer(async (request, response) => {
     response.setHeader("Content-Type", "application/json");
     // The existing operator sign-in talks to Auth from the browser. Permit
@@ -122,7 +122,6 @@ export async function consumerFixture() {
         if (name === "get_public_poker_players") return send(players.filter(player => (!body.p_player_id || body.p_player_id === player.player_id) && player.display_name.toLowerCase().includes((body.p_search || "").toLowerCase())));
         if (name === "get_my_poker_claims") return send(claims.filter(claim => claim.claimant_profile_id === own?.id).map(dto));
         if (name === "get_poker_claim_review_queue") return operator ? send(claims.filter(claim => !body.p_status || body.p_status === "all" || claim.status === body.p_status).map(dto)) : fail("42501", 403);
-        if (name === "get_poker_claim_retention_status") return operator ? send({ last_run_at: new Date().toISOString(), last_redacted_count: 0, total_redacted_count: 0, overdue_count: 0, unreviewed_overdue_count: 0 }) : fail("42501", 403);
         const claim = claims.find(value => value.id === body.p_claim_id);
         if (name === "review_para_poker_claim") {
           if (!operator || !actor.active) return fail("42501", 403);
@@ -131,7 +130,6 @@ export async function consumerFixture() {
           if (body.p_decision === "approve" && links.some(link => link.player_id === claim.player_id || link.profile_id === claim.claimant_profile_id)) return fail("23505", 409);
           claim.status = body.p_decision === "approve" ? "approved" : "rejected";
           claim.decision_reason = body.p_note; claim.resolved_at = claim.reviewed_at = new Date().toISOString();
-          claim.evidence_expires_at = new Date(Date.now() + 90 * 86400000).toISOString();
           if (claim.status === "approved") links.push({ profile_id: claim.claimant_profile_id, player_id: claim.player_id, show_on_profile: false });
           return send({ claim_id: claim.id, status: claim.status, profile_id: claim.claimant_profile_id, player_id: claim.player_id });
         }
@@ -140,7 +138,6 @@ export async function consumerFixture() {
           if (!["pending", "withdrawn"].includes(claim.status)) return fail("55000");
           claim.status = "withdrawn"; return send({ claim_id: claim.id, status: claim.status });
         }
-        if (name === "set_poker_claim_evidence_hold") return operator ? send(dto(claim)) : fail("42501", 403);
         return fail("PGRST202", 404);
       }
       function rows(data) {

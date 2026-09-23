@@ -34,7 +34,7 @@ export function PlayerClaimPanel({ initialPlayers, initialClaims, linked }) {
           {!players.length ? <p>No players found. Try another league display name.</p> : null}
         </div></fieldset>
         <label>Private supporting evidence <span className="eggs-help">(optional)</span><textarea name="evidence" rows={4} maxLength={2000} aria-describedby="evidence-help" /></label>
-        <p id="evidence-help" className="eggs-help">Tell an operator how to verify ownership. Don’t include passwords, government IDs or payment details. Unreviewed claims withdraw after 90 days. Evidence is removed 90 days after a decision or withdrawal unless there is a documented active hold. The decision record remains.</p>
+        <p id="evidence-help" className="eggs-help">Tell an operator how to verify ownership. Don’t include passwords, government IDs or payment details. Your claim stays pending until an operator decides or you withdraw it. Supporting evidence stays attached to the claim, including after a decision or withdrawal.</p>
         <button className="eggs-button" disabled={busy || !players.length}>{busy ? "Please wait…" : "Request player claim"}</button>
       </form>
     </>}
@@ -43,9 +43,7 @@ export function PlayerClaimPanel({ initialPlayers, initialClaims, linked }) {
       <div className="eggs-section-heading"><h3>{claim.player_name}</h3><span className="eggs-claim-status">{claim.status}</span></div>
       <p className="eggs-help">Submitted {claim.submitted_at.slice(0, 10)} (UTC)</p>
       {claim.decision_reason ? <p>Decision: {claim.decision_reason}</p> : null}
-      {claim.resolution_source === "unreviewed_timeout" ? <p className="eggs-help">Automatically withdrawn after 90 days without a decision.</p> : null}
       {claim.evidence_note ? <details><summary>Your private supporting evidence</summary><p className="eggs-profile-bio">{claim.evidence_note}</p></details> : null}
-      {claim.hold_active ? <p className="eggs-help">Supporting evidence is under a documented hold.</p> : claim.evidence_redacted_at || claim.evidence_expired ? <p className="eggs-help">Supporting evidence has expired and is no longer available.</p> : claim.evidence_expires_at ? <p className="eggs-help">Supporting evidence expires {claim.evidence_expires_at.slice(0, 10)} (UTC).</p> : null}
       {claim.status === "pending" ? <button type="button" className="eggs-text-link" disabled={busy} onClick={() => withdraw(claim.id)}>Withdraw claim</button> : null}
     </li>)}</ul>}</section>
   </>;

@@ -3,7 +3,7 @@
 Historical Phase 1 proposal. The project has since been restored with user
 permission and audited. See the [Phase 2 audit](eggs-phase2-identity-audit.md)
 for verified facts and the [consumer implementation report](eggs-consumer-identity-implementation.md)
-for final design differences, handle retirement, evidence retention, tests and
+for final design differences, permanent handles, persistent claim evidence, tests and
 the still-unapplied SQL candidate. The original proposal below is retained for comparison.
 
 Date: 2026-09-22. Review design only. No consumer tables, policies, migrations,
@@ -53,9 +53,10 @@ ownership, Auth identity, verification fields, roles or timestamps.
 Proposed deletion behavior: deleting an Auth account removes its consumer
 profile, preferences and public association but never a Poker player or league
 evidence. A linked player's deletion is restricted pending explicit review.
-Review-history retention/anonymization and reviewer deletion require a concrete
-policy before final FK actions are selected. Do not silently cascade away an
-ownership decision or retain private claim evidence indefinitely.
+The current implementation supersedes the original deletion-policy question:
+claim evidence and durable review history remain attached without automatic
+expiration, live profile links detach, and handles stay permanently reserved.
+See the implementation report for the tested FK behavior.
 
 ## Access matrix to prove before implementation
 
@@ -126,7 +127,7 @@ approval tests are required in a disposable environment before applying SQL.
    production host/cookie behavior using actual test accounts.
 4. **Storage and deletion:** existing avatar/media buckets, object ownership,
    path validation and policies; account/player/reviewer deletion effects and
-   agreed claim evidence retention.
+   the current claim evidence policy in the implementation report.
 5. **Real application compatibility:** live operator login and role lookup,
    public dossier parity, existing import/publication RPCs and their policies.
    This phase proves local route and denial behavior, not live workflows.
