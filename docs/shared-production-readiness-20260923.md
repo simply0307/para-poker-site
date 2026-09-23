@@ -9,6 +9,11 @@ separately approved cutover. The earlier portal plan's isolation decisions remai
 in force operationally; the future consolidation design below supersedes its
 deferred architecture decision.
 
+Follow-up at 18:49 UTC: the user recovered and signed in to the existing owner
+account. See [the authenticated production verification](production-operator-ai-verification-20260923.md)
+for the real Gemini failure, deployed generation authorization gap and expanded
+42-table preservation checkpoint. This supersedes the earlier login blocker.
+
 ## Outcome and boundaries
 
 | Requirement | Result |
@@ -16,7 +21,8 @@ deferred architecture decision.
 | Canonical EGGS + Para backend | Live project verified; additive consumer migration still absent. |
 | Existing league data preserved | Counts and row fingerprints unchanged across 15 audited tables; six relationship checks returned zero violations. |
 | New `/para/poker` pages using production data | Ten candidate routes returned 200 through a local read-only gateway. Actual published `/para/poker` still returns 404. |
-| Authenticated production newsroom AI smoke | BLOCKED by production operator login failure; no generation executed. |
+| Authenticated production newsroom AI smoke | Owner login now passes; one real Gemini `gemini-2.5-flash-lite` request failed because the provider rejected the key. No draft saved. |
+| Deployed generation authorization | FAIL: all seven deployed generation handlers lack the candidate's operator guards; anonymous probes returned 400/500. |
 | Exact live Gauntlet persistence authority | BLOCKED by access to the wrong Render workspace; source behavior mapped, live configuration unknown. |
 | Reath namespace design | Local `reath` rehearsal passed 21-table / 43-function behavior and isolation checks. No hosted migration or source-project edit. |
 | Production changes, consumer launch, paid infrastructure | None performed. No deploy, new project, restoration, plan upgrade or subscription. |
@@ -96,26 +102,31 @@ application's role check. Neither the staging password nor a newly created EGGS
 consumer account establishes access to this existing production owner account.
 No credential, role, session or Auth setting was changed to bypass it.
 
-The existing generation route authenticates the operator, builds the real evidence
+The candidate generation route authenticates the operator, builds the real evidence
 packet, invokes its configured AI provider, validates output, saves a draft, and
 records training/generation metadata. It does not automatically publish or change
-league results. No replacement mock was introduced.
+league results. The exact published generation handlers lack that operator guard;
+protected admin pages do not make those endpoints private. No replacement mock
+was introduced.
 
-**Fresh smoke result: NOT RUN. Current runtime provider/model: UNVERIFIED.**
+**Follow-up smoke result: FAILED; actual request targeted Google Gemini
+`gemini-2.5-flash-lite`.** The user subsequently signed in as the same owner and
+one S0-002 draft request was run. Gemini rejected the key as invalid; no draft
+was created. All 42 public-table fingerprints remained unchanged.
 Source defaults to Gemini `gemini-2.5-flash-lite` with configuration overrides;
 Anthropic and OpenAI adapters remain present. Existing draft metadata records
 Gemini `gemini-3.1-flash-lite` and `gemini-3.5-flash`. Those historical records
-are not a new smoke test and do not identify today's runtime selection. The
+are not proof of today's runtime selection; the fresh failure trace establishes
+the requested model for this attempt. The
 readable Netlify site/shared/build environment metadata did not establish an AI
 provider/model/key configuration. Do not infer that secrets are absent or that
 the source default is the deployed model.
 
-After successful existing-operator sign-in, execute the already authorized single
-draft-only test against one existing session. Record the actual provider/model,
-draft ID, generation status and validation result; verify no publication or
-session/result/standings change. Do not retry blindly if a provider fails or
-choose a different paid provider as a workaround. Account recovery, if needed,
-must preserve the existing Auth UUID and operator mapping; it has not been done.
+The single authorized attempt is complete with a failed result. Resolve the
+credential/endpoint configuration and deployed authorization gap through a
+separately approved change before retesting. Do not retry blindly or choose a
+different paid provider as a workaround. Account recovery preserved the existing
+Auth UUID and operator mapping.
 
 ### Remaining Para acceptance issues
 
@@ -319,9 +330,9 @@ checkpoint and reconcile new writes if rollback becomes necessary.
 
 ## Production blockers and approval sequence
 
-1. Restore access to the existing Para operator account without replacing its
-   identity; complete the one authorized AI draft smoke. Access/recovery is a
-   prerequisite, not authorization to bypass Auth. Finish Para's independent
+1. Existing owner access is now verified. Repair the deployed generation guards
+   and Gemini credential/endpoint configuration through separately approved
+   changes, then obtain a successful draft-only smoke. Finish Para's independent
    import/review and media/evidence acceptance issues on disposable data.
 2. Complete the existing hosted EGGS staging flow: fresh verified PKCE callback,
    independent operator review, user-token owner/unrelated-user PostgREST/RLS,
