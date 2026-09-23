@@ -269,7 +269,9 @@ The sequence below is a review plan, not authorization to execute it:
    historical migration files, so staging uses the audited schema fixture with
    native hosted Auth and no production personal data. Seed synthetic players
    and an authorized staging operator mapping. Its platform event triggers
-   differ from production; the legacy event-trigger security test remains due.
+   differ from production; the exact legacy function/trigger was successfully
+   rehearsed in a staging transaction and rolled back. See the current rebase
+   report for results.
 3. Recheck staging Site URL, exact callback and app `EGGS_SITE_URL`. The new
    staging site already consumes its isolated credentials and has consumers
    enabled for the authorized test window; reuse that deployment. Complete every
@@ -278,9 +280,11 @@ The sequence below is a review plan, not authorization to execute it:
    unrelated/unconfirmed denial, privacy, conflicts and summary opt-in.
    Record sanitized evidence without tokens, codes or passwords. Return staging
    consumer access to disabled after the test window. Production stays disabled.
-4. Test the function-grant correction in hosted staging, including automatic RLS
-   on a newly created disposable public table. Resolve leaked-password protection
-   there and verify rejection. Review remaining advisors.
+4. Review the passing hosted function-grant rehearsal, including automatic RLS
+   on a newly created disposable public table. Resolve the leaked-password
+   launch decision: the native feature requires Pro or above and cannot be
+   enabled under the current $0 constraint. Do not upgrade or report it as
+   passed. Review remaining advisors.
 5. Present staging evidence and exact SQL hash/diff; obtain explicit production
    migration authorization and separately scoped legacy grant/Auth authorization.
    Repeat read-only schema, grants, RLS, functions, Auth, operator-mapping and
@@ -293,12 +297,17 @@ The sequence below is a review plan, not authorization to execute it:
 7. Verify exactly three new public tables/private registry, forced RLS, narrow
    grants/RPCs, private-schema exclusion, projections and unchanged legacy
    catalog/data/mappings. Recheck advisors. Deploy the reviewed app with
-   `EGGS_CONSUMER_ENABLED=false` and validate legacy Poker.
+   `EGGS_CONSUMER_ENABLED=false` and validate real production players, sessions,
+   hands/actions, standings, imports, evidence, drafts and public dossiers under
+   `/para/poker`, legacy redirects, existing operator authorization, all seven
+   anonymous generation denials and the unchanged Gemini gateway. Do not publish
+   or alter league results as part of verification.
 8. When separately authorized, apply the tested function EXECUTE revocation and
    configure production `site_url=<EGGS_ORIGIN>`, redirect allowlist entry
    `<EGGS_ORIGIN>/auth/callback`, and app `EGGS_SITE_URL=<EGGS_ORIGIN>`.
-   Review other redirects individually; no broad production wildcard. Enable
-   and verify leaked-password protection. Do not substitute the legacy Poker
+   Review other redirects individually; no broad production wildcard. Apply
+   the separately approved leaked-password decision; any paid upgrade remains
+   prohibited without a changed user instruction. Do not substitute the legacy Poker
    hostname. Keep Para Poker under `/para/poker`; plan legacy redirects with
    the domain cutover.
 9. Only after those checks and explicit consumer-launch authorization, enable
@@ -308,4 +317,7 @@ The sequence below is a review plan, not authorization to execute it:
 Before commit, transactional rollback is tested. After production commit,
 disable consumer rollout if needed and preserve profiles, reservations, claims,
 evidence and links while fixing forward. Never drop these records or reuse
-retired handles as rollback. No production rollback was executed.
+retired handles as rollback. A site rollback must retain the seven generation
+guards and working Gemini gateway: use production baseline `629e5b4` or a later
+verified deployment, never a pre-hotfix build. An application rollback does not
+undo the committed database migration. No production rollback was executed.
