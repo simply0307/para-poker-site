@@ -1,5 +1,11 @@
 # Phase 2: verified database audit and unapplied identity migration
 
+Historical checkpoint: `b2f6570a63ddd757b6f9c90292afaf9fda99264f`.
+The live findings below remain valid audit evidence. The candidate design,
+deletion/retention behavior, UI status and test counts below describe that
+checkpoint and are superseded by the
+[consumer implementation and production review](eggs-consumer-identity-implementation.md).
+
 Audit date: 2026-09-22. Repository: `simply0307/para-poker-site`, branch
 `codex/eggs-shell`, continuing [PR #2](https://github.com/simply0307/para-poker-site/pull/2).
 
@@ -10,7 +16,7 @@ used read-only transactions. No migration, DML, Auth configuration change,
 user creation, Storage write, deployment or new cloud project was performed.
 
 The review candidate is
-[`20260922231308_eggs_consumer_identity_reviewed_claims.sql`](../supabase/migrations/20260922231308_eggs_consumer_identity_reviewed_claims.sql).
+[`20260922231308_eggs_consumer_identity_reviewed_claims.sql` at the audit checkpoint](https://github.com/simply0307/para-poker-site/blob/b2f6570a63ddd757b6f9c90292afaf9fda99264f/supabase/migrations/20260922231308_eggs_consumer_identity_reviewed_claims.sql).
 It has been applied only to disposable local databases. Consumer login, profile
 pages and claim UI remain inactive; music, library, social and profile-song work
 is outside this change.

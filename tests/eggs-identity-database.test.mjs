@@ -17,7 +17,7 @@ async function beginActor(client, userId, role = "authenticated", metadata = {})
   assert.ok(["anon", "authenticated", "service_role"].includes(role));
   await client.query("begin");
   await client.query(`set local role ${role}`);
-  await client.query("select set_config('request.jwt.claims',$1,true)", [JSON.stringify({ sub: userId, role, ...metadata })]);
+  await client.query("select set_config('request.jwt.claims',$1,true)", [JSON.stringify({ sub: userId, session_id:userId, role, ...metadata })]);
   const { rows: [actual] } = await client.query("select current_user as role, rolsuper, rolbypassrls from pg_roles where rolname=current_user");
   assert.equal(actual.role, role);
   if (role !== "service_role") assert.equal(actual.rolsuper || actual.rolbypassrls, false, "RLS tests must not run as a privileged owner");
@@ -54,7 +54,7 @@ async function submit(db, user, player = pid(1), note = "Private claim evidence"
   ));
   return result.rows[0];
 }
-const review = (client, claimId, decision = "approve", note = null) => client.query(
+const review = (client, claimId, decision = "approve", note = "Reviewed ownership evidence") => client.query(
   "select public.review_para_poker_claim($1,$2,$3) as result", [claimId,decision,note],
 );
 
@@ -86,7 +86,7 @@ async function waitForLock(admin, backendPid) {
 
 test("consumer identity migration on disposable PostgreSQL 17", {
   skip: !hasPostgres && "Set EGGS_TEST_POSTGRES_BIN to PostgreSQL 17 binaries; this suite never accepts a remote database URL.",
-  timeout: 180000,
+  timeout: 360000,
 }, async t => {
   const cluster = await localPostgres(t);
   await cluster.admin.query("create role anon; create role authenticated; create role service_role bypassrls;");
@@ -94,13 +94,17 @@ test("consumer identity migration on disposable PostgreSQL 17", {
   await cluster.admin.query("grant anon,authenticated,service_role to postgres; set role postgres;");
   assert.deepEqual((await cluster.admin.query("select rolsuper,rolbypassrls from pg_roles where rolname=current_user")).rows[0], { rolsuper:false,rolbypassrls:true });
   let nextDatabase = 0;
+  let previousAdmin;
   async function database({ apply = true } = {}) {
+    if (previousAdmin) await previousAdmin.end();
     const name = `identity_test_${++nextDatabase}`;
     await cluster.admin.query(`create database ${name}`);
     const admin = await cluster.connect(name);
+    previousAdmin = admin;
     await admin.query(`begin; ${fixture} commit;`);
     for (const [kind,id] of Object.entries(users)) {
       await admin.query("insert into auth.users(id,email,email_confirmed_at,is_anonymous) values($1,$2,$3,$4)", [id,`${kind}@fixture.invalid`,kind === "unconfirmed" ? null : "2026-09-01T00:00:00Z",kind === "anonymous"]);
+      await admin.query("insert into auth.sessions(id,user_id) values($1,$1)",[id]);
     }
     for (const [user,role] of [["owner","owner"],["admin","admin"],["bob","viewer"]]) {
       await admin.query("insert into public.profiles(email,identity_user_id,auth_user_id,role) values($1,$2,$3,$4)", [`${user}@fixture.invalid`,`legacy-${user}`,users[user],role]);
@@ -137,7 +141,7 @@ test("consumer identity migration on disposable PostgreSQL 17", {
     for (const fn of functions) {
       assert.ok(fn.proconfig.includes('search_path=""'));
       if (fn.nspname === "public") assert.equal(fn.prosecdef, false);
-      if (!/^is_|^current_profile_id$/u.test(fn.proname)) assert.equal(fn.anon_execute, false);
+      if (!/^is_|^current_profile_id$|^(public_poker_players|get_public_poker_players)$/u.test(fn.proname)) assert.equal(fn.anon_execute, false);
     }
     const { rows: tables } = await db.admin.query("select relrowsecurity,relforcerowsecurity from pg_class where relname=any($1)", [["eggs_profiles","para_poker_player_claims","para_poker_profile_links"]]);
     assert.ok(tables.every(row => row.relrowsecurity && row.relforcerowsecurity));
@@ -146,7 +150,7 @@ test("consumer identity migration on disposable PostgreSQL 17", {
 
   await t.test("direct SQL enforces canonical handles, reservations, uniqueness and immutable identity", async () => {
     const db = await database();
-    for (const handle of [null,"ABc"," alpha","alpha ","al","a".repeat(31),"a-b","a.b","ábc","a\u200Db","abc\n","abc\t","admin","para","poker","library"]) {
+    for (const handle of [null,"ABc"," alpha","alpha ","al","a".repeat(31),"a-b","a.b","ábc","a\u200Db","abc\n","abc\t","admin","para","poker","library","claim"]) {
       await fails(() => actor(db, users.alice, c => c.query("insert into public.eggs_profiles(handle,display_name) values($1,'Alice')", [handle])), ["23502","23514"]);
     }
     await fails(() => db.admin.query("insert into public.eggs_profiles(auth_user_id,handle,display_name) values($1,'UPPER','Direct SQL')", [users.alice]), "23514");
@@ -223,6 +227,24 @@ test("consumer identity migration on disposable PostgreSQL 17", {
     await fails(() => actor(db, users.alice, c => c.query("select public.withdraw_para_poker_claim($1)", [claim.id])), "55000");
   });
 
+  await t.test("private claim helpers deny missing-profile, unconfirmed and revoked identities directly", async () => {
+    const db = await database();
+    const profile = await createProfile(db, users.alice, "alice");
+    const claim = await submit(db, users.alice);
+    const details = user => actor(db, user, c => c.query("select eggs_private.claim_details($1) as claim", [claim.id]));
+    for (const user of [null, users.bob, users.carol, users.unconfirmed, users.anonymous]) {
+      await fails(() => details(user), "42501");
+    }
+    assert.equal((await details(users.alice)).rows[0].claim.evidence_note, "Private claim evidence");
+    assert.equal((await details(users.owner)).rows[0].claim.id, claim.id);
+    await db.admin.query("delete from auth.sessions where user_id=$1", [users.alice]);
+    await fails(() => details(users.alice), "42501");
+    await db.admin.query("delete from public.eggs_profiles where id=$1", [profile.id]);
+    await fails(() => details(users.bob), "42501");
+    assert.equal((await details(users.owner)).rows[0].claim.claimant_profile_id, profile.id);
+    await fails(() => actor(db, users.owner, c => c.query("select eggs_private.claim_details($1)", [uid(999)])), "42501");
+  });
+
   for (const scenario of ["same player","same profile","same claim","rollback winner"]) {
     await t.test(`independent connections contend safely: ${scenario}`, async () => {
       const db = await database();
@@ -278,7 +300,7 @@ test("consumer identity migration on disposable PostgreSQL 17", {
     await actor(db,users.bob,c=>c.query("delete from public.eggs_profiles where id=$1",[bob.id]));
     assert.equal((await db.admin.query("select count(*)::int as n from public.para_poker_profile_links")).rows[0].n,0);
     const history=(await db.admin.query("select status,claimant_profile_id,evidence_note,review_note from public.para_poker_player_claims order by status")).rows;
-    assert.deepEqual(history,[{status:"approved",claimant_profile_id:null,evidence_note:null,review_note:null},{status:"withdrawn",claimant_profile_id:null,evidence_note:null,review_note:null}]);
+    assert.deepEqual(history,[{status:"approved",claimant_profile_id:null,evidence_note:"Private claim evidence",review_note:"Reviewer text"},{status:"withdrawn",claimant_profile_id:null,evidence_note:"Private claim evidence",review_note:null}]);
     assert.deepEqual(await legacySnapshot(db.admin),db.before);
     const carol=await createProfile(db,users.carol,"carol");
     const carolClaim=await submit(db,users.carol,pid(3));
@@ -311,7 +333,7 @@ test("consumer identity migration on disposable PostgreSQL 17", {
     await db.admin.query("delete from auth.users where id=$1",[users.dave]);
     assert.equal((await db.admin.query("select id from public.eggs_profiles where id=$1",[dave.id])).rowCount,0);
     assert.deepEqual((await db.admin.query("select status,claimant_profile_id,evidence_note,review_note from public.para_poker_player_claims where id=$1",[pending.id])).rows[0],
-      {status:"withdrawn",claimant_profile_id:null,evidence_note:null,review_note:null});
+      {status:"withdrawn",claimant_profile_id:null,evidence_note:"Private claim evidence",review_note:null});
     assert.deepEqual(await legacySnapshot(db.admin),db.before);
     await db.admin.query("delete from auth.users where id=$1",[users.admin]);
     const decision=(await db.admin.query("select status,reviewer_auth_user_id,reviewer_role,review_note from public.para_poker_player_claims where id=$1",[rejected.id])).rows[0];
@@ -331,5 +353,135 @@ test("consumer identity migration on disposable PostgreSQL 17", {
     assert.deepEqual(await legacySnapshot(db.admin),db.before);
     assert.equal((await db.admin.query("select to_regnamespace('eggs_private') as schema")).rows[0].schema,null);
     assert.equal((await db.admin.query("select to_regclass('public.eggs_profiles') as profiles")).rows[0].profiles,null);
+  });
+
+  for (const scenario of ["same handle","retirement during signup"]) {
+    await t.test(`canonical handle concurrency: ${scenario}`, async () => {
+      const db=await database();
+      const existing=scenario==="retirement during signup" ? await createProfile(db,users.alice,"historic") : null;
+      const a=await db.connect(); const b=await db.connect();
+      try {
+        await beginActor(a,users.alice); await beginActor(b,users.bob);
+        const backend=(await b.query("select pg_backend_pid() as pid")).rows[0].pid;
+        if(existing) await a.query("delete from public.eggs_profiles where id=$1",[existing.id]);
+        else await a.query("insert into public.eggs_profiles(handle,display_name) values('historic','Alice')");
+        const contender=b.query("insert into public.eggs_profiles(handle,display_name) values('historic','Bob')").then(value=>({value}),error=>({error}));
+        if (!existing) await waitForLock(db.admin,backend);
+        await a.query("commit");
+        assert.equal((await contender).error?.code,"23505");
+        await b.query("rollback");
+        const registry=(await db.admin.query("select retired_at from eggs_private.handle_registry where handle='historic'")).rows[0];
+        assert.equal(Boolean(registry.retired_at),Boolean(existing));
+        await fails(()=>actor(db,users.bob,c=>c.query("delete from eggs_private.handle_registry")),"42501");
+        assert.deepEqual(await legacySnapshot(db.admin),db.before);
+      } finally { await a.query("rollback");await b.query("rollback");await a.end();await b.end(); }
+    });
+  }
+
+  await t.test("Auth deletion retires a handle, keeps stable audit references, and revoked sessions fail closed",async()=>{
+    const db=await database();
+    const alice=await createProfile(db,users.alice,"alice");
+    const claim=await submit(db,users.alice);
+    await actor(db,users.owner,c=>review(c,claim.id));
+    await db.admin.query("delete from auth.users where id=$1",[users.alice]);
+    await fails(()=>createProfile(db,users.bob,"alice"),"23505");
+    const row=(await db.admin.query("select claimant_profile_id,claimant_profile_ref,reviewer_profile_ref,evidence_expires_at from public.para_poker_player_claims where id=$1",[claim.id])).rows[0];
+    assert.equal(row.claimant_profile_id,null);assert.equal(row.claimant_profile_ref,alice.id);assert.ok(row.reviewer_profile_ref);assert.ok(row.evidence_expires_at);
+    await createProfile(db,users.bob,"bob");
+    await db.admin.query("delete from auth.sessions where user_id=$1",[users.bob]);
+    assert.equal((await actor(db,users.bob,c=>c.query("select public.is_eggs_session_active() as active"))).rows[0].active,false);
+    assert.equal((await actor(db,users.bob,c=>c.query("select * from public.get_my_eggs_profile()"))).rowCount,0);
+    await fails(()=>submit(db,users.bob,pid(2)),"42501");
+  });
+
+  await t.test("90-day evidence expiry hides and redacts only supporting evidence; final audit and links survive",async()=>{
+    const db=await database();
+    await createProfile(db,users.alice,"alice");
+    const approved=await submit(db,users.alice);
+    const rejected=await submit(db,users.alice,pid(2));
+    const withdrawn=await submit(db,users.alice,pid(3));
+    const pending=await submit(db,users.alice,pid(4));
+    await actor(db,users.owner,c=>review(c,approved.id));
+    await actor(db,users.owner,c=>review(c,rejected.id,"reject","Proof did not establish ownership"));
+    await actor(db,users.alice,c=>c.query("select public.withdraw_para_poker_claim($1)",[withdrawn.id]));
+    for(const role of ["anon","authenticated"]) await fails(()=>actor(db,users.owner,c=>c.query("select public.run_poker_claim_retention()"),{role}),"42501");
+    await fails(()=>actor(db,users.alice,c=>c.query("select evidence_note from public.para_poker_player_claims")),"42501");
+    await db.admin.query("update public.para_poker_player_claims set resolved_at=statement_timestamp()-interval '2159 hours' where status<>'pending'");
+    assert.equal((await actor(db,null,c=>c.query("select (public.run_poker_claim_retention()->>'redacted')::int as n"),{role:"service_role"})).rows[0].n,0);
+    await db.admin.query("update public.para_poker_player_claims set resolved_at=statement_timestamp()-interval '2160 hours 1 second' where status<>'pending'");
+    const before=(await db.admin.query("select id,claimant_profile_ref,player_id,status,reviewer_profile_ref,submitted_at,reviewed_at,review_note from public.para_poker_player_claims order by id")).rows;
+    const visible=(await actor(db,users.alice,c=>c.query("select * from public.get_my_poker_claims()"))).rows.map(row=>row.get_my_poker_claims);
+    assert.equal(visible.filter(row=>row.status!=="pending").every(row=>row.evidence_note===null&&row.evidence_expired),true);
+    await fails(()=>actor(db,users.owner,c=>c.query("select public.set_poker_claim_evidence_hold($1,now()+interval '1 day','Too late')",[approved.id])),"55000");
+    assert.equal((await actor(db,null,c=>c.query("select (public.run_poker_claim_retention()->>'redacted')::int as n"),{role:"service_role"})).rows[0].n,3);
+    assert.equal((await actor(db,null,c=>c.query("select (public.run_poker_claim_retention()->>'redacted')::int as n"),{role:"service_role"})).rows[0].n,0);
+    assert.equal((await db.admin.query("select evidence_note from public.para_poker_player_claims where id=$1",[pending.id])).rows[0].evidence_note,"Private claim evidence");
+    assert.deepEqual((await db.admin.query("select id,claimant_profile_ref,player_id,status,reviewer_profile_ref,submitted_at,reviewed_at,review_note from public.para_poker_player_claims order by id")).rows,before);
+    assert.equal((await db.admin.query("select count(*)::int as n from public.para_poker_profile_links")).rows[0].n,1);
+    const status=(await actor(db,users.owner,c=>c.query("select public.get_poker_claim_retention_status() as status"))).rows[0].status;
+    assert.equal(status.overdue_count,0);assert.equal(status.total_redacted_count,3);assert.ok(status.last_run_at);
+    assert.deepEqual(await legacySnapshot(db.admin),db.before);
+  });
+
+  await t.test("documented holds serialize against redaction and their release/expiry cannot restore evidence",async()=>{
+    const db=await database();
+    await createProfile(db,users.alice,"alice");
+    const claim=await submit(db,users.alice);
+    await actor(db,users.owner,c=>review(c,claim.id));
+    const hold=c=>c.query("select public.set_poker_claim_evidence_hold($1,now()+interval '2 days','Dispute ticket PP-100')",[claim.id]);
+    await fails(()=>actor(db,users.alice,hold),"42501");
+    await fails(()=>actor(db,users.owner,c=>c.query("select public.set_poker_claim_evidence_hold($1,'infinity','Dispute')",[claim.id])),"22023");
+    const a=await db.connect();
+    try {
+      await beginActor(a,users.owner);await hold(a);
+      // Shift only the synthetic decision clock while holding its row lock.
+      // Use a separate claim for the expired-lock scenario below.
+      await a.query("commit");
+      await db.admin.query("update public.para_poker_player_claims set resolved_at=now()-interval '91 days' where id=$1",[claim.id]);
+      await beginActor(a,users.owner);await hold(a);
+      assert.equal((await actor(db,null,c=>c.query("select (public.run_poker_claim_retention()->>'redacted')::int as n"),{role:"service_role"})).rows[0].n,0);
+      await a.query("commit");
+      assert.equal((await actor(db,null,c=>c.query("select (public.run_poker_claim_retention()->>'redacted')::int as n"),{role:"service_role"})).rows[0].n,0);
+      const dto=(await actor(db,users.owner,c=>c.query("select * from public.get_poker_claim_review_queue('approved',0)"))).rows[0].get_poker_claim_review_queue;
+      assert.equal(dto.hold_active,true);assert.equal(dto.holds.length,2);assert.ok(dto.evidence_note);
+      await actor(db,users.owner,c=>c.query("select public.set_poker_claim_evidence_hold($1,null,'Dispute resolved PP-100')",[claim.id]));
+      assert.equal((await actor(db,null,c=>c.query("select (public.run_poker_claim_retention()->>'redacted')::int as n"),{role:"service_role"})).rows[0].n,1);
+      await fails(()=>actor(db,users.owner,hold),"55000");
+      const second=await submit(db,users.alice,pid(2));
+      await actor(db,users.owner,c=>review(c,second.id,"reject"));
+      await actor(db,users.owner,c=>c.query("select public.set_poker_claim_evidence_hold($1,now()+interval '2 days','Dispute ticket PP-101')",[second.id]));
+      await db.admin.query("update public.para_poker_player_claims set resolved_at=now()-interval '91 days' where id=$1",[second.id]);
+      await db.admin.query("update eggs_private.claim_evidence_holds set started_at=now()-interval '2 days',expires_at=now()-interval '1 day' where claim_id=$1",[second.id]);
+      assert.equal((await actor(db,null,c=>c.query("select (public.run_poker_claim_retention()->>'redacted')::int as n"),{role:"service_role"})).rows[0].n,1);
+    } finally {await a.query("rollback");await a.end();}
+  });
+
+  await t.test("public player catalog exposes only stable IDs and public competition fields",async()=>{
+    const db=await database();
+    await db.admin.query("insert into public.standings(player_id,season_code,rank,total_points,sessions_played) values($1,'S0',2,30,4)",[pid(1)]);
+    const rows=(await actor(db,null,c=>c.query("select * from public.get_public_poker_players('Player 1')"),{role:"anon"})).rows;
+    assert.deepEqual(rows,[{get_public_poker_players:{player_id:pid(1),display_name:"Player 1",season_code:"S0",rank:2,points:30,sessions_played:4}}]);
+    await fails(()=>actor(db,null,c=>c.query("select * from public.get_poker_claim_review_queue()"),{role:"anon"}),"42501");
+  });
+
+  await t.test("unreviewed claims have a bounded lifetime even if the worker was unavailable",async()=>{
+    const db=await database();
+    await createProfile(db,users.alice,"alice");
+    const claim=await submit(db,users.alice);
+    await db.admin.query("update public.para_poker_player_claims set submitted_at=now()-interval '91 days' where id=$1",[claim.id]);
+    await fails(()=>actor(db,users.owner,c=>review(c,claim.id)),"55000");
+    const result=(await actor(db,null,c=>c.query("select public.run_poker_claim_retention() as result"),{role:"service_role"})).rows[0].result;
+    assert.deepEqual(result,{redacted:0,withdrawn:1});
+    const saved=(await db.admin.query("select status,resolution_source,extract(epoch from(resolved_at-submitted_at))::int as review_seconds,extract(epoch from(evidence_expires_at-submitted_at))::int as expiry_seconds from public.para_poker_player_claims where id=$1",[claim.id])).rows[0];
+    assert.deepEqual(saved,{status:"withdrawn",resolution_source:"unreviewed_timeout",review_seconds:90*86400,expiry_seconds:180*86400});
+    const overdue=await submit(db,users.alice,pid(2));
+    await db.admin.query("update public.para_poker_player_claims set submitted_at=now()-interval '181 days' where id=$1",[overdue.id]);
+    const own=(await actor(db,users.alice,c=>c.query("select * from public.get_my_poker_claims()"))).rows.map(row=>row.get_my_poker_claims).find(row=>row.id===overdue.id);
+    assert.equal(own.evidence_note,null);assert.equal(own.evidence_expired,true);
+    assert.deepEqual((await actor(db,null,c=>c.query("select public.run_poker_claim_retention() as result"),{role:"service_role"})).rows[0].result,{redacted:1,withdrawn:1});
+    await db.admin.query("begin isolation level repeatable read; set local role service_role");
+    await fails(()=>db.admin.query("select public.run_poker_claim_retention()"),"25001");
+    await db.admin.query("rollback");
+    assert.deepEqual(await legacySnapshot(db.admin),db.before);
   });
 });

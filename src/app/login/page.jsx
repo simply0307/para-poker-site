@@ -1,7 +1,14 @@
 import Link from "next/link";
-import { FuturePage } from "@/components/eggs/FuturePage";
+import { AccountFrame, AccountUnavailable } from "@/components/eggs/AccountFrame";
+import { AuthForm } from "@/components/eggs/AuthForm";
+import { consumerConfiguration } from "@/lib/eggs/consumerCore.mjs";
 
 export const metadata = { title: "Log in with EGGS" };
-export default function LoginPage() {
-  return <FuturePage eyebrow="EGGS / Account" title="One account for EGGS."><p>Account registration and “Log in with EGGS” are coming later. You can explore the public projects today.</p><p>Already a league operator? <Link className="eggs-text-link" href="/operator-login">Open operator sign-in</Link>.</p></FuturePage>;
+export const dynamic = "force-dynamic";
+export default async function LoginPage({ searchParams }) {
+  if (!consumerConfiguration()) return <AccountUnavailable />;
+  return <AccountFrame title="Your place in EGGS." intro="Sign in, or create an account and choose a handle. Start small; your profile is yours to share.">
+    <AuthForm confirmationFailed={(await searchParams).confirmation === "failed"} />
+    <p className="eggs-help eggs-account-footer">League operator? <Link className="eggs-text-link" href="/operator-login">Open operator sign-in</Link>.</p>
+  </AccountFrame>;
 }

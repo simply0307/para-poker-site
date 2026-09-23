@@ -44,6 +44,7 @@ Read-only privileged methods:
 - `GET /api/admin/moment-curation`
 - `GET /api/admin/newsroom/dataset/export` (also retains its advanced export token)
 - `GET /api/admin/page-heroes`
+- `GET /api/admin/player-claims`
 - `GET /api/admin/prompt-presets`
 - `GET /api/admin/public-copy`
 - `GET /api/admin/rules`
@@ -66,6 +67,8 @@ Mutating privileged methods:
 - `PUT /api/admin/moment-curation`
 - `POST, DELETE /api/admin/moments/[momentId]/video`
 - `PUT /api/admin/page-heroes`
+- `POST /api/admin/player-claims/[claimId]/review`
+- `POST /api/admin/player-claims/[claimId]/hold`
 - `POST /api/admin/prompt-presets`
 - `DELETE /api/admin/prompt-presets/[presetId]`
 - `PUT /api/admin/public-copy`
@@ -90,7 +93,12 @@ Operator-protected generation methods (all POST):
 `DELETE /api/operator-session` only expires the caller's cookie and intentionally
 requires no operator role. No repository or provider is invoked there.
 
-Inventory: 31 API paths, 49 methods, 48 protected methods. The static inventory
+Operator inventory: 34 API paths, 52 methods, 51 protected methods. Consumer
+`/api/eggs/**` routes are counted separately and do not use operator authorization.
+The new claim routes additionally use the verified operator's user-token client
+and a fresh database role/session check; no service client writes the decision.
+See the [consumer identity report](eggs-consumer-identity-implementation.md).
+The static inventory
 and built-app HTTP tests enumerate every exported method, checking rejection
 before work, anonymous 401 and non-operator 403. Dataset export retains both its
 operator cookie and independent export token; its bearer token is not reused as

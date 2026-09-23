@@ -1,6 +1,7 @@
 # EGGS Phase 1 implementation report
 
 Follow-up: [Phase 2 live audit and unapplied migration candidate](eggs-phase2-identity-audit.md).
+Latest: [Consumer implementation, verification and production review](eggs-consumer-identity-implementation.md).
 The Phase 1 status below records the earlier checkpoint.
 
 Date: 2026-09-22. Scope: finish the shell migration and make the existing Para Poker boundary reviewable before consumer account work.

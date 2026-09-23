@@ -14,6 +14,13 @@ create table auth.users (
   is_anonymous boolean not null default false
 );
 alter table auth.users enable row level security;
+-- Exact session columns used for revocation checks, verified read-only on live.
+create table auth.sessions (
+  id uuid primary key,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  not_after timestamptz
+);
+alter table auth.sessions enable row level security;
 grant usage on schema auth to anon,authenticated,service_role;
 CREATE OR REPLACE FUNCTION auth.jwt()
  RETURNS jsonb

@@ -29,7 +29,7 @@ export async function apiInventory() {
 export function requiresOperator({ route, method }) {
   // Session deletion clears only the caller's browser cookie. It neither
   // invokes a repository nor mutates privileged server data.
-  return !(route === "/api/operator-session" && method === "DELETE");
+  return !route.startsWith("/api/eggs/") && !(route === "/api/operator-session" && method === "DELETE");
 }
 
 export function concreteRoute(route) {

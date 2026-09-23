@@ -3,14 +3,16 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=22" },
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "test": "node scripts/run-tests.mjs",
     "test:identity": "node --test tests/eggs-identity-database.test.mjs",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint src scripts tests next.config.mjs eslint.config.mjs postcss.config.mjs",
+    "lint": "eslint src scripts tests netlify next.config.mjs eslint.config.mjs postcss.config.mjs",
     "validate:training": "node scripts/validate-training-capture.mjs",
     "validate:homepage": "node scripts/validate-homepage-settings.mjs",
     "validate:parapoker-import": "node scripts/validate-parapoker-import.mjs",
@@ -22,6 +24,7 @@
     "test:shell": "node --test tests/eggs-shell-http.test.mjs"
   },
   "dependencies": {
+    "@supabase/ssr": "0.10.3",
     "@supabase/supabase-js": "2.108.2",
     "ajv": "8.20.0",
     "next": "16.3.6",

@@ -42,6 +42,12 @@ export const ADMIN_ROUTE_GROUPS = [
         description: "Choose a player and generate profile drafts.",
       },
       {
+        href: "/admin/player-claims",
+        label: "Player claims",
+        title: "Player claims",
+        description: "Review EGGS ownership claims and documented evidence holds.",
+      },
+      {
         href: "/admin/standings",
         label: "Standings",
         title: "Standings Drafts",

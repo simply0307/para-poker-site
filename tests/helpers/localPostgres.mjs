@@ -42,8 +42,8 @@ export async function localPostgres(t) {
   const initialized = spawnSync(path.join(postgresBin, executable("initdb")), [
     "-D", data, "-U", "eggs_test_bootstrap", "--pwfile", passwordFile, "--auth-host=scram-sha-256",
     "--auth-local=scram-sha-256", "--locale=C", "--encoding=UTF8", "--no-instructions",
-  ], { windowsHide: true, encoding: "utf8", timeout: 30000 });
-  assert.equal(initialized.status, 0, initialized.stderr || initialized.error?.message);
+  ], { windowsHide: true, encoding: "utf8", timeout: 60000 });
+  assert.equal(initialized.status, 0, [initialized.stderr, initialized.error?.message, initialized.stdout].filter(Boolean).join("\n"));
   const reservation = net.createServer();
   reservation.listen(0, "127.0.0.1");
   await once(reservation, "listening");

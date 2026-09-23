@@ -15,7 +15,7 @@ export function EggsNav() {
           <Link key={href} href={href} aria-current={pathname === href || (href !== "/" && pathname.startsWith(`${href}/`)) ? "page" : undefined}>{label}</Link>
         ))}
       </nav>
-      <Link href="/login" className="eggs-account">Log in with EGGS <span className="eggs-soon">Coming soon</span></Link>
+      <Link href="/profile" prefetch={false} className="eggs-account">Your EGGS account <span aria-hidden="true">↗</span></Link>
     </header>
   );
 }

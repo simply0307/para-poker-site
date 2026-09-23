@@ -14,12 +14,17 @@ test("shared authentication and shell components contain no league role or servi
   }
 });
 
-test("every current API belongs to Para Poker and its exported methods have an operator boundary", async () => {
+test("Para Poker APIs retain operator authorization and consumer APIs have a separate boundary", async () => {
   const entries = await apiInventory();
   assert.ok(entries.length > 40, "Expected full API inventory");
   for (const entry of entries) {
-    assert.ok(entry.filename.includes(`${path.sep}(para-poker)${path.sep}`), entry.filename);
     const source = await readFile(entry.filename, "utf8");
+    if (entry.route.startsWith("/api/eggs/")) {
+      assert.doesNotMatch(source, /requireOperator|para_league_operator|SUPABASE_SERVICE_ROLE_KEY/u);
+      if (!entry.route.startsWith("/api/eggs/auth")) assert.match(source, /await requireEggsUser\(context\)/u);
+      continue;
+    }
+    assert.ok(entry.filename.includes(`${path.sep}(para-poker)${path.sep}`), entry.filename);
     const body = source.slice(source.indexOf(`export async function ${entry.method}(`));
     if (requiresOperator(entry)) {
       const guard = body.match(new RegExp(`^export async function ${entry.method}\\([^)]*\\) \\{\\s*(?://[^\\n]*\\n\\s*)*const (\\w+) = await requireOperator\\([^;]*\\);\\s*if \\(!\\1\\.ok\\) return \\1\\.response;`));

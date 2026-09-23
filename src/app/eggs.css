@@ -50,6 +50,54 @@
 .eggs-link-row { display: flex; align-items: center; flex-wrap: wrap; gap: 1.5rem; }
 .eggs-future { padding-top: 6rem; padding-bottom: 6rem; min-height: 75vh; }
 .eggs-header a:focus-visible, .eggs-page a:focus-visible { outline: 3px solid #587d39; outline-offset: 5px; }
+.eggs-account-page { padding-top: 3.5rem; padding-bottom: 5rem; }
+.eggs-account-width { max-width: 760px; margin: 0 auto; }
+.eggs-account-width > h1 { font-size: clamp(2.3rem, 6vw, 3.8rem); overflow-wrap: anywhere; }
+.eggs-form-card { padding: 1.75rem; border: 1px solid #cdd0c5; border-radius: 4px; background: #fafbf6; margin: 1.75rem 0; }
+.eggs-form { display: grid; gap: 1.25rem; }
+.eggs-form label { display: grid; gap: .45rem; font-size: .94rem; font-weight: 600; }
+.eggs-form input:not([type="checkbox"]):not([type="radio"]), .eggs-form textarea, .eggs-form select { width: 100%; padding: .75rem; border: 1px solid #9fa995; border-radius: 3px; background: #fff; color: #20251e; font: inherit; }
+.eggs-form textarea { resize: vertical; min-height: 90px; }
+.eggs-form input:focus-visible, .eggs-form textarea:focus-visible, .eggs-form select:focus-visible, .eggs-page button:focus-visible, .eggs-page summary:focus-visible { outline: 3px solid #587d39; outline-offset: 3px; }
+.eggs-form input[type="checkbox"], .eggs-form input[type="radio"] { width: 1.15rem; height: 1.15rem; accent-color: #293f2e; flex: 0 0 auto; }
+.eggs-help { color: #5b6055; font-size: .87rem; line-height: 1.65; font-weight: 400; }
+.eggs-form .eggs-button { justify-self: start; cursor: pointer; }
+.eggs-page button:disabled { opacity: .55; cursor: wait; }
+.eggs-error, .eggs-notice { padding: .9rem 1rem; border: 1px solid #b56e62; border-radius: 3px; color: #77372c; background: #fff1eb; font-size: .92rem; line-height: 1.6; margin: 1rem 0; }
+.eggs-notice { color: #293f2e; background: #e9eddf; border-color: #a8b998; }
+.eggs-mode-buttons { display: flex; gap: .6rem; margin-bottom: 1.5rem; }
+.eggs-mode-buttons button { padding: .6rem 1rem; border-bottom: 2px solid transparent; font-weight: 600; cursor: pointer; }
+.eggs-mode-buttons button[aria-pressed="true"] { border-bottom-color: #293f2e; }
+.eggs-optional { padding-top: 1.25rem; }
+.eggs-form summary, .eggs-claim-list summary { cursor: pointer; text-decoration: underline; text-underline-offset: .2rem; font-size: .9rem; }
+.eggs-account-toolbar { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1rem; margin: 1.5rem 0; }
+.eggs-account-footer { margin-top: 2rem; }
+.eggs-account-section { border-top: 1px solid #cdd0c5; padding-top: 2rem; margin-top: 2rem; display: grid; gap: 1.25rem; }
+.eggs-account-section > h2 { font-size: 1.5rem; font-weight: 650; letter-spacing: -.025em; }
+.eggs-form .eggs-check { display: flex; align-items: center; gap: .75rem; }
+.eggs-profile-handle { color: #5b6055; margin: -.5rem 0 2rem; overflow-wrap: anywhere; }
+.eggs-profile-bio { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.75; margin: 1rem 0 2rem; }
+.eggs-poker-summary { margin: 1.5rem 0; width: 100%; }
+.eggs-poker-summary h2 { margin-top: 1rem; }
+.eggs-summary-stats { display: flex; flex-wrap: wrap; gap: 2.5rem; margin: 0 0 1.5rem; }
+.eggs-summary-stats dt { font-size: .8rem; color: #5b6055; }
+.eggs-summary-stats dd { font-size: 1.6rem; font-weight: 650; }
+.eggs-search { grid-template-columns: 1fr auto; align-items: end; margin-top: 2rem; }
+.eggs-player-options { display: grid; gap: .5rem; margin-top: .75rem; max-height: 340px; overflow: auto; }
+.eggs-form .eggs-player-option { display: flex; align-items: center; gap: .8rem; padding: .85rem; border: 1px solid #cdd0c5; border-radius: 3px; background: #fff; }
+.eggs-player-option span { overflow-wrap: anywhere; }
+.eggs-player-option a { margin-left: auto; white-space: nowrap; }
+.eggs-claim-list { list-style: none; display: grid; gap: 1rem; }
+.eggs-claim-list > li { border: 1px solid #cdd0c5; border-radius: 3px; padding: 1.25rem; display: grid; gap: .75rem; }
+.eggs-claim-list h3 { font-weight: 650; font-size: 1.1rem; }
+.eggs-claim-list .eggs-section-heading { margin-bottom: 0; }
+.eggs-claim-status { font-size: .75rem; text-transform: capitalize; background: #e9eddf; padding: .25rem .5rem; border-radius: 3px; }
+@media (max-width: 620px) {
+  .eggs-account-page { padding-top: 2rem; }
+  .eggs-form-card { padding: 1.1rem; }
+  .eggs-search { grid-template-columns: 1fr; }
+  .eggs-player-option a { font-size: .75rem; }
+}
 @media (max-width: 850px) {
   .eggs-header { gap: 1.25rem; flex-wrap: wrap; }
   .eggs-account { font-size: .78rem; }
