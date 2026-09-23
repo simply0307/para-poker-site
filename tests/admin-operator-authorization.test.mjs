@@ -134,3 +134,87 @@ test("public league surfaces stay outside the admin boundary", () => {
   assert.equal(isPrivilegedAdminApiPath("/api/admin/homepage-settings"), true);
   assert.equal(isAdminWorkspacePath("/admin/imports"), true);
 });
+
+const generationRoutes = [
+  "recaps", "profiles", "articles", "standings", "social-captions", "moments", "player-session-recaps",
+];
+
+async function generationHandler(route, authDependencies, calls) {
+  const source = await readFile(path.resolve(`src/app/api/${route}/generate/route.js`), "utf8");
+  // Execute the real POST body with isolated I/O dependencies. No production DB or AI is contacted.
+  const handlerSource = source.slice(source.indexOf("export async function POST(")).replace(/^export /, "");
+  assert.ok(handlerSource.startsWith("async function POST("));
+  const context = async () => {
+    calls.push("context");
+    return { scope: "session", sourceSessionId: "session-fixture", sourcePlayerId: "player-fixture", packet: {} };
+  };
+  const saveDraft = async (draft) => {
+    calls.push("saveDraft");
+    assert.equal(draft.provider, "gemini");
+    assert.equal(draft.modelUsed, "model-fixture");
+    return { id: "draft-fixture", status: "draft", visibility: "admin" };
+  };
+  const bindings = {
+    NextResponse: Response,
+    requireOperator: (request) => authorizeOperatorRequest(request, authDependencies),
+    buildSessionRecapInputPacket: context,
+    buildPlayerRecapInputPacket: context,
+    buildArticleInputPacket: context,
+    buildStandingsInputPacket: context,
+    buildSocialCaptionInputPacket: context,
+    buildMomentBlurbInputPacket: context,
+    buildPlayerSessionRecapInputPacket: context,
+    callNewsroomAiJson: async () => {
+      calls.push("ai");
+      return { draft: {}, provider: "gemini", model: "model-fixture" };
+    },
+    getNewsroomAiDiagnostics: () => { calls.push("diagnostics"); return {}; },
+    logGeneration: async () => { calls.push("logGeneration"); },
+    saveRecapDraft: saveDraft,
+    saveNewsroomDraft: saveDraft,
+    editorialDocIds: () => [],
+    validateDraftShape: () => [],
+    sessionRecapDraftSchema: {},
+    profileDraftSchema: {},
+    articleDraftSchema: {},
+    socialCaptionDraftSchema: {},
+    revalidatePath: () => { calls.push("revalidate"); },
+    console: { info() {} },
+  };
+  return new Function(...Object.keys(bindings), `${handlerSource}\nreturn POST;`)(...Object.values(bindings));
+}
+
+for (const route of generationRoutes) {
+  for (const [identity, token, status] of [
+    ["anonymous", "", 401], ["invalid token", "invalid-token", 401], ["unrelated user", "viewer-token", 403],
+  ]) {
+    test(`${route} generation rejects ${identity} before reading body, data, AI, or writes`, async () => {
+      const calls = [];
+      const post = await generationHandler(route, dependencies(), calls);
+      const request = new Request(`https://league.test/api/${route}/generate?role=owner`, {
+        method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: JSON.stringify({ role: "owner", sessionId: "session-fixture", playerId: "player-fixture" }),
+      });
+      const response = await post(request);
+      assert.equal(response.status, status);
+      assert.equal(request.bodyUsed, false);
+      assert.deepEqual(calls, []);
+    });
+  }
+
+  for (const role of ["owner", "admin"]) {
+    test(`${route} generation preserves the draft pipeline for the mapped ${role}`, async () => {
+      const calls = [];
+      const post = await generationHandler(route, dependencies({ role }), calls);
+      const response = await post(new Request(`https://league.test/api/${route}/generate`, {
+        method: "POST",
+        headers: { Cookie: `${OPERATOR_SESSION_COOKIE}=operator-token` },
+        body: JSON.stringify({ sessionId: "session-fixture", playerId: "player-fixture", momentId: "moment-fixture" }),
+      }));
+      assert.equal(response.status, 200);
+      assert.deepEqual(await response.json(), { draft: { id: "draft-fixture", status: "draft", visibility: "admin" } });
+      assert.deepEqual(calls.filter((call) => !["diagnostics", "revalidate"].includes(call)), ["context", "ai", "saveDraft"]);
+    });
+  }
+}

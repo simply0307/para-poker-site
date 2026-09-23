@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { requireOperator } from "@/lib/auth/operatorAuthorization";
 import { buildArticleInputPacket } from "@/lib/newsroom/contextPackets";
 import { callNewsroomAiJson } from "@/lib/newsroom/aiClient";
 import { logGeneration, saveNewsroomDraft } from "@/lib/newsroom/drafts";
@@ -8,6 +9,9 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(request) {
+  const authorization = await requireOperator(request);
+  if (!authorization.ok) return authorization.response;
+
   try {
     const body = await request.json().catch(() => ({}));
     const articleRequest = body.articleRequest && typeof body.articleRequest === "object" ? body.articleRequest : {};
