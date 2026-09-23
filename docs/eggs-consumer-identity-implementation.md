@@ -3,7 +3,8 @@
 Reviewed September 23, 2026. Continues commit `64192b0` and
 [draft PR #2](https://github.com/simply0307/para-poker-site/pull/2).
 **Local implementation and validation are complete. Isolated $0 hosted staging
-is provisioned; end-to-end Auth verification awaits an authorized test mailbox.
+is provisioned; the real Auth/profile/claim flow is partially verified, with
+PKCE and the operator-review-to-logout sequence still incomplete.
 Production migration, production Auth changes and consumer rollout have not occurred.**
 `EGGS_CONSUMER_ENABLED` remains false by default.
 
@@ -181,28 +182,34 @@ The staging database contains the 17-table audited legacy schema fixture without
 production rows, followed by the exact revised consumer candidate. Real hosted
 Auth tables were preserved. Staging-only Auth Site URL and callback are the
 new staging origin and its exact `/auth/callback`. Email confirmation remains
-enabled. Eight anonymous PostgREST checks pass; no hosted account was created.
+enabled. Eight anonymous PostgREST checks pass. One explicitly authorized real
+staging account has now signed up and confirmed its email.
 
-`EGGS_CONSUMER_ENABLED=false` remains set on the new site. Its published app
-shows accounts unavailable and the profile API returns 503/no-store. The saved
-Supabase environment variables were configured after its first deployment;
-one staging-only redeploy is still required before enabled Auth testing.
-That redeploy should wait for the authorized mailbox and a fresh Free-credit
-check. No production credentials are installed on staging.
+The new site's test deployment `6ab3ff12f45c7abc5529d81b` uses commit `bd58480`
+and its isolated Supabase credentials. `EGGS_CONSUMER_ENABLED=true` is limited
+to that site's published context for the authorized test window. Other staging
+contexts remain disabled; production consumers remain disabled. The portal
+follow-up is local only and needs no deploy to continue this hosted flow.
+No production credentials are installed on staging.
 
 | Required hosted check | Result |
 | --- | --- |
 | Anonymous PostgREST access | Eight checks passed: public projections allowed; Auth UUIDs, claims, writes, review and private schema denied |
-| Disabled hosted app | Home/login/profile load; login shows unavailable; profile API 503 with private,no-store |
-| Real signup and confirmation email delivery | Blocked on authorized mailbox/access; isolated Auth target is ready |
-| PKCE callback | Not verified against hosted Auth |
-| Login and token refresh | Not verified against hosted Auth |
+| Disabled hosted app | Passed before the authorized staging test window; current isolated staging consumers are enabled |
+| Real signup and confirmation email delivery | Passed with the authorized staging-only mailbox; Auth records confirm email verification |
+| PKCE callback | Incomplete: first successful email verification did not yield a proven callback session; retries of the consumed link returned `otp_expired` |
+| Login and token refresh | Password login passed after confirmation; refresh remains unverified |
 | Logout/session invalidation and old access/refresh replay | Not verified against hosted Auth/PostgREST |
-| Private/public/owner/unrelated-user profile access | Not verified against hosted RLS |
-| User-token PostgREST grants and direct RPC access | Not verified against hosted PostgREST |
-| Claim submission and withdrawal | Not verified against hosted PostgREST |
-| Operator review and competing claims | Not verified on hosted staging |
+| Private/public/owner/unrelated-user profile access | Owner creation/edit passed through real UI; anonymous private profile 404 and explicit public profile 200 passed; unrelated-user test remains |
+| User-token PostgREST grants and direct RPC access | Owner app operations passed; explicit direct PostgREST/RPC matrix remains incomplete |
+| Claim submission and withdrawal | Passed via real UI; withdrawn evidence retained; a new synthetic-player claim is pending |
+| Operator review and competing claims | Operator sign-in awaits user completion; hosted approval/conflicts unverified; local independent-connection conflict tests pass |
 | Poker-summary default-hidden and explicit opt-in | Not verified on hosted staging |
+
+The isolated operator mapping uses the same test Auth identity; it does not
+prove an independent-reviewer flow. The original callback failure is not
+resolved by password login. See the [portal acceptance plan](eggs-portal-integration-plan.md)
+for current project boundaries, league findings, and the next verification order.
 
 ## Live launch-security findings
 
@@ -250,9 +257,9 @@ no claim-retention policy, scheduler or worker blockers.
 
 The sequence below is a review plan, not authorization to execute it:
 
-1. Choose canonical HTTPS EGGS production origin and obtain a test mailbox with
-   an authorized way to inspect confirmations. The separate $0 staging target
-   and exact staging callback already exist. Use verified SMTP where required;
+1. Choose canonical HTTPS EGGS production origin. The authorized test mailbox,
+   separate $0 staging target, and exact staging callback already exist.
+   Use verified SMTP where required;
    stop if it needs paid service. Do not bypass confirmation or use production
    test accounts. Check shared Free quotas before further testing/deploys.
 2. Verify the recorded staging baseline and candidate hashes/ledger. Both were
@@ -261,9 +268,9 @@ The sequence below is a review plan, not authorization to execute it:
    native hosted Auth and no production personal data. Seed synthetic players
    and an authorized staging operator mapping. Its platform event triggers
    differ from production; the legacy event-trigger security test remains due.
-3. Recheck staging Site URL, exact callback and app `EGGS_SITE_URL`. Redeploy
-   only the new staging site to consume its saved isolated credentials.
-   Enable consumers only there for the authorized test window. Complete every
+3. Recheck staging Site URL, exact callback and app `EGGS_SITE_URL`. The new
+   staging site already consumes its isolated credentials and has consumers
+   enabled for the authorized test window; reuse that deployment. Complete every
    hosted check above using real
    confirmation delivery/user tokens, including signed-out token replay,
    unrelated/unconfirmed denial, privacy, conflicts and summary opt-in.

@@ -7,7 +7,7 @@ export default function EggsHome() {
         <div>
           <p className="eggs-eyebrow">The EGGS ecosystem</p>
           <h1>Many ways in.<br />One place to belong.</h1>
-          <p className="eggs-intro">Games, competition, music, and the things you make. A growing home for everything you do with EGGS.</p>
+          <p className="eggs-intro">Games, competition, and independent projects. Explore the EGGS network and the people shaping it.</p>
           <Link className="eggs-button" href="/para">Explore Para <span aria-hidden="true">↗</span></Link>
         </div>
         <aside className="eggs-identity-note">
@@ -28,12 +28,25 @@ export default function EggsHome() {
             <Link className="eggs-text-link" href="/para/poker">Explore the league <span aria-hidden="true">↗</span></Link>
           </article>
           <article className="eggs-project">
-            <p className="eggs-eyebrow">Games / Future connection</p>
+            <p className="eggs-eyebrow">Games / Card strategy</p>
             <h3>Gauntlet Online</h3>
-            <p>A separate EGGS project. Shared account support and a connection to your profile are planned.</p>
-            <span className="eggs-status">Integration coming later</span>
+            <p>Explore the factions, learn the game, and find your next match on Gauntlet’s existing site.</p>
+            <a className="eggs-text-link" href="https://gauntlet-online.vercel.app" rel="noreferrer">Open Gauntlet <span aria-hidden="true">↗</span></a>
+          </article>
+          <article className="eggs-project">
+            <p className="eggs-eyebrow">Games / Poker client</p>
+            <h3>EGGS Poker</h3>
+            <p>Open the ParaPoker play-money client for tables, play, and your match history.</p>
+            <a className="eggs-text-link" href="https://eggspoker.netlify.app" rel="noreferrer">Open the Poker client <span aria-hidden="true">↗</span></a>
+          </article>
+          <article className="eggs-project">
+            <p className="eggs-eyebrow">Editorial / Invitation only</p>
+            <h3>Reath Digest</h3>
+            <p>The New Jersey editorial desk for source coverage and story review. Desk access requires a Reath invitation.</p>
+            <a className="eggs-text-link" href="https://reath-digest.netlify.app" rel="noreferrer">Open Reath Digest <span aria-hidden="true">↗</span></a>
           </article>
         </div>
+        <p className="eggs-intro">Each project keeps its current sign-in. Shared EGGS profile connections are on the way.</p>
       </section>
 
       <section className="eggs-section eggs-explore" aria-label="More in EGGS">
