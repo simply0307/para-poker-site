@@ -1,5 +1,7 @@
 # PR #2 production-baseline rebase and staging verification
 
+The [September 30 continuation](eggs-email-link-staging-20260930.md) records the existing-account email-link change, independent hosted unrelated-user checks, and latest validation. This report preserves the September 23 checkpoint below.
+
 ## Current checkpoint
 
 PR #2 is rebased onto production PR #3 / `629e5b48cd2524a60940079bf95dccb40e59372a`. Production deployment, production Auth configuration, and the consumer migration remain unchanged. Hosted consumer verification is incomplete; this is not a launch approval.

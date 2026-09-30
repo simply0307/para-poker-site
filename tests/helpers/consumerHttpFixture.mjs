@@ -53,7 +53,7 @@ export async function consumerFixture() {
     { player_id: consumerIds.player, display_name: "Test Competitor", season_code: "S0", rank: 2, points: 75, sessions_played: 4 },
     { player_id: consumerIds.otherPlayer, display_name: "Second Competitor", season_code: null, rank: null, points: null, sessions_played: null },
   ];
-  let serial = 10; let signupChallenge; let signupUser;
+  let serial = 10; let signupChallenge; let signupUser; let confirmationCode;
   const makeId = () => `80000000-0000-4000-8000-${String(++serial).padStart(12,"0")}`;
   for (const name of ["alice", "bob", "operator"]) users.set(`${name}@fixture.invalid`, { id: consumerIds[name], email: `${name}@fixture.invalid`, email_confirmed_at: "2026-09-01T00:00:00Z", is_anonymous: false, user_metadata: { role: "owner" } });
   function issue(user) {
@@ -86,9 +86,18 @@ export async function consumerFixture() {
       const send = (data, status = 200) => { response.writeHead(status).end(JSON.stringify(data)); };
       const fail = (code, status = 400) => send({ code, message: "Synthetic backend detail must not leak" }, status);
       if (url.pathname === "/auth/v1/signup") {
+        confirmationCode = "fixture-confirm-code";
         signupChallenge = body.code_challenge;
         signupUser = { id: makeId(), email: body.email, email_confirmed_at: null, is_anonymous: false, identities: [] };
         users.set(body.email, signupUser); return send(signupUser);
+      }
+      if (url.pathname === "/auth/v1/otp") {
+        if (body.email === "rate-limit@fixture.invalid") return fail("over_email_send_rate_limit", 429);
+        if (body.email === "outage@fixture.invalid") return fail("unexpected_failure", 500);
+        if (body.create_user !== false || !users.has(body.email)) return fail("otp_disabled", 400);
+        signupChallenge = body.code_challenge; signupUser = users.get(body.email);
+        confirmationCode = "fixture-email-code";
+        return send({});
       }
       if (url.pathname === "/auth/v1/token") {
         const grant = url.searchParams.get("grant_type");
@@ -98,8 +107,9 @@ export async function consumerFixture() {
           return send(issue(account));
         }
         if (grant === "pkce") {
-          if (body.auth_code !== "fixture-confirm-code" || createHash("sha256").update(body.code_verifier || "").digest("base64url") !== signupChallenge) return fail("invalid_grant");
-          signupUser.email_confirmed_at = new Date().toISOString(); return send(issue(signupUser));
+          if (!signupChallenge || body.auth_code !== confirmationCode || createHash("sha256").update(body.code_verifier || "").digest("base64url") !== signupChallenge) return fail("invalid_grant");
+          signupChallenge = null;
+          signupUser.email_confirmed_at ||= new Date().toISOString(); return send(issue(signupUser));
         }
         if (grant === "refresh_token") {
           const previous = refreshTokens.get(body.refresh_token);

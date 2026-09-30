@@ -140,3 +140,60 @@ test("HTTPS configuration sets Secure cookies and confines confirmation redirect
   const mismatch=await fetch(app.base+"/api/eggs/auth",{method:"POST",headers:{Origin:app.base,"Content-Type":"application/json"},body:"{}"});
   assert.equal(mismatch.status,403);
 });
+
+test("existing-account email sign-in requires PKCE and never creates an account or grants operator access", { timeout: 120000 }, async t => {
+  const fixture = await consumerFixture(); let app;
+  t.after(async () => { await stopConsumerApp(app); await fixture.close(); });
+  app = await startConsumerApp({ SUPABASE_URL: fixture.url, SUPABASE_PUBLISHABLE_KEY: fixturePublishableKey, SUPABASE_SERVICE_ROLE_KEY: fixtureServiceKey });
+  async function request(path, { jar, method = "GET", body, origin = app.base } = {}) {
+    const response = await fetch(app.base + path, { method, redirect: "manual", headers: {
+      ...(jar ? { Cookie: jar.header() } : {}), ...(method === "GET" ? {} : { Origin: origin, "Content-Type": "application/json" }),
+    }, ...(body ? { body: JSON.stringify(body) } : {}) });
+    jar?.absorb(response); return response;
+  }
+  const passwordSession = new CookieJar();
+  assert.equal((await request("/api/eggs/auth", { jar: passwordSession, method: "POST", body: { action: "login", email: "alice@fixture.invalid", password: "fixture-password" } })).status, 200);
+  const existing = await request("/api/eggs/profile", { jar: passwordSession, method: "POST", body: { handle: "email_link_owner" } });
+  const profileId = (await existing.json()).profile.id;
+  const userCount = fixture.users.size;
+  const linkBody = { action: "email-link", email: "alice@fixture.invalid" };
+  assert.equal((await request("/api/eggs/auth", { method: "POST", body: linkBody, origin: "https://attacker.invalid" })).status, 403);
+  assert.equal((await request("/api/eggs/auth", { method: "POST", body: { ...linkBody, redirectTo: "https://attacker.invalid" } })).status, 400);
+  assert.equal((await request("/api/eggs/auth", { method: "POST", body: { ...linkBody, password: "unused-secret" } })).status, 400);
+  assert.equal((await request("/api/eggs/auth", { method: "POST", body: { ...linkBody, email: "invalid" } })).status, 400);
+
+  const linkJar = new CookieJar();
+  const sent = await request("/api/eggs/auth", { jar: linkJar, method: "POST", body: linkBody });
+  assert.equal(sent.status, 202);
+  const sentBody = await sent.json();
+  assert.match(sentBody.message, /If you have an EGGS account/u);
+  assert.match(sent.headers.get("cache-control"), /private.*no-store/u);
+  assert.equal([...linkJar.values.keys()].filter(name => !name.includes("code-verifier")).length, 0, "Sending a link must not establish a session");
+  assert.ok(sent.headers.getSetCookie().some(cookie => /code-verifier/u.test(cookie) && /Max-Age=3600/iu.test(cookie) && /HttpOnly/iu.test(cookie)));
+  const otp = fixture.requests.find(entry => entry.path === "/auth/v1/otp");
+  assert.equal(otp.body.create_user, false);
+  assert.equal(otp.body.code_challenge_method, "s256");
+  assert.ok(otp.body.code_challenge);
+  assert.equal(new URLSearchParams(otp.query).get("redirect_to"), `${app.base}/auth/callback`);
+  assert.equal((await request("/api/eggs/profile", { jar: linkJar })).status, 401);
+  const missingVerifier = await request("/auth/callback?code=fixture-email-code");
+  assert.match(missingVerifier.headers.get("location"), /confirmation=failed/u);
+  const callback = await request("/auth/callback?code=fixture-email-code&next=https://attacker.invalid", { jar: linkJar });
+  assert.equal(callback.status, 303);
+  assert.equal(callback.headers.get("location"), `${app.base}/profile`);
+  assert.equal((await (await request("/api/eggs/profile", { jar: linkJar })).json()).profile.id, profileId);
+  assert.equal((await request("/api/admin/player-claims", { jar: linkJar })).status, 401);
+  assert.equal(fixture.users.size, userCount);
+  assert.equal(fixture.profiles.length, 1);
+  assert.match((await request("/auth/callback?code=fixture-email-code", { jar: linkJar })).headers.get("location"), /confirmation=failed/u);
+
+  const unknown = await request("/api/eggs/auth", { method: "POST", body: { action: "email-link", email: "unknown@fixture.invalid" } });
+  assert.equal(unknown.status, sent.status);
+  assert.deepEqual(await unknown.json(), sentBody);
+  assert.equal(fixture.users.size, userCount);
+  const limited = await request("/api/eggs/auth", { method: "POST", body: { action: "email-link", email: "rate-limit@fixture.invalid" } });
+  assert.equal(limited.status, 429);
+  const outage = await request("/api/eggs/auth", { method: "POST", body: { action: "email-link", email: "outage@fixture.invalid" } });
+  assert.equal(outage.status, 503);
+  assert.doesNotMatch(await outage.text(), /Synthetic backend detail/u);
+});
