@@ -34,7 +34,9 @@ An intermediate validation run overlapped a rebuild with HTTP tests that use `.n
 
 The existing real staging account is preserved. Prior hosted evidence covers signup/confirmation, password login, refresh, profile creation/privacy, claim submission/withdrawal, operator approval, explicit Poker-summary opt-in, logout and invalidated session/token replay. The independent unrelated-user gap is now closed. The real PKCE callback remains pending the user's click on a newly requested email sign-in link in the browser that initiated it. Do not reuse old consumed links or substitute an admin-generated link for delivery evidence.
 
-Netlify billing was checked before deployment: 236.1 of 300 included credits remained, Free plan $0, no payment card, and no overage charges. Reuse the existing staging site; request only one explicitly targeted build. No paid resource, upgrade or credit purchase is authorized.
+Netlify billing was checked before deployment: 236.1 of 300 included credits remained, Free plan $0, no payment card, and no overage charges. One build was explicitly triggered for the existing staging site `d538177f-1890-4894-8efa-7b7b3bb117b4`, branch `codex/eggs-shell`. Deploy `6abc9446416488a79c1d834b` published runtime commit `e967bb5e9a9d44a2f8d06609ea53feffd6ac8c70` at 2026-09-30 04:47:33.737 UTC. No paid resource, upgrade or credit purchase was made. Documentation-only follow-ups do not need another deploy.
+
+Eleven post-deploy checks passed at 04:49 UTC: login and `/para/poker` returned 200, the new sign-in control was present, all seven anonymous generation POSTs returned 401 with `no-store`, and both consumer profile and Poker-claim endpoints rejected anonymous access with 401. The browser also displayed the new email-link option. A fresh production deployment lookup still returned `6ab427a6c3b8490008f671c6`. No AI generation occurred in these security checks.
 
 ## Remaining production gates
 
