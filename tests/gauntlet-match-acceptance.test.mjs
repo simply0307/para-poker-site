@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import test from "node:test";
 import { PGlite } from "@electric-sql/pglite";
-import { buildGauntletMatchImportArtifact } from "../src/lib/imports/gauntletMatchArtifact.js";
+import { buildGauntletMatchImportArtifact } from "../src/modules/para-poker/lib/imports/gauntletMatchArtifact.js";
 
 const migrations = [
   "tests/database/raw-hand-import-core-schema.sql",

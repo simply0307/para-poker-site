@@ -1,5 +1,7 @@
 import localFont from "next/font/local";
 import "./globals.css";
+import "./eggs.css";
+import { EggsNav } from "@/components/eggs/EggsNav";
 
 const robotoFlex = localFont({
   src: "./fonts/RobotoFlex-Variable.ttf",
@@ -9,8 +11,8 @@ const robotoFlex = localFont({
 });
 
 export const metadata = {
-  title: "Para-Poker League",
-  description: "Official Para-Poker League newsroom, standings, sessions, and player archive.",
+  title: { default: "EGGS — Projects, people & play", template: "%s | EGGS" },
+  description: "Explore EGGS projects, Para competition, and the Para Poker League public archive.",
 };
 
 export default function RootLayout({ children }) {
@@ -19,7 +21,10 @@ export default function RootLayout({ children }) {
       lang="en"
       className={`${robotoFlex.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <EggsNav />
+        {children}
+      </body>
     </html>
   );
 }

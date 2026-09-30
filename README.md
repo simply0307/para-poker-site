@@ -1,34 +1,116 @@
-# Para-Poker Site
+# EGGS Web
 
-Next.js app for the Para-Poker League public site and admin newsroom. Supabase
-stores league data, newsroom drafts, published text, hand history, and passive
-generation-capture records on the server side.
+An EGGS application shell with Para Poker League as its first project module.
+This is an incremental adaptation of `simply0307/para-poker-site` at
+`ca431bb734fab97c8da1dfeae0d515cf2ac1305f`, preserving its public dossiers,
+competition records and operator newsroom.
+
+Read [the architecture audit](docs/eggs-architecture-audit.md) for the current
+identity boundaries, proposed additive schema, file map, risks and migration
+sequence. `profiles.auth_user_id` remains the existing operator relationship;
+consumer `eggs_profiles` and reviewed player claims are implemented behind a
+disabled rollout flag, not deployed.
+The [Phase 1 implementation report](docs/eggs-migration-status.md) records the
+current boundaries and validation. The [consumer identity proposal](docs/eggs-consumer-identity-proposal.md)
+is retained for comparison. The [Phase 2 audit](docs/eggs-phase2-identity-audit.md)
+documents the verified live database and a tested additive migration candidate.
+The [consumer implementation report](docs/eggs-consumer-identity-implementation.md)
+contains the revised handle-reservation SQL, authentication and claim
+flows, verification results, production plan and rollback limits.
+The consumer migration remains unapplied to production.
 
 ## Development
 
-On Windows PowerShell, run:
+On Windows PowerShell, run (Node 22 or later):
 
 ```powershell
+npm.cmd ci
 npm.cmd run dev
 ```
 
 Then open http://localhost:3000.
 
+The EGGS shell runs without credentials. League routes show an unavailable
+state until the league variables in `.env.example` are configured in `.env.local`.
+Only use the intended league database; do not copy credentials into client code.
+The existing Supabase project was restored with user permission for the Phase 2
+read-only audit. Schema, RLS, grants and Auth settings were verified; live account
+login/session behavior remains a later rollout check. No live data is bundled;
+synthetic identity fixtures are confined to local database and HTTP tests.
+Consumer development additionally needs the reviewed schema in a disposable
+environment, `EGGS_SITE_URL`, and `EGGS_CONSUMER_ENABLED=true`. Keep consumer
+rollout disabled against production until the canonical EGGS domain is chosen
+and the rollout plan is approved.
+
 ## Routes
 
-- `/` is the public league homepage.
-- `/sessions` and `/sessions/[sessionId]` show public session coverage.
-- `/players` and `/players/[playerId]` show public player pages.
-- `/standings`, `/moments`, and `/articles` are public archive/newsroom surfaces.
-- `/admin` is the authenticated admin newsroom and league ops entry.
+- `/` is EGGS home; `/para` is the competition hub.
+- `/para/poker` is the existing league homepage.
+- `/para/poker/sessions` and `/para/poker/sessions/[sessionId]` show session coverage.
+- `/para/poker/players` and `/para/poker/players/[playerId]` show player dossiers.
+- `/para/poker/standings`, `/para/poker/moments`, and `/para/poker/articles` retain the league archive.
+- Old public league paths redirect with 307 during review, preserving descendants
+  and query strings. The original league domain's root needs a separate cutover decision.
+- `/music` and `/library` remain placeholders.
+- `/login`, `/auth/callback`, `/profile` and `/profile/claim` implement consumer
+  authentication, minimal onboarding, owner editing and reviewed player claims
+  behind the disabled consumer flag. Public `/profile/[handle]` pages expose only
+  public presentation and an explicitly enabled Poker summary; private/unknown
+  handles return 404.
+- `/admin/player-claims` uses the existing operator boundary for manual claim
+  decisions. Claims and their private evidence have no automatic expiration.
+- `/admin` remains the authenticated Para Poker newsroom and league ops entry;
+  it is not a universal EGGS administrator surface.
 - `/admin/sessions/[sessionId]` is the main recap generation/edit/publish desk.
 - `/admin/newsroom/dataset` is an optional future review tool for passively
   captured generation examples. It is not part of everyday recap publishing.
 - `/admin/imports` previews and commits strict EGGS completed-session JSON or legacy raw-hand evidence.
 
+League views, components, repositories and import/stat utilities live under
+`src/modules/para-poker`. `src/app/para/poker` contains thin route adapters.
+Operator pages and APIs use `(para-poker)` source route groups, which keep the
+current URLs intact. The shared `src/lib/eggs` contains request-scoped consumer
+authentication and access; it does not depend on the league service repository.
+Existing admin and API addresses, SQL files, and local newsroom settings remain
+stable. League route adapters render dynamically so unavailable configuration
+is not cached into the public archive. Original view/data behavior is retained.
+
+## Verification
+
+```powershell
+npm.cmd run build
+npm.cmd run lint
+npm.cmd test
+npm.cmd run validate:homepage
+npm.cmd run validate:stats
+npm.cmd run validate:training
+npm.cmd run validate:parapoker-import
+```
+
+`npm test` includes all test files and requires a production build for the HTTP
+suite. Its default runner explicitly disables the destructive remote test, which
+reports a skip. The HTTP suite starts isolated loopback servers,
+uses a disposable HTTP fixture for Supabase responses, and checks actual public
+rendering, redirects, missing profiles, operator sessions, denied generation
+requests across all 50 protected operator API methods and browser credential
+boundaries. Consumer tests cover PKCE, refresh/logout, owner access, public
+visibility and operator/consumer separation with real SDK HTTP requests.
+The HTTP fixtures never write to a real database.
+Existing PGlite acceptance tests use disposable in-memory databases. Neither is
+proof of deployed schema or live-data parity. The separate destructive database
+integration suite remains opt-in and must use a confirmed disposable database.
+
+`npm run test:identity` tests the unapplied consumer migration in a fresh local
+PostgreSQL 17 cluster, including RLS and real concurrent claim approval conflicts.
+It never accepts a remote database URL. See the [Phase 2 report](docs/eggs-phase2-identity-audit.md#disposable-validation)
+for binary setup and the [current consumer report](docs/eggs-consumer-identity-implementation.md#verification)
+for expanded RLS, permanent handles, persistent evidence and concurrency coverage.
+Missing local binaries produce an explicit
+skip; migration review requires a run that actually executes the database tests.
+
 ## Data And Newsroom Flow
 
-Supabase access is server-side only through `src/lib/supabase.js`. Do not import
+League data access is server-side only through `src/modules/para-poker/lib/supabase.js`. Do not import
 that client into browser components or expose `SUPABASE_SERVICE_ROLE_KEY` to the
 browser.
 
@@ -52,6 +134,9 @@ edited output into `approved_output` and marks the capture row
 dataset or assigns a split.
 
 ## Supabase SQL Setup
+
+The following is inherited league setup documentation, not a step in the EGGS
+shell migration. Phase 1 changes no SQL and applies no database changes.
 
 Run SQL from the Supabase SQL Editor or another trusted SQL client. After schema
 changes, the migration files call `select pg_notify('pgrst', 'reload schema');`
@@ -146,7 +231,7 @@ newsroom-library/settings/homepage.json
 All persistence must stay behind:
 
 ```text
-src/lib/newsroom/homepageSettings.js
+src/modules/para-poker/lib/newsroom/homepageSettings.js
 ```
 
 Components and view models should call the read/write settings helpers rather
@@ -172,7 +257,7 @@ newsroom-library/settings/upcoming-events.json
 All persistence must stay behind:
 
 ```text
-src/lib/newsroom/upcomingEvents.js
+src/modules/para-poker/lib/newsroom/upcomingEvents.js
 ```
 
 When the game-site schedule feed is ready, replace the internals of that

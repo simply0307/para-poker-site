@@ -4,8 +4,8 @@ import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 import pg from "pg";
-import { buildRawHandImportArtifact } from "../src/lib/imports/rawHandImportArtifact.js";
-import { buildEggsSessionImportArtifact, computeEggsPackageChecksum } from "../src/lib/imports/eggsSessionPackageArtifact.js";
+import { buildRawHandImportArtifact } from "../src/modules/para-poker/lib/imports/rawHandImportArtifact.js";
+import { buildEggsSessionImportArtifact, computeEggsPackageChecksum } from "../src/modules/para-poker/lib/imports/eggsSessionPackageArtifact.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const requiredEnvironment = [

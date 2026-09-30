@@ -1,0 +1,51 @@
+.para-poker-module .para-data {
+  font-stretch: 58%;
+  font-variant-numeric: tabular-nums;
+}
+
+.para-poker-module .richTextBody {
+  overflow-wrap: anywhere;
+}
+
+.para-poker-module .richTextBody > * + * {
+  margin-top: 1.15rem;
+}
+
+.para-poker-module .richTextBody h2 {
+  color: #fff7d6;
+  font-size: 1.75rem;
+  font-weight: 900;
+  line-height: 1.15;
+}
+
+.para-poker-module .richTextBody h3 {
+  color: #fff1bf;
+  font-size: 1.35rem;
+  font-weight: 900;
+  line-height: 1.25;
+}
+
+.para-poker-module .richTextBody blockquote {
+  border-left: 3px solid #d8c087;
+  color: #f5e7bd;
+  padding-left: 1rem;
+}
+
+.para-poker-module .richTextBody ul,
+.para-poker-module .richTextBody ol {
+  padding-left: 1.4rem;
+}
+
+.para-poker-module .richTextBody ul {
+  list-style: disc;
+}
+
+.para-poker-module .richTextBody ol {
+  list-style: decimal;
+}
+
+.para-poker-module .richTextBody a {
+  color: #fff1bf;
+  font-weight: 800;
+  text-decoration: underline;
+}

@@ -8,7 +8,7 @@ import {
   authorizeOperatorRequest,
   isAdminWorkspacePath,
   isPrivilegedAdminApiPath,
-} from "../src/lib/auth/operatorAuthorizationCore.mjs";
+} from "../src/modules/para-poker/lib/auth/operatorAuthorizationCore.mjs";
 
 const OPERATOR_USER_ID = "11111111-1111-4111-8111-111111111111";
 const VIEWER_USER_ID = "22222222-2222-4222-8222-222222222222";
@@ -51,6 +51,20 @@ test("an authenticated non-operator is 403", async () => {
   });
   assert.equal(result.ok, false);
   assert.equal(result.response.status, 403);
+});
+
+test("malformed cookies fail closed and consumer sessions do not grant operator access", async () => {
+  for (const cookie of [`${OPERATOR_SESSION_COOKIE}=%zz`, "eggs_session=operator-token"]) {
+    const result = await authorize("https://league.test/api/admin/rules", { headers: { Cookie: cookie } });
+    assert.equal(result.response.status, 401);
+  }
+});
+
+test("operator lookup outage fails closed", async () => {
+  const result = await authorize("https://league.test/api/admin/rules", { headers: { Authorization: "Bearer operator-token" } }, {
+    resolveProfile: async () => { throw new Error("database unavailable"); },
+  });
+  assert.equal(result.response.status, 503);
 });
 
 test("existing admin and owner roles are authorized by stable auth user ID", async () => {
@@ -107,7 +121,7 @@ test("authorization failures never include verifier or profile secrets", async (
 });
 
 test("every exported /api/admin method invokes the shared guard", async () => {
-  const root = path.resolve("src/app/api/admin");
+  const root = path.resolve("src/app/api/(para-poker)/admin");
   const routes = [];
   async function walk(directory) {
     for (const entry of await readdir(directory, { withFileTypes: true })) {
@@ -127,7 +141,7 @@ test("every exported /api/admin method invokes the shared guard", async () => {
 });
 
 test("public league surfaces stay outside the admin boundary", () => {
-  for (const pathname of ["/", "/players", "/players/player-1", "/sessions/S0-001", "/standings"]) {
+  for (const pathname of ["/", "/para/poker/players", "/para/poker/players/player-1", "/para/poker/sessions/S0-001", "/para/poker/standings"]) {
     assert.equal(isPrivilegedAdminApiPath(pathname), false);
     assert.equal(isAdminWorkspacePath(pathname), false);
   }
@@ -140,7 +154,7 @@ const generationRoutes = [
 ];
 
 async function generationHandler(route, authDependencies, calls) {
-  const source = await readFile(path.resolve(`src/app/api/${route}/generate/route.js`), "utf8");
+  const source = await readFile(path.resolve(`src/app/api/(para-poker)/${route}/generate/route.js`), "utf8");
   // Execute the real POST body with isolated I/O dependencies. No production DB or AI is contacted.
   const handlerSource = source.slice(source.indexOf("export async function POST(")).replace(/^export /, "");
   assert.ok(handlerSource.startsWith("async function POST("));

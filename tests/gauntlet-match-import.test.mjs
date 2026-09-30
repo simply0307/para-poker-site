@@ -4,7 +4,7 @@ import test from "node:test";
 import {
   buildGauntletMatchImportArtifact,
   computeGauntletContentHash,
-} from "../src/lib/imports/gauntletMatchArtifact.js";
+} from "../src/modules/para-poker/lib/imports/gauntletMatchArtifact.js";
 
 const fixtureBytes = fs.readFileSync(new URL("./fixtures/gauntlet-para-match-v2.json", import.meta.url));
 const fixture = JSON.parse(fixtureBytes);

@@ -1,0 +1,42 @@
+import { GenericDraftWorkspace } from "@/modules/para-poker/components/admin-newsroom/GenericDraftWorkspace";
+import { getPlayerByIdOrSlug } from "@/modules/para-poker/lib/newsroom/data";
+import { listNewsroomDrafts } from "@/modules/para-poker/lib/newsroom/drafts";
+import { readSeasonSettings } from "@/modules/para-poker/lib/newsroom/seasonSettings";
+
+export const dynamic = "force-dynamic";
+
+export default async function AdminPlayerPage({ params }) {
+  const { playerId } = await params;
+  const [player, seasonSettings] = await Promise.all([getPlayerByIdOrSlug(playerId), readSeasonSettings()]);
+  const profileDrafts = player?.id
+    ? await listNewsroomDrafts({ table: "profile_drafts", fallbackScope: "player", sourcePlayerId: player.id })
+    : [];
+
+  return (
+    <GenericDraftWorkspace
+      draftType="player_profile"
+      title={`Player draft desk: ${playerId}`}
+      defaultPayload={{
+        playerId,
+        seasonCode: seasonSettings.activeSeasonCode,
+        variation: "shareable_profile",
+        editorialNotes: "",
+        promptConfig: {
+          draftType: "player_profile",
+          voiceMode: "Player Dossier",
+          intensity: "Punchy",
+          coverageFocus: ["recent form", "top finishes", "notable moments"],
+          mustMention: ["rank", "points", "sessions"],
+          avoid: ["too much myth", "generic sports filler"],
+          length: "medium",
+          format: "profile_card",
+          audience: "public_player",
+          customInstruction: "Make this feel like a shareable player card, not a database summary.",
+        },
+      }}
+      existingDrafts={profileDrafts}
+      existingDraftsTitle="Player profile drafts"
+      initialDraft={profileDrafts[0] || null}
+    />
+  );
+}

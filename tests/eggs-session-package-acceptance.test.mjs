@@ -5,7 +5,7 @@ import { PGlite } from "@electric-sql/pglite";
 import {
   buildEggsSessionImportArtifact,
   computeEggsPackageChecksum,
-} from "../src/lib/imports/eggsSessionPackageArtifact.js";
+} from "../src/modules/para-poker/lib/imports/eggsSessionPackageArtifact.js";
 
 const migrationFiles = [
   "tests/database/raw-hand-import-core-schema.sql",
