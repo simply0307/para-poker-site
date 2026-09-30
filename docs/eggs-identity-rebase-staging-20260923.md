@@ -4,6 +4,8 @@ The [September 30 continuation](eggs-email-link-staging-20260930.md) records the
 
 ## Current checkpoint
 
+Historical September 23 checkpoint. The [September 30 completion report](eggs-email-link-staging-20260930.md) supersedes the unresolved PKCE/browser-session and unrelated-user gaps below, and contains the current test totals and remaining launch gates.
+
 PR #2 is rebased onto production PR #3 / `629e5b48cd2524a60940079bf95dccb40e59372a`. Production deployment, production Auth configuration, and the consumer migration remain unchanged. Hosted consumer verification is incomplete; this is not a launch approval.
 
 The rebase preserves the seven generation guards and relocates the production Gemini client without changing its bytes. It still uses `GOOGLE_GEMINI_BASE_URL`, the `x-goog-api-key` header, and the existing provider/model selection. The only conflict resolutions concerned module import paths and duplicate imports. Production's generation-handler and Gemini routing regression tests were retained and adapted to the relocated files.

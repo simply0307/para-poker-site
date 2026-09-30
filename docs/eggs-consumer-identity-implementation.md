@@ -1,12 +1,12 @@
 # EGGS consumer identity: manual claims and production review
 
-Latest checkpoint: [PR #2 rebase and staging security verification](eggs-identity-rebase-staging-20260923.md). PR #3 / `629e5b4` is the production baseline; its authorization and Gemini fixes are preserved. That checkpoint supersedes the test counts and unresolved security-test status below.
+Latest checkpoint: [September 30 hosted email/PKCE completion](eggs-email-link-staging-20260930.md), following the [PR #2 rebase and staging security verification](eggs-identity-rebase-staging-20260923.md). PR #3 / `629e5b4` is the production baseline; its authorization and Gemini fixes are preserved.
 
-Reviewed September 23, 2026. Continues commit `64192b0` and
+Updated September 30, 2026. Continues commit `64192b0` and
 [draft PR #2](https://github.com/simply0307/para-poker-site/pull/2).
-**Local implementation and validation are complete. Isolated $0 hosted staging
-is provisioned; the real Auth/profile/claim flow is partially verified, with
-PKCE and the operator-review-to-logout sequence still incomplete.
+**Local implementation, validation and the requested isolated $0 hosted
+Auth/profile/claim flow are complete, including persistent browser access after
+real email/PKCE and logout revocation. Launch-security decisions remain open.
 Production migration, production Auth changes and consumer rollout have not occurred.**
 `EGGS_CONSUMER_ENABLED` remains false by default.
 
@@ -123,7 +123,7 @@ HTTPS and path `/`. The PKCE verifier lasts one hour. Private responses are
 no-store, writes enforce the configured origin, and the proxy refreshes sessions
 before private rendering. Logout revokes the current consumer session and clears
 its cookies; remote revocation failure is reported. Old-token replay must fail
-the DB session check; hosted confirmation is still required.
+the DB session check; hosted old-cookie/JWT/refresh-token replay checks passed.
 
 Onboarding requires only a handle; profiles default private. Owners edit display
 name, short bio and visibility. Public profile routes use anonymous clients;
@@ -136,20 +136,22 @@ of scope. No new profile feature, account-deletion UI or Auth admin API was adde
 
 ## Verification
 
-| Check | September 23 result |
+| Check | Latest verified result |
 | --- | --- |
 | Production Next build | Passed |
 | ESLint | Passed, no warnings |
-| Full `npm test` | 63 passed, 0 failed, 1 skipped; 64 records |
+| Full `npm test` | 104 passed, 0 failed, 1 skipped; 105 records on September 30 |
 | Disposable native PostgreSQL 17.6 | 18 scenarios plus parent: 19 passed, none skipped |
-| Consumer HTTP/core tests | 3 passed within full suite |
 | Homepage, stats, training and Para Poker import validators | All four passed |
 | Operator API authorization | All 50 protected methods covered after hold-endpoint removal |
+| Full and production-only dependency audits | Both zero vulnerabilities on September 30 |
 | Local browser follow-up | Synthetic operator login; decade-old orphaned pending claim; disabled approval; explicit rejection; evidence/reason still visible afterward |
 
 The skip is the inherited opt-in remote raw-hand import integration test.
-Identity tests ran fully. No dependency versions changed; the prior dependency
-audit is historical evidence, not a new scan in this follow-up.
+Identity tests ran fully. Two development-only `brace-expansion` lock entries
+were patched for advisories before the passing September 30 suite and audits;
+production dependencies were unchanged. Documentation-only completion updates
+do not require another build or test-suite run.
 
 PostgreSQL tests cover anon/owner/unrelated/operator access, claim submission
 and withdrawal, live-session admission, direct helper denial, direct SQL
@@ -187,11 +189,12 @@ new staging origin and its exact `/auth/callback`. Email confirmation remains
 enabled. Eight anonymous PostgREST checks pass. One explicitly authorized real
 staging account has now signed up and confirmed its email.
 
-The new site's test deployment `6ab3ff12f45c7abc5529d81b` uses commit `bd58480`
-and its isolated Supabase credentials. `EGGS_CONSUMER_ENABLED=true` is limited
+The current test deployment `6abc9446416488a79c1d834b` uses runtime commit
+`e967bb5e9a9d44a2f8d06609ea53feffd6ac8c70` and isolated Supabase credentials.
+`EGGS_CONSUMER_ENABLED=true` is limited
 to that site's published context for the authorized test window. Other staging
-contexts remain disabled; production consumers remain disabled. The portal
-follow-up is local only and needs no deploy to continue this hosted flow.
+contexts remain disabled; production consumers remain disabled. Completion
+documentation does not need another deployment or spend additional build credits.
 No production credentials are installed on staging.
 
 | Required hosted check | Result |
@@ -199,19 +202,20 @@ No production credentials are installed on staging.
 | Anonymous PostgREST access | Eight checks passed: public projections allowed; Auth UUIDs, claims, writes, review and private schema denied |
 | Disabled hosted app | Passed before the authorized staging test window; current isolated staging consumers are enabled |
 | Real signup and confirmation email delivery | Passed with the authorized staging-only mailbox; Auth records confirm email verification |
-| PKCE callback | Incomplete: first successful email verification did not yield a proven callback session; retries of the consumed link returned `otp_expired` |
-| Login and token refresh | Password login passed after confirmation; refresh remains unverified |
-| Logout/session invalidation and old access/refresh replay | Not verified against hosted Auth/PostgREST |
-| Private/public/owner/unrelated-user profile access | Owner creation/edit passed through real UI; anonymous private profile 404 and explicit public profile 200 passed; unrelated-user test remains |
-| User-token PostgREST grants and direct RPC access | Owner app operations passed; explicit direct PostgREST/RPC matrix remains incomplete |
-| Claim submission and withdrawal | Passed via real UI; withdrawn evidence retained; a new synthetic-player claim is pending |
-| Operator review and competing claims | Operator sign-in awaits user completion; hosted approval/conflicts unverified; local independent-connection conflict tests pass |
-| Poker-summary default-hidden and explicit opt-in | Not verified on hosted staging |
+| PKCE callback | Passed using a delivered sign-in email for the existing confirmed account: real PKCE exchange, owner editor, full reload and private claim-history access on September 30 |
+| Login and token refresh | Password login and a real refresh-token grant passed; email sign-in also passed |
+| Logout/session invalidation and old access/refresh replay | Twelve hosted session checks passed, including old cookie/JWT/refresh denial; final email-created browser session was separately revoked and protected navigation denied |
+| Private/public/owner/unrelated-user profile access | Passed through owner UI, anonymous requests and an independent unrelated user's real token; private profile 404, explicit public presentation visible |
+| User-token PostgREST grants and direct RPC access | Owner operations and 28 independent unrelated-user checks passed; private data, evidence, unauthorized review/write/withdrawal and operator access denied |
+| Claim submission and withdrawal | Passed through real UI; withdrawn evidence retained; second claim subsequently approved |
+| Operator review and competing claims | Existing mapped staging operator approved through real UI; concurrent conflicts passed native PostgreSQL independent-connection tests, not a new hosted race test |
+| Poker-summary default-hidden and explicit opt-in | Passed: hidden after approval, visible only after explicit opt-in plus public profile; privacy overrides opt-in |
 
 The isolated operator mapping uses the same test Auth identity; it does not
-prove an independent-reviewer flow. The original callback failure is not
-resolved by password login. See the [portal acceptance plan](eggs-portal-integration-plan.md)
-for current project boundaries, league findings, and the next verification order.
+prove an independent-human-reviewer flow. The separate unrelated-user fixture
+has no operator mapping and cannot review. The real email/PKCE callback was
+verified separately from password login, without recreating the confirmed
+account. Earlier failed or consumed links are historical, not passing evidence.
 
 ## Live launch-security findings
 
@@ -253,8 +257,9 @@ notices describe existing service-only tables; this change does not broaden them
 
 ## Remaining blockers and exact production rollout sequence
 
-Production is blocked on hosted evidence, canonical-domain selection, the two
-security remediations above, and explicit migration authorization. There are
+The requested hosted consumer flow is complete. Production is blocked on
+canonical-domain selection, production SMTP readiness, the security decisions
+and remediation above, and explicit migration authorization. There are
 no claim-retention policy, scheduler or worker blockers.
 
 The sequence below is a review plan, not authorization to execute it:
@@ -274,12 +279,14 @@ The sequence below is a review plan, not authorization to execute it:
    report for results.
 3. Recheck staging Site URL, exact callback and app `EGGS_SITE_URL`. The new
    staging site already consumes its isolated credentials and has consumers
-   enabled for the authorized test window; reuse that deployment. Complete every
-   hosted check above using real
-   confirmation delivery/user tokens, including signed-out token replay,
-   unrelated/unconfirmed denial, privacy, conflicts and summary opt-in.
-   Record sanitized evidence without tokens, codes or passwords. Return staging
-   consumer access to disabled after the test window. Production stays disabled.
+   enabled for the authorized test window; reuse that deployment. Review the
+   completed hosted results above and rerun affected checks only if code or
+   configuration changes. Native PostgreSQL tests provide the real concurrent
+   claim-conflict evidence; do not label them a hosted race. Keep sanitized
+   evidence without tokens, codes or passwords. End the staging test window
+   with a budget-checked deployment when appropriate; the build-time disable
+   flag requires a deploy, so no extra build was triggered just for this report.
+   Production stays disabled.
 4. Review the passing hosted function-grant rehearsal, including automatic RLS
    on a newly created disposable public table. Resolve the leaked-password
    launch decision: the native feature requires Pro or above and cannot be
