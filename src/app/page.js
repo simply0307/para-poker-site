@@ -1,59 +1,19 @@
 import Link from "next/link";
-
-export default function EggsHome() {
-  return (
-    <main className="eggs-page">
-      <section className="eggs-hero">
-        <div>
-          <p className="eggs-eyebrow">The EGGS ecosystem</p>
-          <h1>Many ways in.<br />One place to belong.</h1>
-          <p className="eggs-intro">Games, competition, and independent projects. Explore the EGGS network and the people shaping it.</p>
-          <Link className="eggs-button" href="/para">Explore Para <span aria-hidden="true">↗</span></Link>
-        </div>
-        <aside className="eggs-identity-note">
-          <p className="eggs-eyebrow">On the way</p>
-          <h2>Your identity,<br />across EGGS.</h2>
-          <p>One account. Your chosen handle. A profile that connects your projects while each keeps its own story.</p>
-          <Link className="eggs-text-link" href="/profile">About EGGS profiles <span aria-hidden="true">↗</span></Link>
-        </aside>
-      </section>
-
-      <section aria-labelledby="projects-title" className="eggs-section">
-        <div className="eggs-section-heading"><h2 id="projects-title">Find your next project.</h2><p>A place for every kind of participation.</p></div>
-        <div className="eggs-project-grid">
-          <article className="eggs-project eggs-project-featured">
-            <p className="eggs-eyebrow">Para / Organized competition</p>
-            <h3>Para Poker League</h3>
-            <p>The league’s home for standings, session coverage, player dossiers, and the public record.</p>
-            <Link className="eggs-text-link" href="/para/poker">Explore the league <span aria-hidden="true">↗</span></Link>
-          </article>
-          <article className="eggs-project">
-            <p className="eggs-eyebrow">Games / Card strategy</p>
-            <h3>Gauntlet Online</h3>
-            <p>Explore the factions, learn the game, and find your next match on Gauntlet’s existing site.</p>
-            <a className="eggs-text-link" href="https://gauntlet-online.vercel.app" rel="noreferrer">Open Gauntlet <span aria-hidden="true">↗</span></a>
-          </article>
-          <article className="eggs-project">
-            <p className="eggs-eyebrow">Games / Poker client</p>
-            <h3>EGGS Poker</h3>
-            <p>Open the ParaPoker play-money client for tables, play, and your match history.</p>
-            <a className="eggs-text-link" href="https://eggspoker.netlify.app" rel="noreferrer">Open the Poker client <span aria-hidden="true">↗</span></a>
-          </article>
-          <article className="eggs-project">
-            <p className="eggs-eyebrow">Editorial / Invitation only</p>
-            <h3>Reath Digest</h3>
-            <p>The New Jersey editorial desk for source coverage and story review. Desk access requires a Reath invitation.</p>
-            <a className="eggs-text-link" href="https://reath-digest.netlify.app" rel="noreferrer">Open Reath Digest <span aria-hidden="true">↗</span></a>
-          </article>
-        </div>
-        <p className="eggs-intro">Each project keeps its current sign-in. Shared EGGS profile connections are on the way.</p>
-      </section>
-
-      <section className="eggs-section eggs-explore" aria-label="More in EGGS">
-        <Link href="/music"><span className="eggs-eyebrow">Coming later</span><h2>Music <span aria-hidden="true">↗</span></h2><p>An archive to explore. A song to make your profile yours.</p></Link>
-        <Link href="/library"><span className="eggs-eyebrow">Coming later</span><h2>Your library <span aria-hidden="true">↗</span></h2><p>A personal place for saved content, publications, and artifacts.</p></Link>
-      </section>
-      <footer className="eggs-footer">EGGS <span>Projects, people &amp; play.</span></footer>
-    </main>
-  );
+import { publicCatalog } from "@/lib/hub/server";
+import { ProjectCard } from "@/components/hub/ProjectPresentation";
+export const dynamic="force-dynamic";
+export default async function EggsHome() {
+ const {projects,unavailable}=await publicCatalog();
+ const featured=projects.filter(p=>p.content.featured);
+ const selection=[...featured,...projects.filter(p=>!p.content.featured)].slice(0,4);
+ return <main className="eggs-page hub-home">
+  <section className="hub-hero"><div><p className="eggs-eyebrow">EGGS / An independent creative studio</p><h1>Good things<br/>start with<br/><em>curiosity.</em></h1><p className="hub-lede">Games, competition, worlds and stories. A shared home for the things we make—and the people who make them their own.</p><div className="hub-actions"><Link className="eggs-button" href="/projects">Discover the projects ↗</Link><Link className="eggs-text-link" href="/profile">Find your place ↗</Link></div></div>
+   <aside className="hub-studio-note"><span className="hub-note-number" aria-hidden="true">01 / ∞</span><p className="eggs-eyebrow">One studio. Many ways in.</p><h2>Play something.<br/>Follow a story.<br/>Make it yours.</h2><p>Each project has its own character. EGGS brings them together, with a profile for your interests and a place to discover what comes next.</p><Link className="eggs-text-link" href="/para">Meet Para competition ↗</Link></aside>
+  </section>
+  <section className="eggs-section"><div className="eggs-section-heading"><div><p className="eggs-eyebrow">From the studio</p><h2>Worth a closer look.</h2></div><Link className="eggs-text-link" href="/projects">All projects ↗</Link></div>
+   {unavailable?<p role="status" className="hub-empty">The project directory is temporarily unavailable.</p>:selection.length?<div className="hub-card-grid">{selection.map(p=><ProjectCard project={p} key={p.id}/>)}</div>:<p className="hub-empty">New projects will appear here when they’re published.</p>}
+  </section>
+  <section className="hub-belong"><div><p className="eggs-eyebrow">Your EGGS profile</p><h2>A little more you.</h2></div><div><p>Choose your favorites, share what you’re into, and decide who can see it. Your profile starts private. Your game records stay with the games that created them.</p><Link className="eggs-text-link" href="/profile">Your EGGS account ↗</Link></div></section>
+  <footer className="eggs-footer">EGGS <span>Projects, people &amp; play.</span><Link href="/eggs-admin">Editor workspace</Link></footer>
+ </main>;
 }

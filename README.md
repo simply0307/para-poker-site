@@ -19,6 +19,12 @@ contains the revised handle-reservation SQL, authentication and claim
 flows, verification results, production plan and rollback limits.
 The consumer migration remains unapplied to production.
 
+The [EGGS Hub v1 implementation](docs/eggs-hub-v1.md) adds public project
+discovery, a separate editorial workspace and bounded profile expression.
+Its new additive migration and `EGGS_HUB_ENABLED` flag are separate from the
+reviewed identity candidate. The report includes the feature matrix, local
+database/browser verification and outstanding rollout gates.
+
 ## Development
 
 On Windows PowerShell, run (Node 22 or later):
@@ -45,6 +51,8 @@ and the rollout plan is approved.
 ## Routes
 
 - `/` is EGGS home; `/para` is the competition hub.
+- `/projects` and `/projects/[slug]` provide the published project directory and showcases.
+- `/eggs-admin` is the separate EGGS catalog workspace; explicit editor/publisher membership is required.
 - `/para/poker` is the existing league homepage.
 - `/para/poker/sessions` and `/para/poker/sessions/[sessionId]` show session coverage.
 - `/para/poker/players` and `/para/poker/players/[playerId]` show player dossiers.

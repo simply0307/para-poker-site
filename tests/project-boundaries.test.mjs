@@ -21,7 +21,12 @@ test("Para Poker APIs retain operator authorization and consumer APIs have a sep
     const source = await readFile(entry.filename, "utf8");
     if (entry.route.startsWith("/api/eggs/")) {
       assert.doesNotMatch(source, /requireOperator|para_league_operator|SUPABASE_SERVICE_ROLE_KEY/u);
-      if (!entry.route.startsWith("/api/eggs/auth")) assert.match(source, /await requireEggsUser\(context\)/u);
+      if (entry.route.startsWith("/api/eggs/hub/")) {
+        assert.match(source, /await requireHubEditor\(context\)/u);
+        const guard = await readFile("src/lib/hub/server.js", "utf8");
+        assert.match(guard, /await requireEggsUser\(context\)/u);
+        assert.match(guard, /\["editor","publisher"\]\.includes\(role\)/u);
+      } else if (!entry.route.startsWith("/api/eggs/auth")) assert.match(source, /await requireEggsUser\(context\)/u);
       continue;
     }
     assert.ok(entry.filename.includes(`${path.sep}(para-poker)${path.sep}`), entry.filename);
