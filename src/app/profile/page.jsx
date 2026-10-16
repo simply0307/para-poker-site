@@ -11,6 +11,7 @@ import { consumerConfiguration } from "@/lib/eggs/consumerCore.mjs";
 import { hubEnabled } from "@/lib/hub/core.mjs";
 import { hubRepository } from "@/lib/hub/repository.mjs";
 import { ExpressionEditor } from "@/components/hub/ExpressionEditor";
+import { roomsEnabled } from "@/lib/rooms/core.mjs";
 
 export const metadata = { title: "Profiles" };
 export const dynamic = "force-dynamic";
@@ -25,7 +26,7 @@ export default async function ProfilesPage() {
   if (result.error) return <AccountUnavailable />;
   const profile = result.data?.[0];
   let link; let player; let expression; let projects=[]; let expressionError=false;
-  if(profile && hubEnabled()) {
+  if(profile && hubEnabled() && !roomsEnabled()) {
     try {const repo=hubRepository(context.client); [expression,projects]=await Promise.all([repo.expression(profile.id),repo.published()]);}
     catch {expressionError=true;}
   }
@@ -41,8 +42,8 @@ export default async function ProfilesPage() {
   }
   return <AccountFrame title={profile ? `@${profile.handle}` : "Choose your handle."} intro={profile ? "A small home for your identity and the connections you choose to share." : "That’s all you need to get started. Your profile starts private."}>
     <div className="eggs-account-toolbar">{profile?.visibility === "public" ? <Link className="eggs-text-link" href={`/profile/${profile.handle}`} prefetch={false}>View public profile ↗</Link> : <span className="eggs-help">Only you can see this profile</span>}<ConsumerLogout /></div>
-    <ProfileEditor profile={profile || null} />
-    {profile && hubEnabled() ? expressionError ? <p role="status">Profile expression is temporarily unavailable. Your league connection is unchanged.</p> : <ExpressionEditor key={profile.visibility} profile={profile} expression={expression} projects={projects}/> : null}
+    {profile && roomsEnabled()?<Link className="eggs-button" href="/profile/edit">Edit My Page ↗</Link>:<ProfileEditor profile={profile || null} />}
+    {profile && hubEnabled() && !roomsEnabled() ? expressionError ? <p role="status">Profile expression is temporarily unavailable. Your league connection is unchanged.</p> : <ExpressionEditor key={profile.visibility} profile={profile} expression={expression} projects={projects}/> : null}
     {profile ? <section className="eggs-account-section"><h2>Your Para Poker connection</h2>
       {link ? <><PokerVisibility enabled={link.show_on_profile} /><PokerIdentitySummary player={player} /></> : <p className="eggs-help">Already play in the league? Request a reviewed connection to your existing player record.</p>}
       <Link href="/profile/claim" prefetch={false} className="eggs-text-link">{link ? "Review your claim history" : "Find your Para Poker player"} ↗</Link>

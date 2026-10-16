@@ -56,7 +56,8 @@ test("built Hub journeys with real local PostgreSQL and simulated Auth/PostgREST
   assert.equal((await request("/api/eggs/expression",{jar:bob,method:"PUT",body:{...expression,profile_id:(await save.json()).expression.profile_id}})).status,400);
   const visible=await request("/api/eggs/profile",{jar:alice,method:"PATCH",body:{display_name:"Alice — local preview",bio:"Here for games, good stories and the next interesting idea.",visibility:"public"}});
   assert.equal(visible.status,200,await visible.clone().text());
-  const html=await (await request("/profile/hub_alice")).text();assert.match(html,/Alice — local preview/u);assert.match(html,/Gauntlet Online/u);assert.ok(!html.includes("<script>note</script>"));
+  // The rollback reader deliberately excludes expression. Rooms use the new narrow projection.
+  const html=await (await request("/profile/hub_alice")).text();assert.match(html,/Alice — local preview/u);assert.doesNotMatch(html,/Gauntlet Online|featured_note/u);assert.ok(!html.includes("<script>note</script>"));
   assert.equal((await request("/api/eggs/profile",{jar:alice,method:"PATCH",body:{visibility:"private"}})).status,200);
   assert.equal((await request("/profile/hub_alice")).status,404);
  });

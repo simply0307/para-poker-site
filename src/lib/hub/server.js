@@ -1,12 +1,13 @@
 import "server-only";
 import { createClient } from "@supabase/supabase-js";
 import { hubEnabled } from "./core.mjs";
+import { roomsEnabled } from "../rooms/core.mjs";
 import { bootstrapProjects } from "./catalog.mjs";
 import { hubRepository, orderProjects } from "./repository.mjs";
 import { ConsumerError } from "../eggs/consumerCore.mjs";
 import { requireEggsUser } from "../eggs/requireEggsUser";
 export async function publicCatalog() {
- if (!hubEnabled()) return {projects:orderProjects(bootstrapProjects),unavailable:false};
+ if (!hubEnabled() && !roomsEnabled()) return {projects:orderProjects(bootstrapProjects),unavailable:false};
  if(!process.env.SUPABASE_URL||!process.env.SUPABASE_PUBLISHABLE_KEY) return {projects:[],unavailable:true};
  const client=createClient(process.env.SUPABASE_URL,process.env.SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
  try {return {projects:orderProjects(await hubRepository(client).published()),unavailable:false};} catch {return {projects:[],unavailable:true};}

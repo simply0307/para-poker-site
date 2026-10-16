@@ -1,0 +1,126 @@
+
+> eggs-web@0.1.0 build
+> next build
+
+▲ Next.js 16.3.8 (Turbopack)
+✓ Running next.config.mjs took 41ms
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 3.3s
+  Running TypeScript ...
+  Finished TypeScript in 15ms ...
+  Collecting page data using 11 workers ...
+  Generating static pages using 11 workers (0/17) ...
+  Generating static pages using 11 workers (4/17)
+  Generating static pages using 11 workers (8/17)
+  Generating static pages using 11 workers (12/17)
+✓ Generating static pages using 11 workers (17/17) in 406ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ƒ /
+├ ○ /_not-found
+├ ƒ /admin
+├ ƒ /admin/articles
+├ ƒ /admin/content-types
+├ ƒ /admin/drafts
+├ ƒ /admin/events
+├ ƒ /admin/imports
+├ ƒ /admin/moments
+├ ƒ /admin/newsroom
+├ ƒ /admin/newsroom/dataset
+├ ƒ /admin/player-claims
+├ ƒ /admin/players
+├ ƒ /admin/players/[playerId]
+├ ƒ /admin/prompt-studio
+├ ƒ /admin/rules
+├ ƒ /admin/sessions
+├ ƒ /admin/sessions/[sessionId]
+├ ƒ /admin/settings
+├ ƒ /admin/social-captions
+├ ƒ /admin/standings
+├ ƒ /api/admin/articles/[articleId]/video
+├ ƒ /api/admin/homepage-settings
+├ ƒ /api/admin/imports/eggs-sessions/commit
+├ ƒ /api/admin/imports/eggs-sessions/preview
+├ ƒ /api/admin/imports/gauntlet-matches/commit
+├ ƒ /api/admin/imports/gauntlet-matches/preview
+├ ƒ /api/admin/imports/raw-hands/commit
+├ ƒ /api/admin/imports/raw-hands/preview
+├ ƒ /api/admin/imports/sessions/[sessionId]
+├ ƒ /api/admin/imports/sessions/[sessionId]/results
+├ ƒ /api/admin/moment-curation
+├ ƒ /api/admin/moments/[momentId]/video
+├ ƒ /api/admin/newsroom/dataset/export
+├ ƒ /api/admin/page-heroes
+├ ƒ /api/admin/player-claims
+├ ƒ /api/admin/player-claims/[claimId]/review
+├ ƒ /api/admin/prompt-presets
+├ ƒ /api/admin/prompt-presets/[presetId]
+├ ƒ /api/admin/public-copy
+├ ƒ /api/admin/recap-drafts/[draftId]
+├ ƒ /api/admin/recap-drafts/[draftId]/publish
+├ ƒ /api/admin/rules
+├ ƒ /api/admin/season-settings
+├ ƒ /api/admin/training-examples
+├ ƒ /api/admin/upcoming-events
+├ ƒ /api/articles/generate
+├ ƒ /api/eggs/auth
+├ ƒ /api/eggs/auth/logout
+├ ƒ /api/eggs/expression
+├ ƒ /api/eggs/hub/projects
+├ ƒ /api/eggs/hub/works
+├ ƒ /api/eggs/poker/claims
+├ ƒ /api/eggs/poker/claims/[claimId]/withdraw
+├ ƒ /api/eggs/poker/link
+├ ƒ /api/eggs/poker/players
+├ ƒ /api/eggs/profile
+├ ƒ /api/eggs/room
+├ ƒ /api/eggs/rooms/[handle]
+├ ƒ /api/moments/generate
+├ ƒ /api/operator-session
+├ ƒ /api/player-session-recaps/generate
+├ ƒ /api/profiles/generate
+├ ƒ /api/recaps/generate
+├ ƒ /api/social-captions/generate
+├ ƒ /api/standings/generate
+├ ƒ /auth/callback
+├ ƒ /eggs-admin
+├ ƒ /eggs-admin/projects/[id]
+├ ƒ /eggs-admin/projects/[id]/preview
+├ ƒ /eggs-admin/projects/new
+├ ƒ /eggs-admin/works
+├ ƒ /eggs-admin/works/[id]
+├ ƒ /eggs-admin/works/[id]/preview
+├ ƒ /eggs-admin/works/new
+├ ƒ /games
+├ ƒ /games/[slug]
+├ ƒ /library
+├ ƒ /library/[slug]
+├ ƒ /login
+├ ○ /music
+├ ○ /operator-denied
+├ ƒ /operator-login
+├ ○ /para
+├ ƒ /para/poker
+├ ƒ /para/poker/articles
+├ ƒ /para/poker/articles/[articleId]
+├ ƒ /para/poker/moments
+├ ƒ /para/poker/moments/[momentId]
+├ ƒ /para/poker/players
+├ ƒ /para/poker/players/[playerId]
+├ ƒ /para/poker/sessions
+├ ƒ /para/poker/sessions/[sessionId]
+├ ƒ /para/poker/standings
+├ ƒ /profile
+├ ƒ /profile/[handle]
+├ ƒ /profile/claim
+├ ƒ /profile/edit
+├ ƒ /projects
+└ ƒ /projects/[slug]
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand

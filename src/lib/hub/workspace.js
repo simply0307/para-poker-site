@@ -9,5 +9,5 @@ export const workspace=cache(async()=>{
  try {context=await pageConsumerContext();role=await requireHubEditor(context);} catch(e){error=e;}
  if(error?.status===401) redirect("/login");
  if(error) return {error:error.status===403?"An explicit EGGS editorial role is required. Consumer membership and Poker operator access do not grant this role.":"The EGGS editor workspace is unavailable."};
- return {role,repository:hubRepository(context.client)};
+ return {role,repository:hubRepository(context.client),client:context.client};
 });

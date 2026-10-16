@@ -6,9 +6,10 @@ import { useState } from "react";
 
 const links = [["/", "Home"], ["/projects", "Discover"], ["/para", "Para"]];
 
-export function EggsNav() {
+export function EggsNav({personal=false}) {
   const pathname = usePathname();
   const [open,setOpen]=useState(false);
+  if(personal&&(pathname==="/"||/^\/(projects|games|library)(\/|$)/u.test(pathname)))return null;
   return (
     <header className="eggs-header">
       <Link href="/" className="eggs-wordmark" aria-label="EGGS home">EGGS<span aria-hidden="true"> /</span></Link>

@@ -1,9 +1,13 @@
 import Link from "next/link";
 import { publicCatalog } from "@/lib/hub/server";
 import { ProjectCard } from "@/components/hub/ProjectPresentation";
+import { roomsEnabled } from "@/lib/rooms/core.mjs";
+import { publicWorks } from "@/lib/rooms/server";
+import { StudioHome } from "@/components/rooms/StudioHome";
 export const dynamic="force-dynamic";
 export default async function EggsHome() {
  const {projects,unavailable}=await publicCatalog();
+ if(roomsEnabled()){const {works,unavailable:worksUnavailable}=await publicWorks();return <StudioHome projects={projects} works={works} unavailable={unavailable} worksUnavailable={worksUnavailable}/>;}
  const featured=projects.filter(p=>p.content.featured);
  const selection=[...featured,...projects.filter(p=>!p.content.featured)].slice(0,4);
  return <main className="eggs-page hub-home">

@@ -2,7 +2,9 @@ import localFont from "next/font/local";
 import "./globals.css";
 import "./eggs.css";
 import "./hub.css";
+import "./rooms.css";
 import { EggsNav } from "@/components/eggs/EggsNav";
+import {roomsEnabled} from "@/lib/rooms/core.mjs";
 
 const robotoFlex = localFont({
   src: "./fonts/RobotoFlex-Variable.ttf",
@@ -23,7 +25,7 @@ export default function RootLayout({ children }) {
       className={`${robotoFlex.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <EggsNav />
+        <EggsNav personal={roomsEnabled()} />
         {children}
       </body>
     </html>

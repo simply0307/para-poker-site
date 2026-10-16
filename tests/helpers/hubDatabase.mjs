@@ -15,7 +15,7 @@ export async function hubDatabase(t){
   await admin.query("insert into auth.sessions(id,user_id) values($1,$1)",[id]);
  }
  await admin.query("insert into public.profiles(email,identity_user_id,auth_user_id,role) values('operator@fixture.invalid','legacy-hub-fixture',$1,'owner')",[hubIds.operator]);
- return {...cluster,admin,connect:()=>cluster.connect("hub_test"),async apply(){await admin.query(hubMigration);await admin.query("insert into eggs_hub_private.editors(auth_user_id,role) values($1,'publisher'),($2,'editor')",[hubIds.publisher,hubIds.editor]);}};
+ return {...cluster,admin,bootstrap:cluster.admin,connect:()=>cluster.connect("hub_test"),async apply(){await admin.query(hubMigration);await admin.query("insert into eggs_hub_private.editors(auth_user_id,role) values($1,'publisher'),($2,'editor')",[hubIds.publisher,hubIds.editor]);}};
 }
 export async function beginHubActor(client,user="alice",role="authenticated"){
  assert.ok(["anon","authenticated","service_role"].includes(role));

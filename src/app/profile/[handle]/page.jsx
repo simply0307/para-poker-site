@@ -2,9 +2,10 @@ import { notFound } from "next/navigation";
 import { publicConsumerClient } from "@/lib/eggs/consumerClient";
 import { AccountFrame, AccountUnavailable } from "@/components/eggs/AccountFrame";
 import { PokerIdentitySummary } from "@/modules/para-poker/components/PokerIdentitySummary";
-import { hubEnabled } from "@/lib/hub/core.mjs";
-import { hubRepository } from "@/lib/hub/repository.mjs";
-import { ExpressionPresentation } from "@/components/hub/ExpressionPresentation";
+import { roomsEnabled } from "@/lib/rooms/core.mjs";
+import { roomRepository } from "@/lib/rooms/repository.mjs";
+import { RoomPresentation } from "@/components/rooms/RoomPresentation";
+import { OwnerRoomLink } from "@/components/rooms/OwnerRoomLink";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "EGGS profile" };
@@ -15,9 +16,14 @@ export default async function ProfilePage({ params }) {
   // a private profile into a public one. No name/slug-derived identity.
   const client = publicConsumerClient();
   if (!client) notFound();
-  const result = await client.from("eggs_public_profiles").select("id,handle,display_name,bio").eq("handle", handle).maybeSingle();
-  if (result.error) return <AccountUnavailable />;
-  const profile = result.data;
+  let room,profile;
+  if(roomsEnabled()) {
+    try {room=await roomRepository(client).publicRoom(handle);profile=room?.profile;}catch{return <AccountUnavailable/>;}
+  } else {
+    const result = await client.from("eggs_public_profiles").select("id,handle,display_name,bio").eq("handle", handle).maybeSingle();
+    if(result.error)return <AccountUnavailable/>;
+    profile=result.data;
+  }
   if (!profile) notFound();
   const linked = await client.from("para_poker_public_profile_links").select("profile_id,player_id").eq("profile_id", profile.id).maybeSingle();
   if (linked.error) return <AccountUnavailable />;
@@ -27,13 +33,9 @@ export default async function ProfilePage({ params }) {
     if (summary.error) return <AccountUnavailable />;
     player = summary.data?.[0];
   }
-  let expression; let projects=[];
-  if(hubEnabled()) {
-    try {const repo=hubRepository(client);[expression,projects]=await Promise.all([repo.expression(profile.id),repo.published()]);}
-    catch {return <AccountUnavailable/>;}
-  }
-  return <AccountFrame title={hubEnabled() ? "Meet someone from EGGS." : profile.display_name}>
-    {hubEnabled()?<ExpressionPresentation profile={profile} expression={expression} projects={projects}/>:<><p className="eggs-profile-handle">@{profile.handle}</p>{profile.bio ? <p className="eggs-profile-bio">{profile.bio}</p> : null}</>}
+  if(room)return <main className="room-public-page"><RoomPresentation room={room} toolbar={<OwnerRoomLink handle={handle}/>}><PokerIdentitySummary player={player}/></RoomPresentation></main>;
+  return <AccountFrame title={profile.display_name}>
+    <p className="eggs-profile-handle">@{profile.handle}</p>{profile.bio ? <p className="eggs-profile-bio">{profile.bio}</p> : null}
     <PokerIdentitySummary player={player} />
   </AccountFrame>;
 }
