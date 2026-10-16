@@ -46,7 +46,7 @@ export class CookieJar {
 
 // Transport/SDK fixture, never a substitute for the real PostgreSQL RLS suite.
 // All identities, keys, passwords, sessions and records are synthetic.
-export async function consumerFixture() {
+export async function consumerFixture({restHandler}={}) {
   const requests = []; const users = new Map(); const tokens = new Map(); const refreshTokens = new Map();
   const profiles = []; const claims = []; const links = []; const handles = new Set();
   const players = [
@@ -85,6 +85,7 @@ export async function consumerFixture() {
       requests.push({ path: url.pathname, method: request.method, key: request.headers.apikey, token, body, query: url.search });
       const send = (data, status = 200) => { response.writeHead(status).end(JSON.stringify(data)); };
       const fail = (code, status = 400) => send({ code, message: "Synthetic backend detail must not leak" }, status);
+      if(url.pathname.startsWith("/rest/v1/") && restHandler && await restHandler({url,body,request,user,active:actor?.active,token,send,fail})) return;
       if (url.pathname === "/auth/v1/signup") {
         confirmationCode = "fixture-confirm-code";
         signupChallenge = body.code_challenge;

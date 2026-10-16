@@ -1,6 +1,7 @@
 import localFont from "next/font/local";
 import "./globals.css";
 import "./eggs.css";
+import "./hub.css";
 import { EggsNav } from "@/components/eggs/EggsNav";
 
 const robotoFlex = localFont({

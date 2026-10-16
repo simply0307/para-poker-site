@@ -2,6 +2,9 @@ import { notFound } from "next/navigation";
 import { publicConsumerClient } from "@/lib/eggs/consumerClient";
 import { AccountFrame, AccountUnavailable } from "@/components/eggs/AccountFrame";
 import { PokerIdentitySummary } from "@/modules/para-poker/components/PokerIdentitySummary";
+import { hubEnabled } from "@/lib/hub/core.mjs";
+import { hubRepository } from "@/lib/hub/repository.mjs";
+import { ExpressionPresentation } from "@/components/hub/ExpressionPresentation";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "EGGS profile" };
@@ -24,9 +27,13 @@ export default async function ProfilePage({ params }) {
     if (summary.error) return <AccountUnavailable />;
     player = summary.data?.[0];
   }
-  return <AccountFrame title={profile.display_name}>
-    <p className="eggs-profile-handle">@{profile.handle}</p>
-    {profile.bio ? <p className="eggs-profile-bio">{profile.bio}</p> : null}
+  let expression; let projects=[];
+  if(hubEnabled()) {
+    try {const repo=hubRepository(client);[expression,projects]=await Promise.all([repo.expression(profile.id),repo.published()]);}
+    catch {return <AccountUnavailable/>;}
+  }
+  return <AccountFrame title={hubEnabled() ? "Meet someone from EGGS." : profile.display_name}>
+    {hubEnabled()?<ExpressionPresentation profile={profile} expression={expression} projects={projects}/>:<><p className="eggs-profile-handle">@{profile.handle}</p>{profile.bio ? <p className="eggs-profile-bio">{profile.bio}</p> : null}</>}
     <PokerIdentitySummary player={player} />
   </AccountFrame>;
 }
