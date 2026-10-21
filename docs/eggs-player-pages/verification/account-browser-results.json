@@ -1,0 +1,19 @@
+{
+  "browser": "155.0.4283.45",
+  "transport": "Real built Next.js + PostgreSQL 17 + native PostgREST; synthetic Auth, confirmation and PKCE service only",
+  "checks": [
+    "Fresh UI signup explicitly sends no email in local preview; its visible local inbox link completes same-browser simulated PKCE, while a wrong browser fails; handle onboarding uses an HttpOnly verifier.",
+    "A fresh player creates one permanent private profile, reaches Edit My Page, saves appearance/favorites/showcase atomically and reloads the saved page; private public URLs stay unavailable.",
+    "Public opt-in appears in People and enables the real community composer; hidden bio is absent from anonymous JSON/HTML and edit controls appear only for the live owner.",
+    "Actual logout in another tab removes owner controls on focus; a revoked live session also removes them on the auth-change event.",
+    "Making the page private again removes its public room, People entry and authored community posts while owner editing remains available; confirmed accounts sign back in without duplicate profiles."
+  ],
+  "screenshots": [
+    "new-player-onboarding-1440.png",
+    "new-player-private-editor-390.png",
+    "new-player-public-room-1440.png",
+    "new-player-public-room-390.png"
+  ],
+  "pageErrors": [],
+  "hostedChecks": "Not performed. Real signup email delivery, production origin/Auth/SMTP and approved hosted migration remain separate release prerequisites."
+}

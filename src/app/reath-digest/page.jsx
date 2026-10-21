@@ -1,6 +1,7 @@
 import { StudioShell } from "@/components/rooms/StudioShell";
 import { ReathDigest } from "@/components/reath/ReathDigest";
 import { publicReathCatalog } from "@/lib/reath/server";
+import { loreEnabled } from "@/lib/lore/core.mjs";
 
 export const dynamic = "force-dynamic";
 export const metadata = {
@@ -13,7 +14,11 @@ export default async function ReathDigestPage() {
   const { publications, unavailable } = await publicReathCatalog();
   return (
     <StudioShell>
-      <ReathDigest publications={publications} unavailable={unavailable} />
+      <ReathDigest
+        publications={publications}
+        unavailable={unavailable}
+        lore={loreEnabled()}
+      />
     </StudioShell>
   );
 }

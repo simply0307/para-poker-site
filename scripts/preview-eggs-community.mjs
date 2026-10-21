@@ -20,13 +20,14 @@ try {
     after: (fn) => cleanup.push(fn),
   });
   await seedCommunityPreview(fixture.db);
-  const app = await startConsumerApp(fixture.env, 3114);
+  const app = await startConsumerApp({ ...fixture.env, EGGS_LOCAL_PREVIEW_AUTH: "true", EGGS_LOCAL_PREVIEW_AUTH_INBOX_URL: fixture.previewInboxUrl }, 3114);
   cleanup.push(() => stopConsumerApp(app));
   console.log("EGGS local community preview: " + app.base);
   console.log(
     "Real disposable PostgreSQL 17 and PostgREST; simulated authentication.",
   );
   console.log("Synthetic login: alice@fixture.invalid / fixture-password");
+  console.log("Local confirmation inbox: " + fixture.previewInboxUrl);
   console.log(
     "Publisher/editor/Bob use the same fixture password. No community posts are seeded.",
   );

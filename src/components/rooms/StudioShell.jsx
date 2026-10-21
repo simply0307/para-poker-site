@@ -2,6 +2,7 @@ import Link from "next/link";
 import { StudioThemeFrame } from "./StudioThemeFrame";
 import { AccountMenu } from "@/components/community/AccountMenu";
 import { communityEnabled } from "@/lib/community/core.mjs";
+import { loreEnabled } from "@/lib/lore/core.mjs";
 export function StudioShell({ children }) {
   const community = communityEnabled();
   return (
@@ -23,6 +24,7 @@ export function StudioShell({ children }) {
         <Link href="/">Home</Link>
         <Link href="/games">Games &amp; leagues</Link>
         <Link href="/reath-digest">Reath Digest</Link>
+        {loreEnabled() ? <Link href="/lore">Lore</Link> : null}
         {community ? (
           <>
             <Link href="/community">Community</Link>

@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { accountFetch } from "./accountFetch";
 
-export function AuthForm({ confirmationFailed = false }) {
+export function AuthForm({ confirmationFailed = false, localPreview = null }) {
   const router = useRouter();
   const [mode, setMode] = useState("login");
   const [error, setError] = useState(confirmationFailed ? "That email link could not be completed. Open the newest link in the browser where you requested it, or sign in with your password." : "");
@@ -16,10 +16,11 @@ export function AuthForm({ confirmationFailed = false }) {
       if (mode !== "email-link") body.password = form.get("password");
       const result = await accountFetch("/api/eggs/auth", { method: "POST", body });
       if (result.redirect) { router.replace(result.redirect); router.refresh(); }
-      else setMessage(result.message);
+      else setMessage(localPreview ? "No email was sent. Open the local confirmation inbox in this browser to continue." : result.message);
     } catch (failure) { setError(failure.message); } finally { setBusy(false); }
   }
   return <div className="eggs-form-card">
+    {localPreview ? <aside className="eggs-notice" role="note"><p><strong>Local preview · simulated accounts.</strong> No real email is sent. Use a test email with <code>fixture-password</code>, then open the local inbox in this browser.</p><p><a className="eggs-text-link" href={localPreview.inboxUrl} target="_blank" rel="noopener noreferrer">Open local confirmation inbox ↗</a></p><p>Existing sample login: <code>alice@fixture.invalid</code> / <code>fixture-password</code>. Accounts and saved pages exist only in this disposable preview and reset when it restarts.</p></aside> : null}
     <div className="eggs-mode-buttons" aria-label="Account action">
       <button type="button" disabled={busy} aria-pressed={mode !== "register"} onClick={() => { setMode("login"); setError(""); setMessage(""); }}>Sign in</button>
       <button type="button" disabled={busy} aria-pressed={mode === "register"} onClick={() => { setMode("register"); setError(""); setMessage(""); }}>Create account</button>

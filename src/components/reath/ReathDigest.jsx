@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useId, useState } from "react";
-import { WorkArt } from "@/components/rooms/WorkPresentation";
+import { ReleaseArt } from "./ReleaseArt";
 import {
   collectionCounts,
   filterPublications,
@@ -11,7 +11,7 @@ import {
   reathCollections,
 } from "@/lib/reath/catalog.mjs";
 
-export function ReathDigest({ publications, unavailable }) {
+export function ReathDigest({ publications, unavailable, lore = false }) {
   const [collection, setCollection] = useState("all");
   const [query, setQuery] = useState("");
   const searchId = useId();
@@ -61,6 +61,18 @@ export function ReathDigest({ publications, unavailable }) {
           </span>
         </div>
       </section>
+
+      <nav className="reath-reader-links" aria-label="More from Reath">
+        {lore ? <Link href="/lore">Explore the lore dossiers ↗</Link> : null}
+        <Link href="/watch">The EGGS video room ↗</Link>
+        <a
+          href="https://reath-digest.carrd.co/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Original Reath Digest archive ↗
+        </a>
+      </nav>
 
       <section
         className="reath-collection-shelf"
@@ -209,17 +221,20 @@ export function ReathDigest({ publications, unavailable }) {
   );
 }
 
-function PublicationCard({ publication }) {
+export function PublicationCard({ publication }) {
   return (
     <article className="reath-publication-card">
-      <Link href={`/library/${publication.slug}`}>
+      <Link href={publication.href || `/library/${publication.slug}`}>
         <div className="reath-publication-art">
-          <WorkArt id={publication.asset_id} />
+          <ReleaseArt publication={publication} />
           <span>{publicationFormats[publication.format]}</span>
         </div>
         <div className="reath-publication-copy">
           <p className="studio-kicker">
-            REATH DIGEST / {publicationFormats[publication.format]}
+            {publication.scope && !publication.scope.startsWith("reath")
+              ? publication.scope.toUpperCase()
+              : "REATH DIGEST"}{" "}
+            / {publicationFormats[publication.format]}
           </p>
           <h3>{publication.title}</h3>
           <p>{publication.summary}</p>

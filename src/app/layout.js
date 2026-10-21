@@ -7,6 +7,7 @@ import "./reath.css";
 import "./people.css";
 import "./community.css";
 import "./product.css";
+import "./lore.css";
 import { EggsNav } from "@/components/eggs/EggsNav";
 import { roomsEnabled } from "@/lib/rooms/core.mjs";
 

@@ -1,0 +1,62 @@
+{
+  "checkedAt": "2026-10-21T03:46:11.876Z",
+  "origin": "http://127.0.0.1:3114",
+  "disposable": true,
+  "syntheticAuth": true,
+  "probes": [
+    {
+      "route": "/",
+      "status": 200,
+      "location": null
+    },
+    {
+      "route": "/reath-digest",
+      "status": 200,
+      "location": null
+    },
+    {
+      "route": "/reath-digest/a-natural-choice",
+      "status": 200,
+      "location": null
+    },
+    {
+      "route": "/reath-digest/moon-bars",
+      "status": 200,
+      "location": null
+    },
+    {
+      "route": "/watch",
+      "status": 200,
+      "location": null
+    },
+    {
+      "route": "/lore",
+      "status": 200,
+      "location": null
+    },
+    {
+      "route": "/lore/paralleon",
+      "status": 200,
+      "location": null
+    },
+    {
+      "route": "/lore/reath",
+      "status": 200,
+      "location": null
+    },
+    {
+      "route": "/profile/edit",
+      "status": 307,
+      "location": "/login"
+    },
+    {
+      "route": "/api/eggs/lore",
+      "status": 200,
+      "location": null,
+      "responseKeys": [
+        "entries"
+      ],
+      "count": 17
+    }
+  ]
+}

@@ -144,6 +144,7 @@ export function filterPublications(
           item.title,
           item.summary,
           item.attribution,
+          ...(item.topics || []),
           publicationFormats[item.format],
         ]
           .join(" ")

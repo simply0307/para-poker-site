@@ -158,10 +158,11 @@ export function RoomEditor({ initialRoom, projects, works }) {
               value={value.profile.visibility}
               choices={{
                 private: "Private — only you",
-                public: "Public — anyone",
+                public: "Public — listed on EGGS",
               }}
               onChange={(v) => change("profile", "visibility", v)}
             />
+            <p className="eggs-help">Public pages appear in People and can join the community. Private pages stay out of public discovery; your editor preview remains available to you.</p>
           </section>
           <section>
             <h2>Room appearance</h2>

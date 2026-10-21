@@ -1,0 +1,320 @@
+{
+  "checkedOn": "2026-10-20",
+  "channel": {
+    "title": "Eternal Galaxy Gaming Studio",
+    "url": "https://www.youtube.com/@EternalGalaxyGamingStudio",
+    "id": "UCSaLwO8Mw9YmMuCzZDvvIcw",
+    "public_upload_count": 11
+  },
+  "policy": "User-supplied existing public releases, linked and displayed from their original hosts. No private Drive/CSV text, rights-unverified archive images, rehosting or new canonical approval.",
+  "catalogPath": "src/lib/reath/release-data.json",
+  "catalogSHA256": "e91bb2367e0b5bfe9cc7c70d88f1150dbfb28a07ca31cda719245b7729f4e5fa",
+  "releases": [
+    {
+      "title": "A Natural Choice",
+      "slug": "a-natural-choice",
+      "source": "https://reath-digest.carrd.co/#funniesedition1",
+      "credit": "Eternal Galaxy Gaming Studio / Reath Funnies",
+      "publishedAt": "2026-07-23",
+      "createdLabel": null,
+      "gallery": [
+        {
+          "order": 1,
+          "url": "https://reath-digest.carrd.co/assets/images/gallery02/5f793456_original.jpg?v=cc888db5",
+          "width": 1122,
+          "height": 1402
+        },
+        {
+          "order": 2,
+          "url": "https://reath-digest.carrd.co/assets/images/gallery02/d3de505d_original.jpg?v=cc888db5",
+          "width": 510,
+          "height": 879
+        },
+        {
+          "order": 3,
+          "url": "https://reath-digest.carrd.co/assets/images/gallery02/9c3ed66d_original.jpg?v=cc888db5",
+          "width": 510,
+          "height": 878
+        },
+        {
+          "order": 4,
+          "url": "https://reath-digest.carrd.co/assets/images/gallery02/a6dad7a7_original.jpg?v=cc888db5",
+          "width": 510,
+          "height": 657
+        },
+        {
+          "order": 5,
+          "url": "https://reath-digest.carrd.co/assets/images/gallery02/92506089_original.jpg?v=cc888db5",
+          "width": 510,
+          "height": 657
+        }
+      ],
+      "subjects": [
+        {
+          "name": "Commissioner Infinitimer",
+          "aliases": [
+            "Infatimer",
+            "Infinitimer"
+          ],
+          "type": "person"
+        },
+        {
+          "name": "President Goldenprong",
+          "aliases": [],
+          "type": "person"
+        }
+      ],
+      "articles": []
+    },
+    {
+      "title": "Moon Bars",
+      "slug": "moon-bars",
+      "source": "https://reath-digest.carrd.co/#funniesedition2",
+      "credit": "Eternal Galaxy Gaming Studio / Reath Funnies",
+      "publishedAt": "2026-07-23",
+      "createdLabel": null,
+      "gallery": [
+        {
+          "order": 1,
+          "url": "https://reath-digest.carrd.co/assets/images/gallery01/4250c14d_original.jpg?v=cc888db5",
+          "width": 1054,
+          "height": 1489
+        },
+        {
+          "order": 2,
+          "url": "https://reath-digest.carrd.co/assets/images/gallery01/ecc6ad31_original.jpg?v=cc888db5",
+          "width": null,
+          "height": null
+        },
+        {
+          "order": 3,
+          "url": "https://reath-digest.carrd.co/assets/images/gallery01/51044c39_original.jpg?v=cc888db5",
+          "width": null,
+          "height": null
+        },
+        {
+          "order": 4,
+          "url": "https://reath-digest.carrd.co/assets/images/gallery01/dc551970_original.jpg?v=cc888db5",
+          "width": null,
+          "height": null
+        },
+        {
+          "order": 5,
+          "url": "https://reath-digest.carrd.co/assets/images/gallery01/a6b89ff0_original.jpg?v=cc888db5",
+          "width": null,
+          "height": null
+        },
+        {
+          "order": 6,
+          "url": "https://reath-digest.carrd.co/assets/images/gallery01/59f4a799_original.jpg?v=cc888db5",
+          "width": null,
+          "height": null
+        }
+      ],
+      "subjects": [
+        {
+          "name": "Miro Bloom",
+          "aliases": [
+            "Miro"
+          ],
+          "type": "person"
+        },
+        {
+          "name": "The Little Grand Dive",
+          "aliases": [],
+          "type": "place"
+        }
+      ],
+      "articles": []
+    },
+    {
+      "title": "Reath in Review — Edition 1",
+      "slug": "reath-in-review-edition-1",
+      "source": "https://reath-digest.carrd.co/#reathinreviewedition1",
+      "credit": "Eternal Galaxy Gaming Studio with Mythic Strategies",
+      "publishedAt": null,
+      "createdLabel": "January 2026",
+      "gallery": [
+        {
+          "order": 1,
+          "url": "https://reath-digest.carrd.co/assets/images/image06.jpg?v=cc888db5",
+          "width": 3299,
+          "height": 2548
+        }
+      ],
+      "subjects": [],
+      "articles": [
+        "Artificial Expedited Interest",
+        "Held by the Barrel",
+        "Lines of Last Year",
+        "On an Island in the Slums"
+      ]
+    },
+    {
+      "title": "Reath in Review — Edition 2",
+      "slug": "reath-in-review-edition-2",
+      "source": "https://reath-digest.carrd.co/#reathinreviewedition2",
+      "credit": "Eternal Galaxy Gaming Studio with Mythic Strategies",
+      "publishedAt": null,
+      "createdLabel": "January 2026",
+      "gallery": [
+        {
+          "order": 1,
+          "url": "https://reath-digest.carrd.co/assets/images/image08.jpg?v=cc888db5",
+          "width": 3291,
+          "height": 2548
+        }
+      ],
+      "subjects": [],
+      "articles": [
+        "Consensus, sans Agreement",
+        "Narrative Arbitrage",
+        "Quiet Opt-Outs",
+        "The Last Press in the District"
+      ]
+    }
+  ],
+  "videos": [
+    {
+      "id": "Z-O7nCVcmtk",
+      "title": "The Problem With Digital Ownership: What Are TCG Players Really Buying?",
+      "scope": "eggs",
+      "source_url": "https://www.youtube.com/watch?v=Z-O7nCVcmtk",
+      "published_at": "2026-10-07T12:39:06-07:00",
+      "duration": "PT8M20S",
+      "summary": "Discussion of digital collections, player ownership, platform accountability and EGGS design values.",
+      "credit": "Eternal Galaxy Gaming Studio",
+      "ai_disclosure": null,
+      "short": false
+    },
+    {
+      "id": "mYIwd3oYa4Q",
+      "title": "What If Every Player Used the Same Deck? | Introducing Gauntlet",
+      "scope": "gauntlet",
+      "source_url": "https://www.youtube.com/watch?v=mYIwd3oYa4Q",
+      "published_at": "2026-08-06T12:30:21-07:00",
+      "duration": "PT3M1S",
+      "summary": "Introduction to Gauntlet, a strategy game where both players begin with standard playing-card decks, including its design and priority system.",
+      "credit": "Eternal Galaxy Gaming Studio",
+      "ai_disclosure": null,
+      "short": false
+    },
+    {
+      "id": "l08RyKzGOdQ",
+      "title": "Why are we divided?",
+      "scope": "worlds",
+      "source_url": "https://www.youtube.com/watch?v=l08RyKzGOdQ",
+      "published_at": "2025-09-19T14:59:57-07:00",
+      "duration": "PT4M52S",
+      "summary": "An in-universe Strategist briefing on the inspirations behind the Sheen, Bizi, Frumo and Rumin factions.",
+      "credit": "Eternal Galaxy Gaming Studio",
+      "ai_disclosure": null,
+      "short": false
+    },
+    {
+      "id": "YDPbD-CD_JU",
+      "title": "Meerus' Philosophy",
+      "scope": "worlds",
+      "source_url": "https://www.youtube.com/watch?v=YDPbD-CD_JU",
+      "published_at": "2025-09-17T11:12:29-07:00",
+      "duration": "PT1M10S",
+      "summary": "A satirical in-universe introduction to Meerus, the coastal investor associated with Rumin lore.",
+      "credit": "Eternal Galaxy Gaming Studio",
+      "ai_disclosure": null,
+      "short": false
+    },
+    {
+      "id": "cEttP93mDjo",
+      "title": "EGGS Communication volume 2",
+      "scope": "eggs",
+      "source_url": "https://www.youtube.com/watch?v=cEttP93mDjo",
+      "published_at": "2025-09-16T22:06:29-07:00",
+      "duration": "PT12M9S",
+      "summary": "A historical studio update about playtest materials, the first four factions and alien factions.",
+      "credit": "Eternal Galaxy Gaming Studio",
+      "ai_disclosure": null,
+      "short": false
+    },
+    {
+      "id": "eDV18i6RMBg",
+      "title": "MOON BARS A narrated comic from Reath Funnies. #Shorts #Comic #NarratedComic #Satire #ReathFunnies",
+      "scope": "reath-funnies",
+      "source_url": "https://www.youtube.com/watch?v=eDV18i6RMBg",
+      "published_at": "2026-08-05T13:01:35-07:00",
+      "duration": "PT3M0S",
+      "summary": "Narrated Moon Bars comic: singer Miro Bloom enters a restorative performance circuit after a disastrous show.",
+      "credit": "Eternal Galaxy Gaming Studio",
+      "ai_disclosure": "Made with AI: sounds or visuals were altered or fully generated.",
+      "short": true
+    },
+    {
+      "id": "WfD4lCPag6o",
+      "title": "We're Finally Posting Every Week | Introducing Reath Funnies & Reath Digest",
+      "scope": "reath",
+      "source_url": "https://www.youtube.com/watch?v=WfD4lCPag6o",
+      "published_at": "2026-07-31T14:11:27-07:00",
+      "duration": "PT1M13S",
+      "summary": "A studio announcement introducing Reath Funnies and Reath Digest alongside current projects; its weekly cadence is an intention at time of upload.",
+      "credit": "Eternal Galaxy Gaming Studio",
+      "ai_disclosure": null,
+      "short": true
+    },
+    {
+      "id": "smU3UXIX0Uk",
+      "title": "Reath Funnies Edition 1: A Natural Choice Watch with sound. Read : https://reath-digest.carrd.co/",
+      "scope": "reath-funnies",
+      "source_url": "https://www.youtube.com/watch?v=smU3UXIX0Uk",
+      "published_at": "2026-07-29T13:19:31-07:00",
+      "duration": "PT2M21S",
+      "summary": "Narrated presentation of A Natural Choice from Reath Funnies.",
+      "credit": "Eternal Galaxy Gaming Studio",
+      "ai_disclosure": "Made with AI: sounds or visuals were altered or fully generated.",
+      "short": true
+    },
+    {
+      "id": "o9MW6jRTJ6I",
+      "title": "Tang, the Weathered",
+      "scope": "worlds",
+      "source_url": "https://www.youtube.com/watch?v=o9MW6jRTJ6I",
+      "published_at": "2025-09-17T15:36:10-07:00",
+      "duration": "PT0M33S",
+      "summary": "An in-universe Sheen character sketch: Tang questions the miracle drink promoted by Bark Xin and its concealed costs.",
+      "credit": "Eternal Galaxy Gaming Studio",
+      "ai_disclosure": null,
+      "short": true
+    },
+    {
+      "id": "mZJgOF8FLCI",
+      "title": "Polea, of the sea",
+      "scope": "worlds",
+      "source_url": "https://www.youtube.com/watch?v=mZJgOF8FLCI",
+      "published_at": "2025-09-16T22:23:38-07:00",
+      "duration": "PT0M42S",
+      "summary": "A satirical Frumo character introduction: Polea rejects kings before becoming a ruler himself.",
+      "credit": "Eternal Galaxy Gaming Studio",
+      "ai_disclosure": null,
+      "short": true
+    },
+    {
+      "id": "7qaa1lRM4X8",
+      "title": "Kaisar, The Jewel",
+      "scope": "worlds",
+      "source_url": "https://www.youtube.com/watch?v=7qaa1lRM4X8",
+      "published_at": "2025-09-16T22:18:33-07:00",
+      "duration": "PT0M39S",
+      "summary": "A satirical in-universe sketch of Kaisar, the Jewel of Rumie, spanning market power, influence and Rumin political history.",
+      "credit": "Eternal Galaxy Gaming Studio",
+      "ai_disclosure": null,
+      "short": true
+    }
+  ],
+  "localLorePreview": {
+    "publicSourceIntroductions": 17,
+    "privateUnreviewedDrafts": 42,
+    "privateSourceBodiesIncluded": false,
+    "hostedImport": false,
+    "sourceManifest": "Ignored .reference/lore-source-review.json; never consumed by production routes"
+  },
+  "masthead": "Existing EGGS text masthead retained by user instruction",
+  "omitted": "The Thirteenth Inkgredient: user explicitly withdrew that item."
+}

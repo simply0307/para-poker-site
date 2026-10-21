@@ -17,7 +17,7 @@ export function EggsNav({ personal = false }) {
   if (
     personal &&
     (pathname === "/" ||
-      /^\/(projects|games|library|community|people|reath-digest)(\/|$)/u.test(
+      /^\/(projects|games|library|community|people|reath-digest|lore|watch)(\/|$)/u.test(
         pathname,
       ))
   )

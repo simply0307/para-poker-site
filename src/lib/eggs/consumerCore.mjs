@@ -25,7 +25,8 @@ export function requireSameOrigin(request, config) {
   }
 }
 
-export async function readConsumerJson(request) {
+export async function readConsumerJson(request, maxBytes = 8192) {
+  if (!Number.isSafeInteger(maxBytes) || maxBytes < 1 || maxBytes > 98304) throw new TypeError("Invalid JSON byte limit");
   if (!/^application\/json(?:;|$)/iu.test(request.headers.get("content-type") || "")) throw new ConsumerError(415, "Send JSON data.");
   const reader = request.body?.getReader();
   let size = 0; const chunks = [];
@@ -34,7 +35,7 @@ export async function readConsumerJson(request) {
     const { value, done } = await reader.read();
     if (done) break;
     size += value.byteLength;
-    if (size > 8192) { await reader.cancel(); throw new ConsumerError(413, "This request is too large."); }
+    if (size > maxBytes) { await reader.cancel(); throw new ConsumerError(413, "This request is too large."); }
     chunks.push(value);
   }
   try {

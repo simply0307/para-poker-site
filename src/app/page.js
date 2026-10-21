@@ -6,6 +6,7 @@ import { publicWorks } from "@/lib/rooms/server";
 import { StudioHome } from "@/components/rooms/StudioHome";
 import { communityEnabled } from "@/lib/community/core.mjs";
 import { publicFeed } from "@/lib/community/server";
+import { existingReathReleases } from "@/lib/reath/releases.mjs";
 export const dynamic = "force-dynamic";
 export default async function EggsHome() {
   const { projects, unavailable } = await publicCatalog();
@@ -22,6 +23,7 @@ export default async function EggsHome() {
         worksUnavailable={worksUnavailable}
         community={communityEnabled()}
         feed={feed}
+        releases={existingReathReleases()}
       />
     );
   }

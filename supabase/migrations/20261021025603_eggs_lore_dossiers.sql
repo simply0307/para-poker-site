@@ -1,0 +1,161 @@
+-- Additive EGGS lore review candidate. No source imports, canon promotion or Poker writes.
+begin;
+set local lock_timeout='5s';
+set local statement_timeout='30s';
+do $$ begin
+ if to_regclass('eggs_community_private.posts') is null then raise exception 'Apply the four prior EGGS candidates first'; end if;
+end $$;
+
+create schema eggs_lore_private;
+revoke all on schema eggs_lore_private from public,anon,authenticated,service_role;
+grant usage on schema eggs_lore_private to anon,authenticated;
+create function eggs_lore_private.safe_source(value text) returns boolean
+language sql immutable set search_path='' as $$
+ select coalesce(value='' or (char_length(value)<=500
+ and value ~* '^https://[a-z0-9]([a-z0-9.-]*[a-z0-9])?[.][a-z]{2,}([/?#][a-z0-9._~!$&()*+,;=:@/?#-]*)?$'
+ and value !~* '^https://([^/?#]*[.])?(drive[.]google[.]com|docs[.]google[.]com)([/?#]|$)'
+ and value !~* '^https://[^/?#]*[.](local|localhost|internal|invalid|test)([/?#]|$)'
+ and (value !~ '[?]' or value ~ '^https://www[.]youtube[.]com/watch[?]v=[A-Za-z0-9_-]{11}$')
+ and (value !~ '#' or value ~ '^[^#]+#[A-Za-z0-9_-]{1,80}$')),false);
+$$;
+create function eggs_lore_private.valid_content(value jsonb) returns boolean
+language plpgsql immutable set search_path='' as $$
+declare item record;
+begin
+ if not eggs_rooms_private.exact_keys(value,array['title','summary','body','continuity_note','attribution','permission','source_reviewed','public_source','internal_source','project_id']) then return false; end if;
+ for item in select * from jsonb_each(value) loop
+  if item.key not in ('source_reviewed','project_id') and jsonb_typeof(item.value)<>'string' then return false; end if;
+  if item.key not in ('source_reviewed','project_id') and regexp_replace(item.value#>>'{}',E'[\n\r\t]','','g') ~ '[[:cntrl:]]' then return false; end if;
+ end loop;
+ return coalesce(char_length(value->>'title')<=120 and char_length(btrim(value->>'title'))>0
+ and char_length(value->>'summary')<=300 and char_length(btrim(value->>'summary'))>0
+ and char_length(value->>'body')<=20000 and char_length(btrim(value->>'body'))>0
+ and char_length(value->>'continuity_note')<=160 and char_length(value->>'attribution')<=300 and char_length(btrim(value->>'attribution'))>0
+ and char_length(value->>'internal_source')<=2000
+ and value->>'permission' in ('unreviewed','site-public') and jsonb_typeof(value->'source_reviewed')='boolean'
+ and eggs_lore_private.safe_source(value->>'public_source')
+ and (value->'project_id'='null'::jsonb or (value->>'project_id') ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'),false);
+end $$;
+create table public.eggs_lore_drafts (
+ id uuid primary key default gen_random_uuid(),
+ world text not null check(char_length(world) between 3 and 64 and world ~ '^[a-z0-9]+(-[a-z0-9]+)*$'),
+ kind text not null check(kind in ('world','factions','people','events','terms','places')),
+ slug text not null check(char_length(slug) between 3 and 64 and slug ~ '^[a-z0-9]+(-[a-z0-9]+)*$'),
+ content jsonb not null check(eggs_lore_private.valid_content(content)),
+ state text not null default 'draft' check(state in ('draft','published','archived')),
+ version integer not null default 1 check(version>0),
+ updated_at timestamptz not null default now(),
+ unique(world,kind,slug),
+ check(kind<>'world' or slug=world),
+ check(kind='world' or content->'project_id'='null'::jsonb)
+);
+create table public.eggs_lore (
+ id uuid primary key references public.eggs_lore_drafts(id) on delete restrict,
+ world text not null, kind text not null, slug text not null,
+ content jsonb not null check(not(content ? 'internal_source')),
+ version integer not null, published_at timestamptz not null default now(),
+ unique(world,kind,slug)
+);
+create table eggs_lore_private.audit (
+ id bigint generated always as identity primary key,
+ lore_id uuid not null references public.eggs_lore_drafts(id) on delete restrict,
+ actor_id uuid references auth.users(id) on delete set null,
+ action text not null check(action in ('create','save','publish','archive')),
+ version integer not null, content jsonb not null, occurred_at timestamptz not null default now()
+);
+create index eggs_lore_audit_record on eggs_lore_private.audit(lore_id,id desc);
+create index eggs_lore_audit_actor on eggs_lore_private.audit(actor_id);
+alter table public.eggs_lore_drafts enable row level security;
+alter table public.eggs_lore_drafts force row level security;
+alter table public.eggs_lore enable row level security;
+alter table public.eggs_lore force row level security;
+alter table eggs_lore_private.audit enable row level security;
+alter table eggs_lore_private.audit force row level security;
+revoke all on public.eggs_lore_drafts,public.eggs_lore,eggs_lore_private.audit from public,anon,authenticated,service_role;
+revoke all on all sequences in schema eggs_lore_private from public,anon,authenticated,service_role;
+grant select on public.eggs_lore_drafts to authenticated;
+grant select on public.eggs_lore to anon,authenticated;
+create function eggs_lore_private.world_is_public(p_world text) returns boolean
+language sql stable security definer set search_path='' as $$
+ select exists(select 1 from public.eggs_lore w where w.world=p_world and w.kind='world'
+ and (w.content->>'project_id' is null or exists(select 1 from public.eggs_projects p where p.id=(w.content->>'project_id')::uuid)));
+$$;
+create policy lore_editor_read on public.eggs_lore_drafts for select to authenticated using ((select eggs_hub_private.editor_role()) is not null);
+create policy lore_public_read on public.eggs_lore for select to anon,authenticated using(eggs_lore_private.world_is_public(world));
+
+create function eggs_lore_private.write(p_id uuid,p_world text,p_kind text,p_slug text,p_content jsonb,p_version integer,p_action text) returns jsonb
+language plpgsql security definer set search_path='' as $$
+declare editor text; row public.eggs_lore_drafts;
+begin
+ if not eggs_private.is_confirmed_user() then raise exception 'Live confirmed editor sign-in required' using errcode='42501'; end if;
+ select role into editor from eggs_hub_private.editors where auth_user_id=auth.uid() for share;
+ if editor is null then raise exception 'Editor required' using errcode='42501'; end if;
+ if p_action is null or p_action not in ('save','publish','archive') or p_version is null or p_version<0
+ or p_world is null or char_length(p_world) not between 3 and 64 or p_world !~ '^[a-z0-9]+(-[a-z0-9]+)*$'
+ or p_slug is null or char_length(p_slug) not between 3 and 64 or p_slug !~ '^[a-z0-9]+(-[a-z0-9]+)*$'
+ or p_kind is null or p_kind not in ('world','factions','people','events','terms','places')
+ or (p_kind='world' and p_slug<>p_world) then raise exception 'Invalid lore action or identity' using errcode='22023'; end if;
+ if p_action in ('publish','archive') and editor<>'publisher' then raise exception 'Publisher required' using errcode='42501'; end if;
+ -- One stable world lock orders dossier writes with world publication/archival.
+ perform pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended('eggs-lore:'||p_world,0));
+ if p_kind<>'world' then
+  perform 1 from public.eggs_lore_drafts where world=p_world and kind='world';
+  if not found then raise exception 'Register the world first' using errcode='23514'; end if;
+ end if;
+ if p_action='save' then
+  if not eggs_lore_private.valid_content(p_content) or (p_kind<>'world' and p_content->'project_id'<>'null'::jsonb)
+  then raise exception 'Invalid dossier content' using errcode='23514'; end if;
+  if p_content->>'project_id' is not null then
+   perform 1 from public.eggs_projects where id=(p_content->>'project_id')::uuid for share;
+   if not found then raise exception 'Choose a published project' using errcode='23514'; end if;
+  end if;
+ elsif p_content is not null then raise exception 'Publish the saved preview' using errcode='22023'; end if;
+ if p_id is null then
+  if p_action<>'save' or p_version<>0 then raise exception 'Save a draft first' using errcode='22023'; end if;
+  insert into public.eggs_lore_drafts(world,kind,slug,content) values(p_world,p_kind,p_slug,p_content) returning * into row;
+ else
+  select * into row from public.eggs_lore_drafts where id=p_id for update;
+  if row.id is null then raise exception 'Dossier unavailable' using errcode='PT404'; end if;
+  if row.world<>p_world or row.kind<>p_kind or row.slug<>p_slug then raise exception 'Dossier identity is permanent' using errcode='22023'; end if;
+  if row.version<>p_version then raise exception 'Dossier changed. Reload saved revision' using errcode='PT409'; end if;
+  if p_action='save' then
+   update public.eggs_lore_drafts set content=p_content,version=version+1,updated_at=now() where id=p_id returning * into row;
+  else
+   if p_action='publish' then
+    if row.content->>'permission' is distinct from 'site-public' or row.content->'source_reviewed' is distinct from 'true'::jsonb
+    then raise exception 'Public permission and source review required' using errcode='23514'; end if;
+    if p_kind<>'world' and not eggs_lore_private.world_is_public(p_world) then raise exception 'Publish the world first' using errcode='23514'; end if;
+    if row.content->>'project_id' is not null then
+     perform 1 from public.eggs_projects where id=(row.content->>'project_id')::uuid for share;
+     if not found then raise exception 'Associated project is unavailable' using errcode='23514'; end if;
+    end if;
+   end if;
+   update public.eggs_lore_drafts set state=case when p_action='publish' then 'published' else 'archived' end,
+    version=version+1,updated_at=now() where id=p_id returning * into row;
+   if p_action='publish' then
+    insert into public.eggs_lore(id,world,kind,slug,content,version) values(row.id,row.world,row.kind,row.slug,row.content-'internal_source',row.version)
+    on conflict(id) do update set content=excluded.content,version=excluded.version,published_at=now();
+   else delete from public.eggs_lore where id=p_id; end if;
+  end if;
+ end if;
+ insert into eggs_lore_private.audit(lore_id,actor_id,action,version,content)
+ values(row.id,auth.uid(),case when p_id is null then 'create' else p_action end,row.version,row.content);
+ return to_jsonb(row);
+end $$;
+create function eggs_lore_private.history(p_id uuid) returns jsonb
+language plpgsql stable security definer set search_path='' as $$
+begin
+ if eggs_hub_private.editor_role() is null then raise exception 'Live editor required' using errcode='42501'; end if;
+ return coalesce((select jsonb_agg(to_jsonb(a) order by a.id desc) from
+  (select id,actor_id,action,version,content,occurred_at from eggs_lore_private.audit where lore_id=p_id order by id desc limit 100) a),'[]');
+end $$;
+create function public.save_eggs_lore(p_id uuid,p_world text,p_kind text,p_slug text,p_content jsonb,p_version integer,p_action text) returns jsonb
+language sql security invoker set search_path='' as $$ select eggs_lore_private.write(p_id,p_world,p_kind,p_slug,p_content,p_version,p_action); $$;
+create function public.eggs_lore_audit(p_id uuid) returns jsonb
+language sql stable security invoker set search_path='' as $$ select eggs_lore_private.history(p_id); $$;
+revoke all on all functions in schema eggs_lore_private from public,anon,authenticated,service_role;
+grant execute on function eggs_lore_private.world_is_public(text) to anon,authenticated;
+grant execute on function eggs_lore_private.write(uuid,text,text,text,jsonb,integer,text),eggs_lore_private.history(uuid) to authenticated;
+revoke all on function public.save_eggs_lore(uuid,text,text,text,jsonb,integer,text),public.eggs_lore_audit(uuid) from public,anon,authenticated,service_role;
+grant execute on function public.save_eggs_lore(uuid,text,text,text,jsonb,integer,text),public.eggs_lore_audit(uuid) to authenticated;
+commit;

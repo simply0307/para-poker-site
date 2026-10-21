@@ -53,7 +53,17 @@ export async function consumerFixture({restHandler}={}) {
     { player_id: consumerIds.player, display_name: "Test Competitor", season_code: "S0", rank: 2, points: 75, sessions_played: 4 },
     { player_id: consumerIds.otherPlayer, display_name: "Second Competitor", season_code: null, rank: null, points: null, sessions_played: null },
   ];
-  let serial = 10; let signupChallenge; let signupUser; let confirmationCode;
+  let serial = 10; let signupChallenge; let signupUser; let confirmationCode; let previewMessage;
+  const escapeHtml = value => String(value).replace(/[&<>"']/gu, character => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[character]);
+  function recordPreviewMessage(redirect) {
+    previewMessage = null;
+    try {
+      const target = new URL(redirect);
+      if (target.protocol !== "http:" || !["localhost", "127.0.0.1", "[::1]"].includes(target.hostname) || target.username || target.password || target.pathname !== "/auth/callback" || target.search || target.hash) return;
+      target.searchParams.set("code", confirmationCode);
+      previewMessage = { email: signupUser.email, href: target.href };
+    } catch { /* No inbox link is generated for a hosted or invalid destination. */ }
+  }
   const makeId = () => `80000000-0000-4000-8000-${String(++serial).padStart(12,"0")}`;
   for (const name of ["alice", "bob", "operator"]) users.set(`${name}@fixture.invalid`, { id: consumerIds[name], email: `${name}@fixture.invalid`, email_confirmed_at: "2026-09-01T00:00:00Z", is_anonymous: false, user_metadata: { role: "owner" } });
   function issue(user) {
@@ -85,12 +95,21 @@ export async function consumerFixture({restHandler}={}) {
       requests.push({ path: url.pathname, method: request.method, key: request.headers.apikey, token, body, query: url.search });
       const send = (data, status = 200) => { response.writeHead(status).end(JSON.stringify(data)); };
       const fail = (code, status = 400) => send({ code, message: "Synthetic backend detail must not leak" }, status);
+      if (url.pathname === "/__eggs_preview/inbox") {
+        if (request.method !== "GET") return fail("method_not_allowed", 405);
+        response.setHeader("Content-Type", "text/html; charset=utf-8");
+        response.setHeader("Cache-Control", "private, no-store");
+        response.setHeader("Referrer-Policy", "no-referrer");
+        response.setHeader("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'");
+        const message = signupChallenge && previewMessage ? '<section><h2>Newest local confirmation</h2><p>For <strong>' + escapeHtml(previewMessage.email) + '</strong></p><a href="' + escapeHtml(previewMessage.href) + '" rel="noopener noreferrer">Confirm this local account ↗</a></section>' : '<p>No pending local confirmation. Create an account or request a sign-in link from the local EGGS preview first.</p>';
+        response.writeHead(200).end('<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EGGS local confirmation inbox</title><style>body{max-width:42rem;margin:4rem auto;padding:1rem;background:#faf3d9;color:#153f32;font:18px/1.6 system-ui}a{display:inline-block;padding:12px;color:inherit;border:2px solid}section{padding:20px;border:1px solid}</style><main><h1>Local confirmation inbox</h1><p><strong>Simulated authentication only.</strong> No email was sent. This page contains a disposable test confirmation, never a real Supabase token or password.</p><p>Open the newest link in the same browser where you requested it. It returns to your local EGGS preview.</p>' + message + '</main></html>'); return;
+      }
       if(url.pathname.startsWith("/rest/v1/") && restHandler && await restHandler({url,body,request,user,active:actor?.active,token,send,fail})) return;
       if (url.pathname === "/auth/v1/signup") {
         confirmationCode = "fixture-confirm-code";
         signupChallenge = body.code_challenge;
         signupUser = { id: makeId(), email: body.email, email_confirmed_at: null, is_anonymous: false, identities: [] };
-        users.set(body.email, signupUser); return send(signupUser);
+        users.set(body.email, signupUser); recordPreviewMessage(url.searchParams.get("redirect_to")); return send(signupUser);
       }
       if (url.pathname === "/auth/v1/otp") {
         if (body.email === "rate-limit@fixture.invalid") return fail("over_email_send_rate_limit", 429);
@@ -98,6 +117,7 @@ export async function consumerFixture({restHandler}={}) {
         if (body.create_user !== false || !users.has(body.email)) return fail("otp_disabled", 400);
         signupChallenge = body.code_challenge; signupUser = users.get(body.email);
         confirmationCode = "fixture-email-code";
+        recordPreviewMessage(url.searchParams.get("redirect_to"));
         return send({});
       }
       if (url.pathname === "/auth/v1/token") {
@@ -197,7 +217,7 @@ export async function consumerFixture({restHandler}={}) {
     } catch (error) { response.writeHead(500).end(JSON.stringify({ message: error.message })); }
   });
   const port = await listen(server);
-  return { url: `http://127.0.0.1:${port}`, users, tokens, profiles, claims, links, requests, issue,
+  return { url: `http://127.0.0.1:${port}`, previewInboxUrl: `http://127.0.0.1:${port}/__eggs_preview/inbox`, users, tokens, profiles, claims, links, requests, issue,
     close: async () => { server.closeAllConnections(); await new Promise(resolve => server.close(resolve)); },
   };
 }

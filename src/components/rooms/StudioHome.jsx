@@ -2,6 +2,8 @@ import Link from "next/link";
 import { StudioShell } from "./StudioShell";
 import { StudioProject } from "./StudioProject";
 import { WorkCard } from "./WorkPresentation";
+import { loreEnabled } from "@/lib/lore/core.mjs";
+import { PublicationCard } from "@/components/reath/ReathDigest";
 export function StudioHome({
   projects,
   works,
@@ -9,6 +11,7 @@ export function StudioHome({
   worksUnavailable,
   community = false,
   feed = null,
+  releases = [],
 }) {
   return (
     <StudioShell>
@@ -64,6 +67,21 @@ export function StudioHome({
             </b>
           </Link>
         </nav>
+        {loreEnabled() ? (
+          <section className="studio-lore-invitation">
+            <div>
+              <p className="studio-kicker">
+                BEYOND THE PAGE / THE WORLD ARCHIVE
+              </p>
+              <h2>Every world has its people.</h2>
+              <p>
+                Explore the factions, people, events, terms and places behind
+                the stories.
+              </p>
+            </div>
+            <Link href="/lore">Open the lore dossiers ↗</Link>
+          </section>
+        ) : null}
         <div className="bulletin-heading">
           <h2>Made around here.</h2>
           <span>THE EGGS PROJECTS & LIBRARY</span>
@@ -78,6 +96,9 @@ export function StudioHome({
           )}
           {works.map((w) => (
             <WorkCard key={w.id} work={w} />
+          ))}
+          {releases.map((release) => (
+            <PublicationCard key={release.id} publication={release} />
           ))}
           <aside className="studio-note">
             <span className="studio-stamp">NOTICE TO ALL VISITORS</span>

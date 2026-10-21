@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { roomsEnabled } from "@/lib/rooms/core.mjs";
 import { communityEnabled } from "@/lib/community/core.mjs";
+import { loreEnabled } from "@/lib/lore/core.mjs";
 export const dynamic = "force-dynamic";
 export const metadata = {
   title: "EGGS workspace",
@@ -12,6 +13,7 @@ export default function HubAdminLayout({ children }) {
       <nav className="hub-workspace-nav" aria-label="EGGS editor workspace">
         <Link href="/eggs-admin">EGGS / Editor workspace</Link>
         {roomsEnabled() ? <Link href="/eggs-admin/works">Works</Link> : null}
+        {loreEnabled() ? <Link href="/eggs-admin/lore">Lore dossiers</Link> : null}
         {communityEnabled() ? (
           <Link href="/eggs-admin/community">Community review</Link>
         ) : null}

@@ -1,0 +1,339 @@
+{
+  "browser": "155.0.4283.45",
+  "checkedAt": "2026-10-21T03:40:25.293Z",
+  "nextBuildId": "saI7Q7P8Hs1r0qlJZjs7a",
+  "featureFlags": {
+    "hub": true,
+    "rooms": true,
+    "community": true,
+    "lore": true
+  },
+  "transport": "Real built local Next.js + disposable PostgreSQL17/PostgREST16.4; synthetic Auth fixture unused; empty Hub publication table",
+  "publicContent": "Four existing public Carrd releases and eleven actual channel uploads; remote Carrd image requests were not mocked. No new hosted publication or Auth flow was performed.",
+  "checks": [
+    "Actual search finds Infatimer alias → A Natural Choice and Miro Bloom → Moon Bars; each opens its source-backed reading copy.",
+    "Reader query page survives reload; Previous/Next/page picker work with keyboard; 300% zoom scrolls within the frame without document overflow.",
+    "The video room lists all eleven real channel uploads and runtime-enabled Lore/Community/People navigation; no YouTube player/thumbnail request occurs during browsing.",
+    "Forty captures: Reath landing, original reading page, all-video grid and home in both themes at 320/390/768/1024/1440px; real external images loaded and no document overflow.",
+    "Keyboard Play is the first action that creates the privacy-enhanced YouTube iframe; source AI disclosure remains visible. This verifies embed gating, not third-party playback availability."
+  ],
+  "screenshots": [
+    "home-carton-320.png",
+    "reath-digest-carton-320.png",
+    "reader-carton-320.png",
+    "watch-carton-320.png",
+    "home-carton-390.png",
+    "reath-digest-carton-390.png",
+    "reader-carton-390.png",
+    "watch-carton-390.png",
+    "home-carton-768.png",
+    "reath-digest-carton-768.png",
+    "reader-carton-768.png",
+    "watch-carton-768.png",
+    "home-carton-1024.png",
+    "reath-digest-carton-1024.png",
+    "reader-carton-1024.png",
+    "watch-carton-1024.png",
+    "home-carton-1440.png",
+    "reath-digest-carton-1440.png",
+    "reader-carton-1440.png",
+    "watch-carton-1440.png",
+    "home-after-hours-320.png",
+    "reath-digest-after-hours-320.png",
+    "reader-after-hours-320.png",
+    "watch-after-hours-320.png",
+    "home-after-hours-390.png",
+    "reath-digest-after-hours-390.png",
+    "reader-after-hours-390.png",
+    "watch-after-hours-390.png",
+    "home-after-hours-768.png",
+    "reath-digest-after-hours-768.png",
+    "reader-after-hours-768.png",
+    "watch-after-hours-768.png",
+    "home-after-hours-1024.png",
+    "reath-digest-after-hours-1024.png",
+    "reader-after-hours-1024.png",
+    "watch-after-hours-1024.png",
+    "home-after-hours-1440.png",
+    "reath-digest-after-hours-1440.png",
+    "reader-after-hours-1440.png",
+    "watch-after-hours-1440.png"
+  ],
+  "externalImages": [
+    {
+      "url": "https://reath-digest.carrd.co/assets/images/gallery02/5f793456_original.jpg?v=cc888db5",
+      "complete": true,
+      "width": 1122,
+      "height": 1402
+    },
+    {
+      "url": "https://reath-digest.carrd.co/assets/images/gallery01/4250c14d_original.jpg?v=cc888db5",
+      "complete": true,
+      "width": 1054,
+      "height": 1489
+    },
+    {
+      "url": "https://reath-digest.carrd.co/assets/images/image06.jpg?v=cc888db5",
+      "complete": true,
+      "width": 3299,
+      "height": 2548
+    },
+    {
+      "url": "https://reath-digest.carrd.co/assets/images/image08.jpg?v=cc888db5",
+      "complete": true,
+      "width": 3291,
+      "height": 2548
+    },
+    {
+      "url": "https://reath-digest.carrd.co/assets/images/gallery02/d3de505d_original.jpg?v=cc888db5",
+      "complete": true,
+      "width": 510,
+      "height": 879
+    }
+  ],
+  "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://127.0.0.1:56954/api/eggs/profile",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://127.0.0.1:56954/api/eggs/profile",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://127.0.0.1:56954/api/eggs/profile",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://127.0.0.1:56954/api/eggs/profile",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://127.0.0.1:56954/api/eggs/profile",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://127.0.0.1:56954/api/eggs/profile",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://127.0.0.1:56954/api/eggs/profile",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://127.0.0.1:56954/api/eggs/profile",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://127.0.0.1:56954/api/eggs/profile",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://127.0.0.1:56954/api/eggs/profile",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://127.0.0.1:56954/api/eggs/profile",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://127.0.0.1:56954/api/eggs/profile",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://127.0.0.1:56954/api/eggs/profile",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://127.0.0.1:56954/api/eggs/profile",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://127.0.0.1:56954/api/eggs/profile",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://127.0.0.1:56954/api/eggs/profile",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://127.0.0.1:56954/api/eggs/profile",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://127.0.0.1:56954/api/eggs/profile",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://127.0.0.1:56954/api/eggs/profile",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://127.0.0.1:56954/api/eggs/profile",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://127.0.0.1:56954/api/eggs/profile",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://127.0.0.1:56954/api/eggs/profile",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://127.0.0.1:56954/api/eggs/profile",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://127.0.0.1:56954/api/eggs/profile",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://127.0.0.1:56954/api/eggs/profile",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://127.0.0.1:56954/api/eggs/profile",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://127.0.0.1:56954/api/eggs/profile",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://127.0.0.1:56954/api/eggs/profile",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://127.0.0.1:56954/api/eggs/profile",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://127.0.0.1:56954/api/eggs/profile",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://127.0.0.1:56954/api/eggs/profile",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://127.0.0.1:56954/api/eggs/profile",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://127.0.0.1:56954/api/eggs/profile",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://127.0.0.1:56954/api/eggs/profile",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://127.0.0.1:56954/api/eggs/profile",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://127.0.0.1:56954/api/eggs/profile",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://127.0.0.1:56954/api/eggs/profile",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://127.0.0.1:56954/api/eggs/profile",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://127.0.0.1:56954/api/eggs/profile",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://127.0.0.1:56954/api/eggs/profile",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://127.0.0.1:56954/api/eggs/profile",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://127.0.0.1:56954/api/eggs/profile",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://127.0.0.1:56954/api/eggs/profile",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://127.0.0.1:56954/api/eggs/profile",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://127.0.0.1:56954/api/eggs/profile",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://127.0.0.1:56954/api/eggs/profile",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://127.0.0.1:56954/api/eggs/profile",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://127.0.0.1:56954/api/eggs/profile"
+  ],
+  "networkDiagnostics": [
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:56954/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:56954/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:56954/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:56954/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:56954/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:56954/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:56954/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:56954/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:56954/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:56954/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:56954/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:56954/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:56954/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:56954/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:56954/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:56954/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:56954/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:56954/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:56954/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:56954/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:56954/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:56954/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:56954/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:56954/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:56954/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:56954/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:56954/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:56954/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:56954/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:56954/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:56954/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:56954/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:56954/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:56954/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:56954/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:56954/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:56954/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:56954/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:56954/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:56954/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:56954/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:56954/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:56954/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:56954/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:56954/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:56954/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:56954/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:56954/api/eggs/profile"
+    }
+  ],
+  "failure": null
+}

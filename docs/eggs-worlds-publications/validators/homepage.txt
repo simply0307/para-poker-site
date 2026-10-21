@@ -1,0 +1,4 @@
+> eggs-web@0.1.0 validate:homepage
+> node scripts/validate-homepage-settings.mjs
+
+Homepage settings validation passed.

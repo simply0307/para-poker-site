@@ -29,7 +29,8 @@ export function ProfileEditor({ profile }) {
       <p id="handle-help" className="eggs-help">3–30 lowercase letters, numbers or underscores. Your handle can’t be changed or reused after deletion.</p>
     </>}
     {profile ? presentation : <details><summary>Add a name or short bio</summary><div className="eggs-form eggs-optional">{presentation}</div></details>}
-    <label>Who can see your profile?<select name="visibility" defaultValue={profile?.visibility || "private"}><option value="private">Only me</option><option value="public">Anyone with the link</option></select></label>
+    <label>Who can see your profile?<select name="visibility" defaultValue={profile?.visibility || "private"}><option value="private">Only me</option><option value="public">Public — listed on EGGS</option></select></label>
+    <p className="eggs-help">Public pages can appear in People, and public community posts link to them. A private page stays out of public discovery; you can still edit and preview it.</p>
     <p className="eggs-help">Poker records stay with the league. A Poker connection is only shown here when you choose to enable it.</p>
     {error ? <p role="alert" className="eggs-error">{error}</p> : null}{message ? <p role="status" className="eggs-notice">{message}</p> : null}
     <button className="eggs-button" disabled={busy}>{busy ? "Saving…" : profile ? "Save profile" : "Create profile"}</button>

@@ -8,10 +8,13 @@ import {
   fixtureServiceKey,
 } from "./consumerHttpFixture.mjs";
 
-export async function communityHttpFixture(t) {
-  const db = await communityDatabase(t);
+export async function communityHttpFixture(t, { database = communityDatabase } = {}) {
+  const db = await database(t);
   const rest = await localPostgrest(t, db);
   const seen = new Set();
+  // Simulated Auth signups are mirrored once into this disposable database.
+  // Never recreate a previously provisioned identity after an account deletion.
+  const provisioned = new Set(Object.values(hubIds));
   const fixture = await consumerFixture({
     restHandler: async ({ url, body, request, user, active, token, send }) => {
       let signed;
@@ -20,6 +23,13 @@ export async function communityHttpFixture(t) {
           Buffer.from(token.split(".")[1], "base64url").toString(),
         );
         if (active && !seen.has(token)) {
+          if (!provisioned.has(user.id)) {
+            await db.admin.query(
+              "insert into auth.users(id,email,email_confirmed_at,is_anonymous) values($1,$2,$3,$4) on conflict(id) do nothing",
+              [user.id, user.email, user.email_confirmed_at || null, user.is_anonymous === true],
+            );
+            provisioned.add(user.id);
+          }
           await db.admin.query(
             "insert into auth.sessions(id,user_id) values($1,$2)",
             [claims.session_id, user.id],

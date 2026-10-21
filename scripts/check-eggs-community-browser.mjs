@@ -246,7 +246,7 @@ try {
     .getByRole("group", { name: "Publication collection" })
     .getByRole("button", { name: /Reath Funnies/u })
     .click();
-  assert.equal(await publicPage.locator(".reath-publication-card").count(), 1);
+  assert.equal(await publicPage.locator(".reath-publication-card").filter({ hasText: "Local verification fixture — Reath Funnies" }).count(), 1);
   await publicPage
     .getByRole("heading", {
       name: "Local verification fixture — Reath Funnies",
@@ -257,7 +257,7 @@ try {
     .getByRole("group", { name: "Publication collection" })
     .getByRole("button", { name: /Videos/u })
     .click();
-  assert.equal(await publicPage.locator(".reath-publication-card").count(), 1);
+  assert.equal(await publicPage.locator(".reath-publication-card").filter({ hasText: "Local verification fixture — video" }).count(), 1);
   assert.equal(await publicPage.locator("iframe,video").count(), 0);
   record(
     "Editor saves and previews a Funnies draft; publisher explicitly publishes; real Reath collections filter publications without embedding third-party video.",

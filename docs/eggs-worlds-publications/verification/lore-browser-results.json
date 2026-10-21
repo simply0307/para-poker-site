@@ -1,0 +1,722 @@
+{
+  "outcome": "passed",
+  "browser": "155.0.4283.45",
+  "transport": "Real built Next.js + disposable PostgreSQL17 + native PostgREST16.4; simulated Auth issuance only",
+  "fixtureContent": "All lore text and identities are synthetic disposable verification fixtures; no private CreativeOS source or canon is seeded/published.",
+  "publicConsumerRollout": false,
+  "checks": [
+    "Seeded one synthetic reviewed world, all five published dossier kinds and a private unpublished sentinel using live-role SQL/RPC in disposable PostgreSQL.",
+    "Anonymous navigation, all five sections, client search and dossier reading work with consumer rollout disabled; literal markup stays text and hidden draft/source data is absent from API, HTML and embedded payloads.",
+    "The real editor UI saves and previews a dossier without publishing; a signed editor can read the private draft, while anonymous users redirect and unrelated signed accounts cannot read it. Private source records remain absent even from saved-preview presentation.",
+    "A publisher explicitly releases the saved UI revision and archives it through actual browser controls; public visibility follows both operations without exposing source evidence.",
+    "Revoking the editor's real database session makes an already-open editor Save fail with401 and preserves the entire saved revision; a subsequent private-preview navigation returns to login.",
+    "Forty captures cover lore landing/world/category/detail in both themes at320/390/768/1024/1440px; new reader controls meet44px, every page has one main heading, long text stays contained and the selected theme survives reload.",
+    "Keyboard focus is visible, the labelled search works from the keyboard and reduced-motion preference is active."
+  ],
+  "screenshots": [
+    "screenshots/lore-carton-320.png",
+    "screenshots/world-carton-320.png",
+    "screenshots/category-carton-320.png",
+    "screenshots/dossier-carton-320.png",
+    "screenshots/lore-carton-390.png",
+    "screenshots/world-carton-390.png",
+    "screenshots/category-carton-390.png",
+    "screenshots/dossier-carton-390.png",
+    "screenshots/lore-carton-768.png",
+    "screenshots/world-carton-768.png",
+    "screenshots/category-carton-768.png",
+    "screenshots/dossier-carton-768.png",
+    "screenshots/lore-carton-1024.png",
+    "screenshots/world-carton-1024.png",
+    "screenshots/category-carton-1024.png",
+    "screenshots/dossier-carton-1024.png",
+    "screenshots/lore-carton-1440.png",
+    "screenshots/world-carton-1440.png",
+    "screenshots/category-carton-1440.png",
+    "screenshots/dossier-carton-1440.png",
+    "screenshots/lore-after-hours-320.png",
+    "screenshots/world-after-hours-320.png",
+    "screenshots/category-after-hours-320.png",
+    "screenshots/dossier-after-hours-320.png",
+    "screenshots/lore-after-hours-390.png",
+    "screenshots/world-after-hours-390.png",
+    "screenshots/category-after-hours-390.png",
+    "screenshots/dossier-after-hours-390.png",
+    "screenshots/lore-after-hours-768.png",
+    "screenshots/world-after-hours-768.png",
+    "screenshots/category-after-hours-768.png",
+    "screenshots/dossier-after-hours-768.png",
+    "screenshots/lore-after-hours-1024.png",
+    "screenshots/world-after-hours-1024.png",
+    "screenshots/category-after-hours-1024.png",
+    "screenshots/dossier-after-hours-1024.png",
+    "screenshots/lore-after-hours-1440.png",
+    "screenshots/world-after-hours-1440.png",
+    "screenshots/category-after-hours-1440.png",
+    "screenshots/dossier-after-hours-1440.png"
+  ],
+  "consoleErrors": [
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "type": "console"
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "type": "console"
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "type": "console"
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "type": "console"
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "type": "console"
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "type": "console"
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "type": "console"
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "type": "console"
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "type": "console"
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "type": "console"
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "type": "console"
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "type": "console"
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "type": "console"
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "type": "console"
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "type": "console"
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "type": "console"
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "type": "console"
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "type": "console"
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "url": "http://127.0.0.1:53680/api/eggs/profile",
+      "type": "console"
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "url": "http://127.0.0.1:53680/api/eggs/profile",
+      "type": "console"
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "url": "http://127.0.0.1:53680/api/eggs/profile",
+      "type": "console"
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "url": "http://127.0.0.1:53680/api/eggs/hub/lore",
+      "type": "console"
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "url": "http://127.0.0.1:53680/api/eggs/profile",
+      "type": "console"
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "type": "console"
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "type": "console"
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "type": "console"
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "type": "console"
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "type": "console"
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "type": "console"
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "type": "console"
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "type": "console"
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "type": "console"
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "type": "console"
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "type": "console"
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "type": "console"
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "type": "console"
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "type": "console"
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "type": "console"
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "type": "console"
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "type": "console"
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "type": "console"
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "type": "console"
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "type": "console"
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "type": "console"
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "type": "console"
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "type": "console"
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "type": "console"
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "type": "console"
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "type": "console"
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "type": "console"
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "type": "console"
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "type": "console"
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "type": "console"
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "type": "console"
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "type": "console"
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "type": "console"
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "type": "console"
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "type": "console"
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "type": "console"
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "type": "console"
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "type": "console"
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "type": "console"
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "type": "console"
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "type": "console"
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "type": "console"
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "type": "console"
+    }
+  ],
+  "networkDiagnostics": [
+    {
+      "status": 503,
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "method": "GET"
+    },
+    {
+      "status": 503,
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "method": "GET"
+    },
+    {
+      "status": 503,
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "method": "GET"
+    },
+    {
+      "status": 503,
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "method": "GET"
+    },
+    {
+      "status": 503,
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "method": "GET"
+    },
+    {
+      "status": 503,
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "method": "GET"
+    },
+    {
+      "status": 503,
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "method": "GET"
+    },
+    {
+      "status": 503,
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "method": "GET"
+    },
+    {
+      "status": 503,
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "method": "GET"
+    },
+    {
+      "status": 503,
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "method": "GET"
+    },
+    {
+      "status": 503,
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "method": "GET"
+    },
+    {
+      "status": 503,
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "method": "GET"
+    },
+    {
+      "status": 503,
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "method": "GET"
+    },
+    {
+      "status": 503,
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "method": "GET"
+    },
+    {
+      "status": 503,
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "method": "GET"
+    },
+    {
+      "status": 503,
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "method": "GET"
+    },
+    {
+      "status": 503,
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "method": "GET"
+    },
+    {
+      "status": 503,
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "method": "GET"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53680/api/eggs/profile",
+      "method": "GET"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53680/api/eggs/profile",
+      "method": "GET"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53680/api/eggs/profile",
+      "method": "GET"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53680/api/eggs/hub/lore",
+      "method": "POST"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53680/api/eggs/profile",
+      "method": "GET"
+    },
+    {
+      "status": 503,
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "method": "GET"
+    },
+    {
+      "status": 503,
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "method": "GET"
+    },
+    {
+      "status": 503,
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "method": "GET"
+    },
+    {
+      "status": 503,
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "method": "GET"
+    },
+    {
+      "status": 503,
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "method": "GET"
+    },
+    {
+      "status": 503,
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "method": "GET"
+    },
+    {
+      "status": 503,
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "method": "GET"
+    },
+    {
+      "status": 503,
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "method": "GET"
+    },
+    {
+      "status": 503,
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "method": "GET"
+    },
+    {
+      "status": 503,
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "method": "GET"
+    },
+    {
+      "status": 503,
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "method": "GET"
+    },
+    {
+      "status": 503,
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "method": "GET"
+    },
+    {
+      "status": 503,
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "method": "GET"
+    },
+    {
+      "status": 503,
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "method": "GET"
+    },
+    {
+      "status": 503,
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "method": "GET"
+    },
+    {
+      "status": 503,
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "method": "GET"
+    },
+    {
+      "status": 503,
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "method": "GET"
+    },
+    {
+      "status": 503,
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "method": "GET"
+    },
+    {
+      "status": 503,
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "method": "GET"
+    },
+    {
+      "status": 503,
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "method": "GET"
+    },
+    {
+      "status": 503,
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "method": "GET"
+    },
+    {
+      "status": 503,
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "method": "GET"
+    },
+    {
+      "status": 503,
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "method": "GET"
+    },
+    {
+      "status": 503,
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "method": "GET"
+    },
+    {
+      "status": 503,
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "method": "GET"
+    },
+    {
+      "status": 503,
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "method": "GET"
+    },
+    {
+      "status": 503,
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "method": "GET"
+    },
+    {
+      "status": 503,
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "method": "GET"
+    },
+    {
+      "status": 503,
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "method": "GET"
+    },
+    {
+      "status": 503,
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "method": "GET"
+    },
+    {
+      "status": 503,
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "method": "GET"
+    },
+    {
+      "status": 503,
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "method": "GET"
+    },
+    {
+      "status": 503,
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "method": "GET"
+    },
+    {
+      "status": 503,
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "method": "GET"
+    },
+    {
+      "status": 503,
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "method": "GET"
+    },
+    {
+      "status": 503,
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "method": "GET"
+    },
+    {
+      "status": 503,
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "method": "GET"
+    },
+    {
+      "status": 503,
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "method": "GET"
+    },
+    {
+      "status": 503,
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "method": "GET"
+    },
+    {
+      "status": 503,
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "method": "GET"
+    },
+    {
+      "status": 503,
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "method": "GET"
+    },
+    {
+      "status": 503,
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "method": "GET"
+    },
+    {
+      "status": 503,
+      "url": "http://127.0.0.1:54581/api/eggs/profile",
+      "method": "GET"
+    }
+  ]
+}

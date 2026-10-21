@@ -1,0 +1,162 @@
+{
+  "recordedAt": "2026-10-21T03:46:11.883Z",
+  "baseline": "d416b62584087249fddd47c5a271971917126a6b",
+  "dependency": "https://github.com/simply0307/para-poker-site/pull/4",
+  "draftPR": "https://github.com/simply0307/para-poker-site/pull/5",
+  "runtime": {
+    "node": "v24.16.0",
+    "postgres": "17.6",
+    "postgrest": "16.4",
+    "browser": "155.0.4283.45",
+    "supabaseCLI": "2.117.0"
+  },
+  "postgrest": {
+    "source": "https://github.com/PostgREST/postgrest/releases/download/v16.4/postgrest-v16.4-windows-x86-64.zip",
+    "archiveSHA256": "29a5b56e5a09b7168bb552ef14aa7ade40bf0a81dd0687cffa86610187b89d78",
+    "executableSHA256": "c4155000dfb0befb59215b65d61a621bbaea1515f36a6e758fc504c7ca0dcbee"
+  },
+  "buildId": "saI7Q7P8Hs1r0qlJZjs7a",
+  "predecessors": [
+    {
+      "path": "supabase/migrations/20260922231308_eggs_consumer_identity_reviewed_claims.sql",
+      "sha256": "01602fc25c95d4c03480379d6f0b6c7ab6e2ab7d58887b38fe5a9de8f83ea561",
+      "gitBlob": "987df848ce0412a4ad7ad54b08843e2a8a50afde",
+      "unchanged": true
+    },
+    {
+      "path": "supabase/migrations/20261016030028_eggs_hub_catalog_expression.sql",
+      "sha256": "4631d41abafe53ec5b4b2e612ce6271ff82a53a4320341c3599be924919c3ec4",
+      "gitBlob": "a3ec7dfc981b1a2c88b4ce08ca38ee9e31648d9d",
+      "unchanged": true
+    },
+    {
+      "path": "supabase/migrations/20261016080147_eggs_personal_internet.sql",
+      "sha256": "698abca42af8a6890496dbc7be0d1e1baa411feae932bbf83785d1e1d1c6c7c1",
+      "gitBlob": "8ff2686fee68ad66f02199c78f5c4b657eec971f",
+      "unchanged": true
+    },
+    {
+      "path": "supabase/migrations/20261021013054_eggs_community_feed.sql",
+      "sha256": "62f619ec4473f3795b336f2577d4869691f00b60fca8efcd9a8a478a3b5c306a",
+      "gitBlob": "b44657fbeab3d4074cd42d8d17e3e8372930cabe",
+      "unchanged": true
+    }
+  ],
+  "candidate": {
+    "path": "supabase/migrations/20261021025603_eggs_lore_dossiers.sql",
+    "sha256": "f1e3b953cd8d7c158370ef3dee8da6e9551c2e2f9d5a82a5370df67c41c3a34c",
+    "exactDiff": "migration.diff",
+    "appliedOnlyToDisposableLocalDatabases": true
+  },
+  "commands": [
+    {
+      "command": "supabase migration new eggs_lore_dossiers",
+      "exitCode": 0,
+      "result": "Exactly one new candidate; migration-new help inspected first; no hosted SQL."
+    },
+    {
+      "command": "node node_modules/next/dist/bin/next build",
+      "exitCode": 0,
+      "log": "build-results.txt"
+    },
+    {
+      "command": "npm test",
+      "exitCode": 0,
+      "tests": 245,
+      "passed": 244,
+      "failed": 0,
+      "skipped": 1,
+      "durationMs": 336871.3296,
+      "skipReason": "Existing explicitly gated remote raw-hand database integration; native PG17/PostgREST suites all executed.",
+      "log": "test-results.txt"
+    },
+    {
+      "command": "node node_modules/eslint/bin/eslint.js src scripts tests next.config.mjs eslint.config.mjs postcss.config.mjs",
+      "exitCode": 0,
+      "warnings": 0,
+      "log": "lint-results.txt"
+    },
+    {
+      "command": "npm run validate:training",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run validate:homepage",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run validate:parapoker-import",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run validate:stats",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/check-eggs-account-browser.mjs",
+      "exitCode": 0,
+      "checkGroups": 5,
+      "screenshots": 4,
+      "report": "../eggs-player-pages/verification/account-browser-results.json"
+    },
+    {
+      "command": "node scripts/check-eggs-lore-browser.mjs",
+      "exitCode": 0,
+      "checkGroups": 7,
+      "screenshots": 40,
+      "report": "verification/lore-browser-results.json"
+    },
+    {
+      "command": "node scripts/check-eggs-reath-browser.mjs",
+      "exitCode": 0,
+      "checkGroups": 5,
+      "screenshots": 40,
+      "report": "verification/reath/browser-results.json"
+    },
+    {
+      "command": "supabase db advisors [explicit disposable loopback URL]",
+      "exitCode": 0,
+      "securityFindings": 0,
+      "performance": "One preserved legacy Para duplicate-index warning",
+      "report": "advisors.json"
+    },
+    {
+      "command": "npm audit --omit=dev --json",
+      "exitCode": 0,
+      "vulnerabilities": 0
+    },
+    {
+      "command": "npm audit --json",
+      "exitCode": 1,
+      "existingDevOnlyHighAdvisories": 5,
+      "report": "dependency-audit.json"
+    }
+  ],
+  "evidenceBoundaries": {
+    "database": "Real native disposable PostgreSQL17.6",
+    "rest": "Real pinned official native PostgREST16.4",
+    "application": "Real built Next.js and Edge browser",
+    "auth": "Synthetic local Auth issuance, session, email inbox and PKCE fixtures; not hosted verification",
+    "publicSources": "Real public Carrd image requests, source audit of existing Carrd releases and eleven YouTube uploads; no automatic YouTube requests before Play",
+    "video": "Embed gating verified; third-party playback availability not certified",
+    "screenshots": "84 captures in this increment; both themes at320/390/768/1024/1440px for lore/reading/home/watch, plus player-onboarding/editor/room captures"
+  },
+  "preservation": {
+    "predecessorMigrations": true,
+    "pokerTablesAndPipelines": true,
+    "productionAuthUnchanged": true,
+    "productionConsumerDisabled": true,
+    "gauntletAndReathRuntimeUntouched": true,
+    "noHostedMigration": true,
+    "noDeployment": true,
+    "noSpending": true,
+    "privateDossierSourcesNotCommitted": true
+  },
+  "residualRisks": [
+    "Hosted email/Auth/production sessions are not proved by synthetic fixtures.",
+    "Private source dossiers need review/corrections and deliberate publication.",
+    "Source image/video availability depends on existing Carrd/YouTube hosts.",
+    "Five pre-existing development-only dependency advisories and legacy duplicate index remain."
+  ],
+  "releaseGate": "Separate approval of canonical origin/SMTP/Auth/security, current production audit, ordered identity→Hub→rooms→community→lore migrations, publisher membership, isolated hosted verification and explicit deployment; operational rollback keeps restrictive grants and stored data."
+}
