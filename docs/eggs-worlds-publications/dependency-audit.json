@@ -1,0 +1,37 @@
+{
+  "checkedAt": "2026-10-21T03:46:11.881Z",
+  "dependencyFilesChanged": false,
+  "production": {
+    "command": "npm audit --omit=dev --json",
+    "exitCode": 0,
+    "vulnerabilities": {
+      "info": 0,
+      "low": 0,
+      "moderate": 0,
+      "high": 0,
+      "critical": 0,
+      "total": 0
+    }
+  },
+  "all": {
+    "command": "npm audit --json",
+    "exitCode": 1,
+    "vulnerabilities": {
+      "info": 0,
+      "low": 0,
+      "moderate": 0,
+      "high": 5,
+      "critical": 0,
+      "total": 5
+    },
+    "packages": [
+      "@next/eslint-plugin-next",
+      "braces",
+      "eslint-config-next",
+      "fast-glob",
+      "micromatch"
+    ],
+    "advisory": "https://github.com/advisories/GHSA-vfj7-8cjw-p6xm",
+    "scope": "Existing development-only ESLint dependency chain; no dependency or lockfile mutation."
+  }
+}

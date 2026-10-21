@@ -1,0 +1,4 @@
+> eggs-web@0.1.0 validate:stats
+> node scripts/validate-stats.mjs
+
+Stats validation passed.

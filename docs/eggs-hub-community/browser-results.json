@@ -1,0 +1,359 @@
+{
+  "browser": "155.0.4283.45",
+  "transport": "Real built Next.js + PostgreSQL 17 + native PostgREST 16.4; simulated Auth only",
+  "fixtureContent": "All people, posts and Reath works shown are disposable local browser verification fixtures; the normal preview seeds no community posts.",
+  "checks": [
+    "Studio metadata points to the deterministic EGGS initial icon, which returns HTTP 200 as SVG.",
+    "Reath project card opens the internal Digest reading room; the actual Reath logo loads.",
+    "Editor saves and previews a Funnies draft; publisher explicitly publishes; real Reath collections filter publications without embedding third-party video.",
+    "Alice creates a post through the composer; Bob creates a public account, likes once and replies through the thread UI; reply permalinks resolve to the parent conversation and reply anchor.",
+    "People search submits a real public directory query and finds only the matching public handle.",
+    "Two editor tabs conflict with HTTP 409; a Like-triggered refresh preserves the unsaved draft and its original revision; a fresh owner edit succeeds.",
+    "Owner deletion uses an explicit confirmation and removes the disposable post.",
+    "Changing overall profile privacy through the room API removes and restores authored content in an already-open visitor feed on focus.",
+    "Publisher hides and restores with reasons; revoked-session focus and logout auth-change both remove hidden queue content from the DOM.",
+    "Home, Reath Digest, Community and People captured in both themes at 320/390/768/1024/1440px; no document overflow and one main heading per page.",
+    "New form controls meet 44px height, labels are usable, keyboard focus is visible, reduced motion is active and long composer text does not overflow."
+  ],
+  "screenshots": [
+    "home-carton-320.png",
+    "reath-digest-carton-320.png",
+    "community-carton-320.png",
+    "people-carton-320.png",
+    "home-carton-390.png",
+    "reath-digest-carton-390.png",
+    "community-carton-390.png",
+    "people-carton-390.png",
+    "home-carton-768.png",
+    "reath-digest-carton-768.png",
+    "community-carton-768.png",
+    "people-carton-768.png",
+    "home-carton-1024.png",
+    "reath-digest-carton-1024.png",
+    "community-carton-1024.png",
+    "people-carton-1024.png",
+    "home-carton-1440.png",
+    "reath-digest-carton-1440.png",
+    "community-carton-1440.png",
+    "people-carton-1440.png",
+    "home-after-hours-320.png",
+    "reath-digest-after-hours-320.png",
+    "community-after-hours-320.png",
+    "people-after-hours-320.png",
+    "home-after-hours-390.png",
+    "reath-digest-after-hours-390.png",
+    "community-after-hours-390.png",
+    "people-after-hours-390.png",
+    "home-after-hours-768.png",
+    "reath-digest-after-hours-768.png",
+    "community-after-hours-768.png",
+    "people-after-hours-768.png",
+    "home-after-hours-1024.png",
+    "reath-digest-after-hours-1024.png",
+    "community-after-hours-1024.png",
+    "people-after-hours-1024.png",
+    "home-after-hours-1440.png",
+    "reath-digest-after-hours-1440.png",
+    "community-after-hours-1440.png",
+    "people-after-hours-1440.png"
+  ],
+  "consoleErrors": [],
+  "networkDiagnostics": [
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/profile"
+    },
+    {
+      "status": 409,
+      "url": "http://127.0.0.1:53142/api/eggs/community/post"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/community/session"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/community/session"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/community/session"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/community/session"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/community/session"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/community/session"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/community/session"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/community/session"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/community/session"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/community/session"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/community/session"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/community/session"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/community/session"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/community/session"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/community/session"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/profile"
+    },
+    {
+      "status": 401,
+      "url": "http://127.0.0.1:53142/api/eggs/community/session"
+    }
+  ]
+}

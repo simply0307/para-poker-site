@@ -1,6 +1,7 @@
 import { consumerContext } from "@/lib/eggs/consumerClient";
 import { requireEggsUser } from "@/lib/eggs/requireEggsUser";
-import { ConsumerError, PROFILE_COLUMNS, databaseError, profileInput, requireSameOrigin, readConsumerJson } from "@/lib/eggs/consumerCore.mjs";
+import { ConsumerError, databaseError, profileInput, requireSameOrigin, readConsumerJson } from "@/lib/eggs/consumerCore.mjs";
+import { roomsEnabled } from "@/lib/rooms/core.mjs";
 import { consumerFailure } from "@/lib/eggs/consumerResponse";
 
 async function ownProfile(client) {
@@ -25,7 +26,7 @@ export async function POST(request) {
       if (existing.handle !== input.handle) throw new ConsumerError(409, "Your account already has a profile. Handles cannot be changed.");
       return context.json({ profile: existing });
     }
-    const result = await context.client.from("eggs_profiles").insert(input).select(PROFILE_COLUMNS).single();
+    const result = await context.client.from("eggs_profiles").insert(input);
     if (result.error) {
       if (result.error.code === "23505") {
         const raced = await ownProfile(context.client);
@@ -33,18 +34,19 @@ export async function POST(request) {
       }
       throw databaseError(result.error);
     }
-    return context.json({ profile: result.data }, 201);
+    return context.json({ profile: await ownProfile(context.client) }, 201);
   } catch (error) { return consumerFailure(error, context); }
 }
 export async function PATCH(request) {
   let context;
   try {
     context = consumerContext(request.cookies); requireSameOrigin(request, context.config); await requireEggsUser(context);
+    if(roomsEnabled()) throw new ConsumerError(409,"Use Edit My Page to save a complete revision.");
     const input = profileInput(await readConsumerJson(request));
     const own = await ownProfile(context.client);
     if (!own) throw new ConsumerError(409, "Create your EGGS profile first.");
-    const result = await context.client.from("eggs_profiles").update(input).eq("id", own.id).select(PROFILE_COLUMNS).single();
+    const result = await context.client.from("eggs_profiles").update(input).eq("id", own.id);
     if (result.error) throw databaseError(result.error);
-    return context.json({ profile: result.data });
+    return context.json({ profile: await ownProfile(context.client) });
   } catch (error) { return consumerFailure(error, context); }
 }

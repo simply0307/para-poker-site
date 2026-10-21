@@ -1,0 +1,11 @@
+{
+  "target": "independent disposable loopback PostgreSQL 17 / hub_test",
+  "hosted": false,
+  "cliVersion": "2.117.0",
+  "telemetryDisabled": true,
+  "command": "supabase db advisors --db-url [disposable loopback URL] --type security --level warn --fail-on none --output json --output-format json",
+  "exitCode": 0,
+  "noIssuesReported": true,
+  "stdout": "",
+  "stderr": "Connecting to remote database...\nNo issues found\nA new version of Supabase CLI is available: v2.121.0 (currently installed v2.117.0)\nWe recommend updating regularly for new features and bug fixes: https://supabase.com/docs/guides/cli/getting-started#updating-the-supabase-cli\n"
+}

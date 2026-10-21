@@ -41,8 +41,10 @@ export async function localPostgres(t) {
   });
   const initialized = spawnSync(path.join(postgresBin, executable("initdb")), [
     "-D", data, "-U", "eggs_test_bootstrap", "--pwfile", passwordFile, "--auth-host=scram-sha-256",
-    "--auth-local=scram-sha-256", "--locale=C", "--encoding=UTF8", "--no-instructions",
-  ], { windowsHide: true, encoding: "utf8", timeout: 60000 });
+    // This cluster is disposable. Skip initdb's final disk sync only; normal
+    // server fsync/transaction behavior remains enabled throughout the tests.
+    "--auth-local=scram-sha-256", "--locale=C", "--encoding=UTF8", "--no-instructions", "--no-sync",
+  ], { windowsHide: true, encoding: "utf8", timeout: 120000 });
   assert.equal(initialized.status, 0, [initialized.stderr, initialized.error?.message, initialized.stdout].filter(Boolean).join("\n"));
   const reservation = net.createServer();
   reservation.listen(0, "127.0.0.1");
@@ -55,7 +57,9 @@ export async function localPostgres(t) {
   server.stdout.on("data", value => { logs += value; });
   server.stderr.on("data", value => { logs += value; });
   // No DATABASE_URL or remote project credentials are accepted by this helper.
-  const config = { host: "127.0.0.1", port, user: "postgres", password, database: "postgres", connectionTimeoutMillis: 1000 };
+  // Parallel native-Postgres suites can exceed one second on a busy developer
+  // machine. Keep a bounded connection timeout without weakening SQL timeouts.
+  const config = { host: "127.0.0.1", port, user: "postgres", password, database: "postgres", connectionTimeoutMillis: 5000 };
   async function connect(database = "postgres", user = "postgres") {
     const client = new pg.Client({ ...config, database, user });
     await client.connect();

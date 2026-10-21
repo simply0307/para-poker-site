@@ -1,0 +1,83 @@
+{
+  "assets": [
+    {
+      "id": "signal-grid",
+      "path": "public/eggs/works/signal-grid.svg",
+      "sha256": "72c639928e7d00d2babd3fccb3e5429e3c78c28d09a76c750561bce738afe06a",
+      "origin": "Original deterministic SVG authored for this implementation",
+      "attribution": "EGGS studio",
+      "permission": "Site public use authorized by the implementation brief; no third-party source imagery",
+      "derivative": "None; original SVG source"
+    },
+    {
+      "id": "night-ticket",
+      "path": "public/eggs/works/night-ticket.svg",
+      "sha256": "d5a21147ab9cc6a640f6c107410d5f4c9dabfecb719843accee8b969631ccdeb",
+      "origin": "Original deterministic SVG authored for this implementation",
+      "attribution": "EGGS studio",
+      "permission": "Site public use authorized by the implementation brief; no third-party source imagery",
+      "derivative": "None; original SVG source"
+    },
+    {
+      "id": "room-map",
+      "path": "public/eggs/works/room-map.svg",
+      "sha256": "8fd6ba494ba00eff623e79c0ccdf1e5d1eef5c5e4375ec79d7941cebca84d1ce",
+      "origin": "Original deterministic SVG authored for this implementation",
+      "attribution": "EGGS studio",
+      "permission": "Site public use authorized by the implementation brief; no third-party source imagery",
+      "derivative": "None; original SVG source"
+    }
+  ],
+  "appearance": {
+    "themes": {
+      "carton": "Carton Classic",
+      "after-hours": "After Hours"
+    },
+    "wallpapers": {
+      "plain": "Plain paper",
+      "graph": "Graph paper",
+      "dots": "Confetti dots",
+      "stripes": "Airmail stripes",
+      "checker": "Checker paper",
+      "stars": "Night signals"
+    },
+    "covers": {
+      "sunrise": "Sunrise department",
+      "airmail": "Special delivery",
+      "orbit": "Orbital diagram",
+      "midnight": "Midnight notice"
+    },
+    "stamps": {
+      "approved": "APPROVED",
+      "local": "LOCALLY WEIRD",
+      "dreamer": "DAYDREAM DEPT.",
+      "open": "OPEN TO IDEAS",
+      "fragile": "FRAGILE GENIUS",
+      "original": "ORIGINAL COPY",
+      "visitor": "VISITOR PASS",
+      "night-owl": "NIGHT SHIFT",
+      "player": "PLAYER ONE",
+      "maker": "MADE SOMETHING",
+      "good-egg": "GOOD EGG",
+      "handle-with-care": "HANDLE WITH CARE"
+    },
+    "avatars": {
+      "egg": "Good egg",
+      "orbit": "Orbit",
+      "flower": "Paper flower",
+      "spark": "Spark"
+    },
+    "source": "src/app/rooms.css and src/components/rooms/RoomPresentation.jsx",
+    "permission": "Original deterministic CSS/SVG ornaments created for EGGS; no remote media"
+  },
+  "existingProjectAsset": {
+    "path": "public/images/para-wordmark.svg",
+    "use": "Only Para Poker project cards and Para references",
+    "derivative": "Responsive sizing only"
+  },
+  "excludedSources": [
+    "Creative-Systems1 archive material: no unverified rights implied",
+    "EGGS corporate type logo: spells Eternal Galaxy, not used"
+  ],
+  "note": "No archive artwork, uploads, remote images, third-party textures or fictional artist credits."
+}

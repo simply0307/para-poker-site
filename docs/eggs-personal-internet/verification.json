@@ -1,0 +1,250 @@
+{
+  "recordedAt": "2026-10-16T09:05:58.410Z",
+  "base": "b6dc351e37264f70bf825e14cdd2263d1f527c26",
+  "dependency": "https://github.com/simply0307/para-poker-site/pull/4",
+  "runtime": {
+    "node": "v24.16.0",
+    "postgres": "17.6",
+    "postgrest": "16.4",
+    "browser": "155.0.4283.45",
+    "supabaseCLI": "2.117.0"
+  },
+  "postgrest": {
+    "source": "https://github.com/PostgREST/postgrest/releases/download/v16.4/postgrest-v16.4-windows-x86-64.zip",
+    "archiveSHA256": "29a5b56e5a09b7168bb552ef14aa7ade40bf0a81dd0687cffa86610187b89d78",
+    "executableSHA256": "c4155000dfb0befb59215b65d61a621bbaea1515f36a6e758fc504c7ca0dcbee"
+  },
+  "predecessors": [
+    {
+      "path": "supabase/migrations/20260922231308_eggs_consumer_identity_reviewed_claims.sql",
+      "sha256": "01602fc25c95d4c03480379d6f0b6c7ab6e2ab7d58887b38fe5a9de8f83ea561",
+      "gitBlob": "987df848ce0412a4ad7ad54b08843e2a8a50afde",
+      "unchanged": true
+    },
+    {
+      "path": "supabase/migrations/20261016030028_eggs_hub_catalog_expression.sql",
+      "sha256": "4631d41abafe53ec5b4b2e612ce6271ff82a53a4320341c3599be924919c3ec4",
+      "gitBlob": "a3ec7dfc981b1a2c88b4ce08ca38ee9e31648d9d",
+      "unchanged": true
+    }
+  ],
+  "candidate": {
+    "path": "supabase/migrations/20261016080147_eggs_personal_internet.sql",
+    "sha256": "698abca42af8a6890496dbc7be0d1e1baa411feae932bbf83785d1e1d1c6c7c1",
+    "exactDiff": "migration.diff",
+    "appliedOnlyToDisposableLocalDatabases": true
+  },
+  "commands": [
+    {
+      "command": "supabase migration new --help; supabase migration new eggs_personal_internet",
+      "result": "Read current CLI help and generated the single new candidate before implementation"
+    },
+    {
+      "command": "npm run build",
+      "exitCode": 0,
+      "result": "Built Next application and all routes"
+    },
+    {
+      "command": "npm test",
+      "exitCode": 0,
+      "tests": 163,
+      "passed": 162,
+      "failed": 0,
+      "skipped": 1,
+      "durationMs": 149976.8154,
+      "skipReason": "Existing raw-hand remote integration requires explicit disposable Supabase credentials; default runner deliberately disables it. All native PG17 and actual PostgREST rooms tests ran."
+    },
+    {
+      "command": "npm run lint",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run validate:training",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run validate:homepage",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run validate:parapoker-import",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run validate:stats",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/check-eggs-rooms-browser.mjs",
+      "exitCode": 0,
+      "result": {
+        "browser": "155.0.4283.45",
+        "transport": "Real PostgreSQL 17 + PostgREST 16.4; simulated Auth",
+        "checks": [
+          "Editor draft and saved preview; publisher explicitly publishes through UI.",
+          "Discard and Reset Appearance make no request; identity, visibility and board remain.",
+          "All eight mixed slots save; ordering persists.",
+          "Only the live owner receives Edit My Page.",
+          "Visitor theme persists; room theme is independent.",
+          "Concurrent editor tabs: stale save returns 409 and preserves winning content.",
+          "Both themes captured at 320/390/768/1024/1440; no document overflow.",
+          "All five visibility toggles remove public modules and JSON fields.",
+          "Keyboard focus visible; editor controls meet 44px height; long content stays within 320px; reduced-motion stylesheet active."
+        ],
+        "consoleErrors": []
+      }
+    },
+    {
+      "command": "node scripts/audit-eggs-rooms-local.mjs",
+      "exitCode": 0,
+      "result": {
+        "target": "disposable loopback PostgreSQL 17 / hub_test",
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": "Connecting to remote database...\nNo issues found\nA new version of Supabase CLI is available: v2.121.0 (currently installed v2.117.0)\nWe recommend updating regularly for new features and bug fixes: https://supabase.com/docs/guides/cli/getting-started#updating-the-supabase-cli\n"
+      }
+    },
+    {
+      "command": "npm audit --omit=dev --json",
+      "exitCode": 0,
+      "vulnerabilities": {
+        "info": 0,
+        "low": 0,
+        "moderate": 0,
+        "high": 0,
+        "critical": 0,
+        "total": 0
+      }
+    },
+    {
+      "command": "npm audit --json",
+      "exitCode": 1,
+      "vulnerabilities": {
+        "info": 0,
+        "low": 0,
+        "moderate": 0,
+        "high": 5,
+        "critical": 0,
+        "total": 5
+      },
+      "note": "Existing development-only eslint-config-next/fast-glob/micromatch/braces advisory GHSA-vfj7-8cjw-p6xm"
+    }
+  ],
+  "distinction": {
+    "real": [
+      "PostgreSQL roles, RLS, grants, row locks, SQL functions and transactional rollback",
+      "PostgREST HTTP responses with real authorization",
+      "Built Next endpoints/SSR/embedded payloads",
+      "Browser UI and screenshots"
+    ],
+    "simulated": [
+      "Auth users, issuer, credentials, sessions and confirmation transport"
+    ],
+    "notPerformed": [
+      "Hosted authentication/email/PKCE acceptance",
+      "Hosted SQL/migration",
+      "Production generation requests",
+      "Deployment/merge/Auth changes"
+    ]
+  },
+  "screenshots": [
+    {
+      "path": "screenshots/editor-390.png",
+      "sha256": "2e13ff770494506e1b2d9c46d987b48da462b7a42fe2412ac4b2069ac75fbe6a"
+    },
+    {
+      "path": "screenshots/editor-desktop.png",
+      "sha256": "a107d1c770fdceaaca0ed61b0627681e49af0477896f7eda31072bb5111a30da"
+    },
+    {
+      "path": "screenshots/editor-mobile-preview.png",
+      "sha256": "1f0d0040cd83aff5bd7f346a5c87cf67379f425ebd8072978a3f560c470e20e3"
+    },
+    {
+      "path": "screenshots/home-after-hours-1024.png",
+      "sha256": "c9af63b33a13d12b8eb23b0acbe442862ce53275c48883c7e063d063b1347ded"
+    },
+    {
+      "path": "screenshots/home-after-hours-1440.png",
+      "sha256": "63c0d0b50bfaa679fb50bc3628f91b6591d5cc2862fb95d7fc0f14e27bd79390"
+    },
+    {
+      "path": "screenshots/home-after-hours-320.png",
+      "sha256": "c6682159b39d7db48724ef07199e605a2346422cc9dd31151499d1814ee7a0b8"
+    },
+    {
+      "path": "screenshots/home-after-hours-390.png",
+      "sha256": "11148d6045401e699ccb7c8d73d0d94d4d5dc33dfd0432f216820c3ca80f7c9a"
+    },
+    {
+      "path": "screenshots/home-after-hours-768.png",
+      "sha256": "231b4730ed6767e2adf8de679cbacd8c9ba5de81d67f7d6e198d60f6a06d5030"
+    },
+    {
+      "path": "screenshots/home-carton-1024.png",
+      "sha256": "c3184e430b15ad75e2048a75c6d6cc639e66f9e88fb95d1def60966121b1f10d"
+    },
+    {
+      "path": "screenshots/home-carton-1440.png",
+      "sha256": "e23b9528b79a6f180b47856b1567f0fe805a863364d2e3db7a3801a4fab6057b"
+    },
+    {
+      "path": "screenshots/home-carton-320.png",
+      "sha256": "cd3653334e59484e6029f3184efaefdca3c81b3af81ee97cdf1989453c444b34"
+    },
+    {
+      "path": "screenshots/home-carton-390.png",
+      "sha256": "329136a03afb4758ab81313f80db559cbe629c07b16bfbc1b7f10d403e00c025"
+    },
+    {
+      "path": "screenshots/home-carton-768.png",
+      "sha256": "ba1d3ca1ecaa69c1f8bf5482709ef842ff3d8171f3cfa5ca294bc80405c73805"
+    },
+    {
+      "path": "screenshots/room-after-hours-1024.png",
+      "sha256": "d1a287b1fb4dfc69ab812aeda9a9f0aa2a095cc96c53191916e890d9ee043806"
+    },
+    {
+      "path": "screenshots/room-after-hours-1440.png",
+      "sha256": "2f7373f466f7ff1e5790fae8d069f3567e933957fa9d9ff54e9b5e07899487a3"
+    },
+    {
+      "path": "screenshots/room-after-hours-320.png",
+      "sha256": "f48cff72a1aaff0358f5fa055e77258375b286b17996e8bae09677271af42cbf"
+    },
+    {
+      "path": "screenshots/room-after-hours-390.png",
+      "sha256": "f8019184eec8636b4aba786b6d501f128f0c88da6ee5fb89d004c36e2ce4df06"
+    },
+    {
+      "path": "screenshots/room-after-hours-768.png",
+      "sha256": "e157815568d2cb4a63a4750121d8c43f56b015f4f18400673c7389a5ee7782bb"
+    },
+    {
+      "path": "screenshots/room-carton-1024.png",
+      "sha256": "c0cf60d84f42c12895a6d6f7c9dbf3b6c986415c56c61a1dcdfb9b1ef2a5f87a"
+    },
+    {
+      "path": "screenshots/room-carton-1440.png",
+      "sha256": "8f5d3bfe2c71d07a90ce7acd6ce7c4176989595df10b56e4113b5b7098ba58ca"
+    },
+    {
+      "path": "screenshots/room-carton-320.png",
+      "sha256": "fd85bfc58c5e0b97f5786db3cb6057500ffc8234f333f5b389bd4b57963d1448"
+    },
+    {
+      "path": "screenshots/room-carton-390.png",
+      "sha256": "a3be245e5732f5bbfea8936d19cd50297dffd6f560c3a469cdb0b823dac78e4f"
+    },
+    {
+      "path": "screenshots/room-carton-768.png",
+      "sha256": "ad0d794c7c3949516d51c2099f3792b51079a3d0b4583f848c96831328b1336e"
+    }
+  ],
+  "release": {
+    "roomsDefault": false,
+    "productionUnchanged": true,
+    "noPaidInfrastructure": true,
+    "requiresSeparateAuthorization": true
+  }
+}

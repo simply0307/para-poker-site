@@ -1,0 +1,158 @@
+// Fresh player journey. Native PostgreSQL/PostgREST and the real built app;
+// Auth issuance and email/PKCE confirmation are deliberately simulated.
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
+import { chromium } from "playwright";
+import { communityHttpFixture } from "../tests/helpers/communityHttpFixture.mjs";
+import { startConsumerApp, stopConsumerApp } from "../tests/helpers/consumerHttpFixture.mjs";
+import { bootstrapProjects } from "../src/lib/hub/catalog.mjs";
+
+const cleanup = [], checks = [], pageErrors = [], screenshots = [];
+const out = path.resolve("docs/eggs-player-pages/verification");
+fs.mkdirSync(out, { recursive: true });
+try {
+  const fixture = await communityHttpFixture({ after: (fn) => cleanup.push(fn) });
+  const app = await startConsumerApp({ ...fixture.env, EGGS_LOCAL_PREVIEW_AUTH: "true", EGGS_LOCAL_PREVIEW_AUTH_INBOX_URL: fixture.previewInboxUrl });
+  cleanup.push(() => stopConsumerApp(app));
+  const browser = await chromium.launch({ channel: "msedge", headless: true });
+  cleanup.push(() => browser.close());
+  const owner = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
+  const visitor = await browser.newContext({ viewport: { width: 390, height: 900 } });
+  for (const context of [owner, visitor]) context.on("page", (p) => p.on("pageerror", (error) => pageErrors.push(error.message)));
+  const page = await owner.newPage(), publicPage = await visitor.newPage();
+  const email = "browser-new-player@fixture.invalid", handle = "browser_new_player";
+  const sentinel = "LOCAL_PRIVATE_PLAYER_BIO_SENTINEL";
+  const record = (message) => { checks.push(message); console.log(message); };
+  async function capture(p, name) {
+    await p.evaluate(() => document.fonts.ready);
+    const sizes = await p.evaluate(() => ({ client: document.documentElement.clientWidth, scroll: document.documentElement.scrollWidth }));
+    assert.ok(sizes.scroll <= sizes.client + 1, name + " overflow");
+    await p.screenshot({ path: path.join(out, name), fullPage: true }); screenshots.push(name);
+  }
+  async function save() {
+    const response = page.waitForResponse((r) => r.url().endsWith("/api/eggs/room") && r.request().method() === "PUT");
+    await page.getByRole("button", { name: "Save My Page", exact: true }).click();
+    const saved = await response; assert.equal(saved.status(), 200, await saved.text());
+    await page.getByRole("status").filter({ hasText: "Saved." }).waitFor();
+    return (await saved.json()).room;
+  }
+  async function login() {
+    await page.goto(app.base + "/login");
+    await page.getByLabel("Email", { exact: true }).fill(email);
+    await page.getByLabel("Password", { exact: true }).fill("fixture-password");
+    await page.locator("form").getByRole("button", { name: "Sign in", exact: true }).click();
+    await page.waitForURL("**/profile");
+  }
+  await page.goto(app.base + "/login");
+  await page.getByRole("note").filter({ hasText: "Local preview · simulated accounts." }).waitFor();
+  await page.getByRole("button", { name: "Create account", exact: true }).click();
+  await page.getByLabel("Email", { exact: true }).fill(email);
+  await page.getByLabel("Password", { exact: true }).fill("fixture-password");
+  const register = page.waitForResponse((r) => r.url().endsWith("/api/eggs/auth") && r.request().method() === "POST");
+  await page.getByRole("button", { name: "Create EGGS account", exact: true }).click();
+  assert.equal((await register).status(), 202);
+  await page.getByRole("status").filter({ hasText: "No email was sent." }).waitFor();
+  assert.equal((await owner.request.get(app.base + "/api/eggs/profile")).status(), 401);
+  assert.ok((await owner.cookies()).some((cookie) => cookie.name.includes("code-verifier") && cookie.httpOnly));
+  const inboxOpened = owner.waitForEvent("page");
+  await page.getByRole("link", { name: "Open local confirmation inbox ↗", exact: true }).click();
+  const inbox = await inboxOpened;
+  const confirm = inbox.getByRole("link", { name: "Confirm this local account ↗", exact: true });
+  await confirm.waitFor();
+  const confirmationUrl = await confirm.getAttribute("href");
+  await publicPage.goto(confirmationUrl);
+  await publicPage.getByRole("alert").filter({ hasText: "That email link could not be completed" }).waitFor();
+  await confirm.click();
+  await inbox.waitForURL("**/profile");
+  await page.goto(app.base + "/profile");
+  await inbox.close();
+  await page.waitForURL("**/profile");
+  await page.getByRole("heading", { name: "Choose your handle.", exact: true }).waitFor();
+  assert.ok(fixture.requests.some((request) => request.path === "/auth/v1/signup" && request.body.code_challenge));
+  record("Fresh UI signup explicitly sends no email in local preview; its visible local inbox link completes same-browser simulated PKCE, while a wrong browser fails; handle onboarding uses an HttpOnly verifier.");
+
+  await page.getByLabel("Choose your handle", { exact: true }).fill(handle);
+  assert.equal(await page.locator('select[name="visibility"]').inputValue(), "private");
+  await page.getByText("Add a name or short bio", { exact: true }).click();
+  await page.getByLabel(/Display name/u).fill("A new EGGS player");
+  await page.getByLabel(/Short bio/u).fill(sentinel);
+  await capture(page, "new-player-onboarding-1440.png");
+  const create = page.waitForResponse((r) => r.url().endsWith("/api/eggs/profile") && r.request().method() === "POST");
+  await page.getByRole("button", { name: "Create profile", exact: true }).click();
+  const created = await create; assert.equal(created.status(), 201, await created.text());
+  const profile = (await created.json()).profile;
+  assert.equal(profile.visibility, "private");
+  await page.getByRole("link", { name: "Edit My Page ↗", exact: true }).click();
+  await page.waitForURL("**/profile/edit");
+  assert.equal(await page.getByLabel("Featured slot 1", { exact: true }).inputValue(), "");
+  await page.getByLabel("Room theme", { exact: true }).selectOption("after-hours");
+  await page.getByLabel("Cover", { exact: true }).selectOption("midnight");
+  await page.getByLabel("Avatar", { exact: true }).selectOption("spark");
+  await page.getByLabel("Featured slot 1", { exact: true }).selectOption("project:" + bootstrapProjects[0].id);
+  await page.getByLabel("Para Poker League", { exact: true }).check();
+  let room = await save(); assert.equal(room.visibility, "private"); assert.equal(room.revision, 1);
+  await page.reload();
+  assert.equal(await page.getByLabel("Room theme", { exact: true }).inputValue(), "after-hours");
+  assert.equal(await page.getByLabel("Featured slot 1", { exact: true }).inputValue(), "project:" + bootstrapProjects[0].id);
+  assert.equal((await visitor.request.get(app.base + "/profile/" + handle)).status(), 404);
+  await page.setViewportSize({ width: 390, height: 900 });
+  await capture(page, "new-player-private-editor-390.png");
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  record("A fresh player creates one permanent private profile, reaches Edit My Page, saves appearance/favorites/showcase atomically and reloads the saved page; private public URLs stay unavailable.");
+
+  await page.getByLabel("About me", { exact: true }).uncheck();
+  await page.getByLabel("Profile visibility", { exact: true }).selectOption("public");
+  room = await save(); assert.equal(room.revision, 2);
+  await page.goto(app.base + "/profile/" + handle);
+  await page.getByRole("link", { name: "Edit My Page ↗", exact: true }).waitFor();
+  await capture(page, "new-player-public-room-1440.png");
+  const ownerCheck = publicPage.waitForResponse((r) => r.url().endsWith("/api/eggs/profile"));
+  await publicPage.goto(app.base + "/profile/" + handle); assert.equal((await ownerCheck).status(), 401);
+  assert.equal(await publicPage.getByRole("link", { name: "Edit My Page ↗", exact: true }).count(), 0);
+  assert.ok(!(await publicPage.content()).includes(sentinel));
+  const publicRoom = await (await visitor.request.get(app.base + "/api/eggs/rooms/" + handle)).json();
+  assert.ok(!Object.hasOwn(publicRoom.room.modules, "bio"));
+  await capture(publicPage, "new-player-public-room-390.png");
+  await publicPage.goto(app.base + "/people?q=" + handle);
+  assert.equal(await publicPage.locator(".people-card").count(), 1);
+  await page.goto(app.base + "/community");
+  await page.getByLabel("Your post", { exact: true }).fill("A synthetic new player's first EGGS post.");
+  const postResponse = page.waitForResponse((r) => r.url().endsWith("/api/eggs/community/post") && r.request().method() === "POST");
+  await page.getByRole("button", { name: "Post to EGGS ↗", exact: true }).click();
+  const posted = await postResponse; assert.equal(posted.status(), 200);
+  const post = (await posted.json()).post;
+  record("Public opt-in appears in People and enables the real community composer; hidden bio is absent from anonymous JSON/HTML and edit controls appear only for the live owner.");
+
+  await page.goto(app.base + "/profile/" + handle);
+  await page.getByRole("link", { name: "Edit My Page ↗", exact: true }).waitFor();
+  const second = await owner.newPage(); await second.goto(app.base + "/profile");
+  await second.getByRole("button", { name: "Sign out of EGGS", exact: true }).click();
+  await second.waitForURL("**/login");
+  const loggedOutOwner = page.waitForResponse((r) => r.url().endsWith("/api/eggs/profile") && r.status() === 401);
+  await page.evaluate(() => window.dispatchEvent(new Event("focus")));
+  await loggedOutOwner;
+  await page.getByRole("link", { name: "Edit My Page ↗", exact: true }).waitFor({ state: "detached" });
+  assert.equal((await owner.request.get(app.base + "/api/eggs/room")).status(), 401);
+  await second.close();
+  await login(); await page.goto(app.base + "/profile/" + handle);
+  await page.getByRole("link", { name: "Edit My Page ↗", exact: true }).waitFor();
+  await fixture.db.admin.query("delete from auth.sessions where user_id=$1", [fixture.users.get(email).id]);
+  const revokedOwner = page.waitForResponse((r) => r.url().endsWith("/api/eggs/profile") && r.status() === 401);
+  await page.evaluate(() => window.dispatchEvent(new Event("eggs-auth")));
+  await revokedOwner;
+  await page.getByRole("link", { name: "Edit My Page ↗", exact: true }).waitFor({ state: "detached" });
+  record("Actual logout in another tab removes owner controls on focus; a revoked live session also removes them on the auth-change event.");
+
+  await login(); await page.goto(app.base + "/profile/edit");
+  await page.getByLabel("Profile visibility", { exact: true }).selectOption("private");
+  room = await save(); assert.equal(room.visibility, "private");
+  assert.equal((await visitor.request.get(app.base + "/profile/" + handle)).status(), 404);
+  assert.deepEqual((await (await visitor.request.get(app.base + "/api/eggs/people?q=" + handle)).json()).people, []);
+  assert.ok(!(await (await visitor.request.get(app.base + "/api/eggs/community")).json()).posts.some((item) => item.id === post.id));
+  assert.equal((await owner.request.get(app.base + "/api/eggs/room")).status(), 200);
+  assert.equal((await fixture.db.admin.query("select count(*)::int n from public.eggs_profiles where id=$1", [profile.id])).rows[0].n, 1);
+  record("Making the page private again removes its public room, People entry and authored community posts while owner editing remains available; confirmed accounts sign back in without duplicate profiles.");
+  assert.deepEqual(pageErrors, []);
+  fs.writeFileSync(path.join(out, "account-browser-results.json"), JSON.stringify({ browser: await browser.version(), transport: "Real built Next.js + PostgreSQL 17 + native PostgREST; synthetic Auth, confirmation and PKCE service only", checks, screenshots, pageErrors, hostedChecks: "Not performed. Real signup email delivery, production origin/Auth/SMTP and approved hosted migration remain separate release prerequisites." }, null, 2) + "\n");
+} finally { for (const fn of cleanup.reverse()) await fn(); }

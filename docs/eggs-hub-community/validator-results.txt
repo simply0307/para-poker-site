@@ -1,0 +1,23 @@
+
+> eggs-web@0.1.0 validate:training
+> node scripts/validate-training-capture.mjs
+
+Training capture validation passed.
+
+
+> eggs-web@0.1.0 validate:homepage
+> node scripts/validate-homepage-settings.mjs
+
+Homepage settings validation passed.
+
+
+> eggs-web@0.1.0 validate:parapoker-import
+> node scripts/validate-parapoker-import.mjs
+
+ParaPoker CSV import validation passed.
+
+
+> eggs-web@0.1.0 validate:stats
+> node scripts/validate-stats.mjs
+
+Stats validation passed.

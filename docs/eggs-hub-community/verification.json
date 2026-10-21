@@ -1,0 +1,651 @@
+{
+  "recordedAt": "2026-10-21T02:18:00.618Z",
+  "base": "fdbc4d760887fb1946af17483402b2ae12db9686",
+  "dependency": "https://github.com/simply0307/para-poker-site/pull/4",
+  "draftPR": "https://github.com/simply0307/para-poker-site/pull/5",
+  "runtime": {
+    "node": "v24.16.0",
+    "postgres": "17.6",
+    "postgrest": "16.4",
+    "browser": "155.0.4283.45",
+    "supabaseCLI": "2.117.0"
+  },
+  "postgrest": {
+    "source": "https://github.com/PostgREST/postgrest/releases/download/v16.4/postgrest-v16.4-windows-x86-64.zip",
+    "archiveSHA256": "29a5b56e5a09b7168bb552ef14aa7ade40bf0a81dd0687cffa86610187b89d78",
+    "executableSHA256": "c4155000dfb0befb59215b65d61a621bbaea1515f36a6e758fc504c7ca0dcbee"
+  },
+  "predecessors": [
+    {
+      "path": "supabase/migrations/20260922231308_eggs_consumer_identity_reviewed_claims.sql",
+      "sha256": "01602fc25c95d4c03480379d6f0b6c7ab6e2ab7d58887b38fe5a9de8f83ea561",
+      "gitBlob": "987df848ce0412a4ad7ad54b08843e2a8a50afde",
+      "unchanged": true
+    },
+    {
+      "path": "supabase/migrations/20261016030028_eggs_hub_catalog_expression.sql",
+      "sha256": "4631d41abafe53ec5b4b2e612ce6271ff82a53a4320341c3599be924919c3ec4",
+      "gitBlob": "a3ec7dfc981b1a2c88b4ce08ca38ee9e31648d9d",
+      "unchanged": true
+    },
+    {
+      "path": "supabase/migrations/20261016080147_eggs_personal_internet.sql",
+      "sha256": "698abca42af8a6890496dbc7be0d1e1baa411feae932bbf83785d1e1d1c6c7c1",
+      "gitBlob": "8ff2686fee68ad66f02199c78f5c4b657eec971f",
+      "unchanged": true
+    }
+  ],
+  "candidate": {
+    "path": "supabase/migrations/20261021013054_eggs_community_feed.sql",
+    "sha256": "62f619ec4473f3795b336f2577d4869691f00b60fca8efcd9a8a478a3b5c306a",
+    "exactDiff": "migration.diff",
+    "appliedOnlyToDisposableLocalDatabases": true
+  },
+  "commands": [
+    {
+      "command": "node node_modules/next/dist/bin/next build",
+      "exitCode": 0,
+      "result": "Final built application including explicit site icon"
+    },
+    {
+      "command": "npm test",
+      "exitCode": 0,
+      "tests": 199,
+      "passed": 198,
+      "failed": 0,
+      "skipped": 1,
+      "durationMs": 230138.6653,
+      "skipReason": "Existing explicit remote raw-hand integration; all native PG17 and actual PostgREST suites executed"
+    },
+    {
+      "command": "node node_modules/eslint/bin/eslint.js src scripts tests next.config.mjs eslint.config.mjs postcss.config.mjs",
+      "exitCode": 0,
+      "warnings": 0
+    },
+    {
+      "command": "npm run validate:training",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run validate:homepage",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run validate:parapoker-import",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run validate:stats",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/check-eggs-community-browser.mjs",
+      "exitCode": 0,
+      "screenshots": 40,
+      "consoleErrors": [],
+      "transport": "real PostgreSQL17 + PostgREST16.4 + built Next; synthetic Auth only"
+    },
+    {
+      "command": "node scripts/audit-eggs-community-local.mjs",
+      "exitCode": 0,
+      "result": "No issues reported; independent disposable loopback database only"
+    },
+    {
+      "command": "npm audit --omit=dev --json",
+      "exitCode": 0,
+      "vulnerabilities": 0
+    },
+    {
+      "command": "npm audit --json",
+      "exitCode": 1,
+      "high": 5,
+      "result": "Existing development-only ESLint/glob/braces chain; no dependency changes"
+    }
+  ],
+  "browser": {
+    "browser": "155.0.4283.45",
+    "transport": "Real built Next.js + PostgreSQL 17 + native PostgREST 16.4; simulated Auth only",
+    "fixtureContent": "All people, posts and Reath works shown are disposable local browser verification fixtures; the normal preview seeds no community posts.",
+    "checks": [
+      "Studio metadata points to the deterministic EGGS initial icon, which returns HTTP 200 as SVG.",
+      "Reath project card opens the internal Digest reading room; the actual Reath logo loads.",
+      "Editor saves and previews a Funnies draft; publisher explicitly publishes; real Reath collections filter publications without embedding third-party video.",
+      "Alice creates a post through the composer; Bob creates a public account, likes once and replies through the thread UI; reply permalinks resolve to the parent conversation and reply anchor.",
+      "People search submits a real public directory query and finds only the matching public handle.",
+      "Two editor tabs conflict with HTTP 409; a Like-triggered refresh preserves the unsaved draft and its original revision; a fresh owner edit succeeds.",
+      "Owner deletion uses an explicit confirmation and removes the disposable post.",
+      "Changing overall profile privacy through the room API removes and restores authored content in an already-open visitor feed on focus.",
+      "Publisher hides and restores with reasons; revoked-session focus and logout auth-change both remove hidden queue content from the DOM.",
+      "Home, Reath Digest, Community and People captured in both themes at 320/390/768/1024/1440px; no document overflow and one main heading per page.",
+      "New form controls meet 44px height, labels are usable, keyboard focus is visible, reduced motion is active and long composer text does not overflow."
+    ],
+    "screenshots": [
+      "home-carton-320.png",
+      "reath-digest-carton-320.png",
+      "community-carton-320.png",
+      "people-carton-320.png",
+      "home-carton-390.png",
+      "reath-digest-carton-390.png",
+      "community-carton-390.png",
+      "people-carton-390.png",
+      "home-carton-768.png",
+      "reath-digest-carton-768.png",
+      "community-carton-768.png",
+      "people-carton-768.png",
+      "home-carton-1024.png",
+      "reath-digest-carton-1024.png",
+      "community-carton-1024.png",
+      "people-carton-1024.png",
+      "home-carton-1440.png",
+      "reath-digest-carton-1440.png",
+      "community-carton-1440.png",
+      "people-carton-1440.png",
+      "home-after-hours-320.png",
+      "reath-digest-after-hours-320.png",
+      "community-after-hours-320.png",
+      "people-after-hours-320.png",
+      "home-after-hours-390.png",
+      "reath-digest-after-hours-390.png",
+      "community-after-hours-390.png",
+      "people-after-hours-390.png",
+      "home-after-hours-768.png",
+      "reath-digest-after-hours-768.png",
+      "community-after-hours-768.png",
+      "people-after-hours-768.png",
+      "home-after-hours-1024.png",
+      "reath-digest-after-hours-1024.png",
+      "community-after-hours-1024.png",
+      "people-after-hours-1024.png",
+      "home-after-hours-1440.png",
+      "reath-digest-after-hours-1440.png",
+      "community-after-hours-1440.png",
+      "people-after-hours-1440.png"
+    ],
+    "consoleErrors": [],
+    "networkDiagnostics": [
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/profile"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/profile"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/profile"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/profile"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/profile"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/profile"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/profile"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/profile"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/profile"
+      },
+      {
+        "status": 409,
+        "url": "http://127.0.0.1:53142/api/eggs/community/post"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/profile"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/community/session"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/profile"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/community/session"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/profile"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/community/session"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/profile"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/community/session"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/profile"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/profile"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/community/session"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/profile"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/profile"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/profile"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/profile"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/community/session"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/profile"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/profile"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/profile"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/profile"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/community/session"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/profile"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/profile"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/profile"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/profile"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/community/session"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/profile"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/profile"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/profile"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/profile"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/community/session"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/profile"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/profile"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/profile"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/profile"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/community/session"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/profile"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/profile"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/profile"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/profile"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/community/session"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/profile"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/profile"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/profile"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/profile"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/community/session"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/profile"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/profile"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/profile"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/profile"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/community/session"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/profile"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/profile"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/profile"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/profile"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/community/session"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/profile"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/profile"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/profile"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/profile"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/community/session"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/profile"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/profile"
+      },
+      {
+        "status": 401,
+        "url": "http://127.0.0.1:53142/api/eggs/community/session"
+      }
+    ]
+  },
+  "visualInspection": [
+    "home-carton-1440.png",
+    "reath-digest-after-hours-1440.png",
+    "community-after-hours-390.png",
+    "people-carton-320.png"
+  ],
+  "screenshots": [
+    {
+      "path": "screenshots/community-after-hours-1024.png",
+      "sha256": "8052422fd364777478c7db9ba20bada7fa1aab5099dc3a0522243f60812d661d"
+    },
+    {
+      "path": "screenshots/community-after-hours-1440.png",
+      "sha256": "b478d67bf117f3d21567b5dfc5620fb96ffab326af0f50a88bbd91bb33f225b7"
+    },
+    {
+      "path": "screenshots/community-after-hours-320.png",
+      "sha256": "d97e072760702e9c4a2489165df6d128ecaef88fc5884ed5ff193cb17ad77e8a"
+    },
+    {
+      "path": "screenshots/community-after-hours-390.png",
+      "sha256": "0b0cf47dd6aade3cbcd8aa1f63284aaacc28d9ffb3c0733c38f93c29b44f3f36"
+    },
+    {
+      "path": "screenshots/community-after-hours-768.png",
+      "sha256": "acd4416d93b697c0f7bebe4eef5d7fa005c022bfe38d5454b7263b2c094a6e20"
+    },
+    {
+      "path": "screenshots/community-carton-1024.png",
+      "sha256": "a76955f93d91380e958e7d610e92d1be5e3dbc803bc6cf645a66d9296493c98e"
+    },
+    {
+      "path": "screenshots/community-carton-1440.png",
+      "sha256": "977801cc3c8d8699aa2c27def0488784b8a33ae0c6157a079d8ecd29cbcdfc8c"
+    },
+    {
+      "path": "screenshots/community-carton-320.png",
+      "sha256": "85e3fcb07bfdad53372ce8068eaced2e69910c21213748200a18f049b2a316e0"
+    },
+    {
+      "path": "screenshots/community-carton-390.png",
+      "sha256": "7e6374b87e1e7c4dbe31294e49d40e101b6b60bc21ace26a65bdc2a4fab5c294"
+    },
+    {
+      "path": "screenshots/community-carton-768.png",
+      "sha256": "409628c431919bbf6c54d4a5cc249204f6b216bdd122525b6bb6a08bea1dbd47"
+    },
+    {
+      "path": "screenshots/home-after-hours-1024.png",
+      "sha256": "8c922d937e4e9411dad2a4dc8d6207a8bf2e8414af0574f1013afcae38f6cc25"
+    },
+    {
+      "path": "screenshots/home-after-hours-1440.png",
+      "sha256": "25dfcc9d8fa7a74b286f0f864e6ae224a0223e0f2e69fc4d53c477b7d08293f5"
+    },
+    {
+      "path": "screenshots/home-after-hours-320.png",
+      "sha256": "89bae13225a854de25088fef53a9018910af28e8b7a75741877466f60d3995a0"
+    },
+    {
+      "path": "screenshots/home-after-hours-390.png",
+      "sha256": "d4529e4fdd854a726a13c321240f9941c3494cf69a90a353b2d2b1f9ab6d37bf"
+    },
+    {
+      "path": "screenshots/home-after-hours-768.png",
+      "sha256": "fd3c1418a11a3efbac8b4576113050ce0bd58eafd79627fa9a5521c5f02964c8"
+    },
+    {
+      "path": "screenshots/home-carton-1024.png",
+      "sha256": "92993f2282a1bb8ae2cda50ffc4e47416b6cf95e3d3307759d7e98d58a839725"
+    },
+    {
+      "path": "screenshots/home-carton-1440.png",
+      "sha256": "18b67740f9a511dda8e6f20dfed2c7495d193b32221390c693e25e82f1cdc573"
+    },
+    {
+      "path": "screenshots/home-carton-320.png",
+      "sha256": "041170962ece5d24d00aa16db114974445b1502afd8740c85441999c6c14c1c6"
+    },
+    {
+      "path": "screenshots/home-carton-390.png",
+      "sha256": "775659ab302a854e966e84bd4277192c855ec1ce21bc6b47e3336a7bcdac624b"
+    },
+    {
+      "path": "screenshots/home-carton-768.png",
+      "sha256": "a5b89a7891072b9ba165ad41d66f7966a430c3e967f89f328d16160c6bf3833d"
+    },
+    {
+      "path": "screenshots/people-after-hours-1024.png",
+      "sha256": "ed080557b6db59a620cf58d11c58e7aa3ad0cda14ea9591a0c26fc9e9407d1f5"
+    },
+    {
+      "path": "screenshots/people-after-hours-1440.png",
+      "sha256": "de46c1a866ba941bf96a8f5ff7a152a1118e92ceeb6de799ef9dae9081de4a18"
+    },
+    {
+      "path": "screenshots/people-after-hours-320.png",
+      "sha256": "d776a05d5b97b3b057e7ebf7cbb99d91e04dce5f67b4ee7b8c60741d25bd8219"
+    },
+    {
+      "path": "screenshots/people-after-hours-390.png",
+      "sha256": "1ca45f9bc447bc516eafb51a84367a16b7bfdb3c5699c18590dd7abceebf5700"
+    },
+    {
+      "path": "screenshots/people-after-hours-768.png",
+      "sha256": "09aeff79df1a050209e3bccca06fa5f8d361d095ccbb156b6d0673f558ed73c2"
+    },
+    {
+      "path": "screenshots/people-carton-1024.png",
+      "sha256": "f5af359467b19a99bf4810393eec4930c6bbde112638800547c5268dcc5d0e40"
+    },
+    {
+      "path": "screenshots/people-carton-1440.png",
+      "sha256": "03909b4814f43ebf2f7d1b455cd023690c270d05a29609c05e86246531b13fdd"
+    },
+    {
+      "path": "screenshots/people-carton-320.png",
+      "sha256": "9841f09cf504900faa33d104b07298e9d47366f88d3794658a11c823347bb4b0"
+    },
+    {
+      "path": "screenshots/people-carton-390.png",
+      "sha256": "33a3c44adc42d6d8039e89fed29e6c5a737389b7673bef2d7e24b1f5d2e98b42"
+    },
+    {
+      "path": "screenshots/people-carton-768.png",
+      "sha256": "022800f42113c284f554072aace16d07353c024078e591306a1f2a9661b4b56c"
+    },
+    {
+      "path": "screenshots/reath-digest-after-hours-1024.png",
+      "sha256": "90f85d8fd9b1220dcd872c93b6ddb9ea9800d1d16f90a5a7209225cf0ada9bdd"
+    },
+    {
+      "path": "screenshots/reath-digest-after-hours-1440.png",
+      "sha256": "03ca8f130dbd5c476a9a3ee48a97164635d1cfe7f9e5a2a684f3e1b8c75be099"
+    },
+    {
+      "path": "screenshots/reath-digest-after-hours-320.png",
+      "sha256": "e3f52e92d0e5d6e552db9d66eb4a7f197f7e2a0001ec137c193a679be4ed9809"
+    },
+    {
+      "path": "screenshots/reath-digest-after-hours-390.png",
+      "sha256": "18ea66f0099de7007e68d62729412e43d960a35f08bf235bd5d1e5b0b29a95a5"
+    },
+    {
+      "path": "screenshots/reath-digest-after-hours-768.png",
+      "sha256": "142ac4805f8e01466cda84819874b1a4a783c5dea7ce78a7bf82af1003901e6d"
+    },
+    {
+      "path": "screenshots/reath-digest-carton-1024.png",
+      "sha256": "2e502f7e3aa7d185b580122c0071fae73ad8a6aa59c638d21396fec1baa4f7be"
+    },
+    {
+      "path": "screenshots/reath-digest-carton-1440.png",
+      "sha256": "9e39bb9e8cded18d70cc1f5f05d7cf22cd4438dfd0c94a85224f6f846aa70c04"
+    },
+    {
+      "path": "screenshots/reath-digest-carton-320.png",
+      "sha256": "53e4fe882cd1dcb880e54864fceaa8c784029732875a4461587bef78a757dd80"
+    },
+    {
+      "path": "screenshots/reath-digest-carton-390.png",
+      "sha256": "170c44bbb26118915edeca2c51f9a9f12f1c5f35e86b0428cad2a78f631c241b"
+    },
+    {
+      "path": "screenshots/reath-digest-carton-768.png",
+      "sha256": "f5e20c70ea9926c5c4071606815a20f326c68b20c6cfb3e6baa739a8dc57cd63"
+    }
+  ],
+  "authenticationEvidence": "Synthetic local fixture only. No hosted signup, SMTP, PKCE, production credentials or Auth settings were tested or changed in this iteration.",
+  "boundaries": {
+    "hostedSQL": false,
+    "deploy": false,
+    "merge": false,
+    "productionAuthChanges": false,
+    "paidInfrastructure": false,
+    "gameChanges": false,
+    "otherProjectChanges": false
+  },
+  "releaseGates": [
+    "Canonical EGGS origin",
+    "SMTP sender and Auth/security review",
+    "Current production schema and grants audit",
+    "Ordered explicit migration approval",
+    "Publisher membership",
+    "Isolated hosted verification",
+    "Explicit deployment authorization"
+  ]
+}

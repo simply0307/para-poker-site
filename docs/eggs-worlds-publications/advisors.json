@@ -1,0 +1,23 @@
+{
+  "target": "independent disposable loopback PostgreSQL 17 / hub_test",
+  "hosted": false,
+  "cliVersion": "2.117.0",
+  "telemetryDisabled": true,
+  "command": "supabase db advisors --db-url [disposable loopback URL] --type security|performance --level warn --fail-on none --output json --output-format json",
+  "reports": [
+    {
+      "type": "security",
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "Connecting to remote database...\nNo issues found\n",
+      "noIssuesReported": true
+    },
+    {
+      "type": "performance",
+      "exitCode": 0,
+      "stdout": "[\n  {\n    \"name\": \"duplicate_index\",\n    \"title\": \"Duplicate Index\",\n    \"level\": \"WARN\",\n    \"facing\": \"EXTERNAL\",\n    \"categories\": [\n      \"PERFORMANCE\"\n    ],\n    \"description\": \"Detects cases where two ore more identical indexes exist.\",\n    \"detail\": \"Table `public.player_career_stats` has identical indexes {player_career_stats_player_id_key,player_career_stats_player_uidx}. Drop all except one of them\",\n    \"remediation\": \"https://supabase.com/docs/guides/database/database-linter?lint=0009_duplicate_index\",\n    \"metadata\": {\n      \"name\": \"player_career_stats\",\n      \"type\": \"table\",\n      \"schema\": \"public\",\n      \"indexes\": [\n        \"player_career_stats_player_id_key\",\n        \"player_career_stats_player_uidx\"\n      ]\n    },\n    \"cache_key\": \"duplicate_index_public_player_career_stats_{player_career_stats_player_id_key,player_career_stats_player_uidx}\"\n  }\n]\n",
+      "stderr": "Connecting to remote database...\n",
+      "noIssuesReported": false
+    }
+  ]
+}

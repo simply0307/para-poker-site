@@ -1,0 +1,16 @@
+{
+  "browser": "155.0.4283.45",
+  "transport": "Real PostgreSQL 17 + PostgREST 16.4; simulated Auth",
+  "checks": [
+    "Editor draft and saved preview; publisher explicitly publishes through UI.",
+    "Discard and Reset Appearance make no request; identity, visibility and board remain.",
+    "All eight mixed slots save; ordering persists.",
+    "Only the live owner receives Edit My Page.",
+    "Visitor theme persists; room theme is independent.",
+    "Concurrent editor tabs: stale save returns 409 and preserves winning content.",
+    "Both themes captured at 320/390/768/1024/1440; no document overflow.",
+    "All five visibility toggles remove public modules and JSON fields.",
+    "Keyboard focus visible; editor controls meet 44px height; long content stays within 320px; reduced-motion stylesheet active."
+  ],
+  "consoleErrors": []
+}
