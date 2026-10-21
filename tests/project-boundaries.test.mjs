@@ -31,6 +31,11 @@ test("Para Poker APIs retain operator authorization and consumer APIs have a sep
         assert.match(source,/publicConsumerClient\(\)/u);
         assert.match(source,/\.publicRoom\(handle\)/u);
         assert.doesNotMatch(source,/consumerContext|\.from\(/u);
+      } else if (["/api/eggs/community","/api/eggs/community/posts/[id]","/api/eggs/people"].includes(entry.route)) {
+        assert.equal(entry.method,"GET");
+        assert.match(source,/publicConsumerClient\(\)/u);
+        assert.match(source,/communityRepository\(client\)/u);
+        assert.doesNotMatch(source,/consumerContext|\.from\(/u);
       } else if (!entry.route.startsWith("/api/eggs/auth")) assert.match(source, /await requireEggsUser\(context\)/u);
       continue;
     }

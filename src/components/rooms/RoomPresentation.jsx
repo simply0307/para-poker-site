@@ -3,6 +3,8 @@ import { stamps, modules as moduleLabels } from "@/lib/rooms/registry.mjs";
 import { affiliations } from "@/lib/hub/catalog.mjs";
 import Image from "next/image";
 import { workAssets } from "@/lib/rooms/registry.mjs";
+import { projectBrand, isPokerClient } from "@/lib/hub/destinations.mjs";
+import { PokerClientMark } from "@/components/hub/PokerClientMark";
 export function Avatar({ id }) {
   return (
     <span
@@ -93,14 +95,16 @@ function contentFor(key, m) {
                     height={180}
                     unoptimized
                   />
-                ) : item.type === "project" && item.asset === "para" ? (
+                ) : item.type === "project" && projectBrand(item) ? (
                   <Image
-                    src="/images/para-wordmark.svg"
+                    src={projectBrand(item).src}
                     alt=""
                     width={180}
                     height={180}
                     unoptimized
                   />
+                ) : item.type === "project" && isPokerClient(item) ? (
+                  <PokerClientMark />
                 ) : (
                   item.title
                     .split(" ")

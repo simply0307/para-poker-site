@@ -15,6 +15,7 @@ import {
   workAssets,
 } from "./registry.mjs";
 import { accents } from "../hub/catalog.mjs";
+import { approvedMediaUrl, publicationFormats } from "../reath/catalog.mjs";
 export const roomsEnabled = (env = process.env) =>
   env.EGGS_ROOMS_ENABLED === "true";
 const invalid = (message) => {
@@ -126,7 +127,37 @@ export function workCommand(value) {
   };
   if (value.action === "save") {
     const c = value.content;
-    record(c, ["title", "summary", "description", "asset_id", "project_id"]);
+    if (!c || typeof c !== "object" || Array.isArray(c))
+      invalid("Check the work fields.");
+    onlyFields(c, [
+      "title",
+      "summary",
+      "description",
+      "asset_id",
+      "project_id",
+      "format",
+      "media_url",
+    ]);
+    if (
+      !["title", "summary", "description", "asset_id", "project_id"].every(
+        (k) => Object.hasOwn(c, k),
+      )
+    )
+      invalid("Include all work fields.");
+    if (
+      Object.hasOwn(c, "format") &&
+      (c.format === "work" || !Object.hasOwn(publicationFormats, c.format))
+    )
+      invalid("Choose a publication format.");
+    if (
+      Object.hasOwn(c, "media_url") &&
+      (typeof c.media_url !== "string" ||
+        approvedMediaUrl(c.media_url) === null ||
+        (c.media_url && c.format !== "video"))
+    )
+      invalid("Use a public YouTube or Vimeo video link.");
+    if (c.format === "video" && !approvedMediaUrl(c.media_url))
+      invalid("Add the public video link before saving a video.");
     for (const [k, max] of [
       ["title", 80],
       ["summary", 240],

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { workAssets } from "@/lib/rooms/registry.mjs";
+import { approvedMediaUrl, publicationFormats } from "@/lib/reath/catalog.mjs";
 export function WorkArt({ id }) {
   const asset = workAssets[id];
   return asset ? (
@@ -18,7 +19,12 @@ export function WorkCard({ work }) {
   return (
     <article className="studio-window work-card">
       <div className="window-bar">
-        <span>LIBRARY / ORIGINAL DESIGN</span>
+        <span>
+          LIBRARY /{" "}
+          {(
+            publicationFormats[work.content.format] || "ORIGINAL DESIGN"
+          ).toUpperCase()}
+        </span>
         <span aria-hidden="true">＋</span>
       </div>
       <Link href={"/library/" + work.slug}>
@@ -42,6 +48,23 @@ export function WorkShowcase({ work, project, preview = false }) {
       <p className="studio-lede">{work.content.summary}</p>
       <WorkArt id={work.content.asset_id} />
       <p className="work-description">{work.content.description}</p>
+      {work.content.format === "funnies" ? (
+        <p className="work-fiction-notice">
+          <strong>Reath Funnies / fiction within fiction.</strong> A creative
+          comic work, presented with its recorded creator credit.
+        </p>
+      ) : null}
+      {work.content.format === "video" &&
+      approvedMediaUrl(work.content.media_url) ? (
+        <a
+          className="work-video-link"
+          href={approvedMediaUrl(work.content.media_url)}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Watch the public video ↗
+        </a>
+      ) : null}
       {project ? (
         <p>
           Associated project:{" "}

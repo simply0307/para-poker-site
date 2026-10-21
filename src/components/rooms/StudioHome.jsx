@@ -2,7 +2,14 @@ import Link from "next/link";
 import { StudioShell } from "./StudioShell";
 import { StudioProject } from "./StudioProject";
 import { WorkCard } from "./WorkPresentation";
-export function StudioHome({ projects, works, unavailable, worksUnavailable }) {
+export function StudioHome({
+  projects,
+  works,
+  unavailable,
+  worksUnavailable,
+  community = false,
+  feed = null,
+}) {
   return (
     <StudioShell>
       <main className="studio-main">
@@ -10,13 +17,13 @@ export function StudioHome({ projects, works, unavailable, worksUnavailable }) {
           <div>
             <p className="studio-kicker">WELCOME TO YOUR CORNER OF THE WEB</p>
             <h1>
-              A little strange.
+              Games. Stories.
               <br />
-              <em>A lot of possibility.</em>
+              <em>Your kind of people.</em>
             </h1>
             <p>
-              Games, stories, things we make. Find your people by starting with
-              what you love.
+              Welcome to EGGS. Find your next game, read something from Reath,
+              and make a little corner of the internet your own.
             </p>
           </div>
           <Link className="studio-callout" href="/profile">
@@ -29,9 +36,37 @@ export function StudioHome({ projects, works, unavailable, worksUnavailable }) {
             <span>Make yourself at home ↗</span>
           </Link>
         </section>
+        <nav className="studio-channels" aria-label="Find your corner">
+          <Link href="/games">
+            <span>01 / PLAY</span>
+            <h2>Pull up a chair.</h2>
+            <p>Gauntlet, Poker, and competition with a story.</p>
+            <b>Games & leagues ↗</b>
+          </Link>
+          <Link href="/reath-digest">
+            <span>02 / READ & WATCH</span>
+            <h2>Meet Reath Digest.</h2>
+            <p>Our publications, Funnies, comics, and moving pictures.</p>
+            <b>Open the reading room ↗</b>
+          </Link>
+          <Link href={community ? "/community" : "/profile"}>
+            <span>03 / BELONG</span>
+            <h2>A familiar face.</h2>
+            <p>
+              {community
+                ? "A shared feed, public pages, and people who make things."
+                : "A page that feels like you. Games, interests, and a place to begin."}
+            </p>
+            <b>
+              {community
+                ? "Join the conversation ↗"
+                : "Make your EGGS page ↗"}
+            </b>
+          </Link>
+        </nav>
         <div className="bulletin-heading">
-          <h2>The bulletin board</h2>
-          <span>GOOD THINGS, PINNED HERE.</span>
+          <h2>Made around here.</h2>
+          <span>THE EGGS PROJECTS & LIBRARY</span>
         </div>
         <div className="studio-bulletin">
           {unavailable ? (
@@ -56,6 +91,42 @@ export function StudioHome({ projects, works, unavailable, worksUnavailable }) {
             <p role="status">The library is temporarily unavailable.</p>
           ) : null}
         </div>
+        {community ? (
+          <section className="studio-community-preview">
+            <header>
+              <div>
+                <p className="studio-kicker">PEOPLE MAKE EGGS</p>
+                <h2>From our little corner.</h2>
+              </div>
+              <Link href="/community">The community feed ↗</Link>
+            </header>
+            {feed?.posts?.length ? (
+              <div className="studio-feed-previews">
+                {feed.posts.map((post) => (
+                  <article key={post.id}>
+                    <Link href={"/profile/" + post.author.handle}>
+                      @{post.author.handle}
+                    </Link>
+                    <p>{post.body}</p>
+                    <Link href={"/community/" + post.id}>
+                      Join the conversation ↗
+                    </Link>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <div className="studio-community-welcome">
+                <h3>Every good place starts with a hello.</h3>
+                <p>
+                  A thought, a question, something you made. There’s room for it
+                  here.
+                </p>
+                <Link href="/community">Say hello ↗</Link>
+                <Link href="/people">Find your people ↗</Link>
+              </div>
+            )}
+          </section>
+        ) : null}
       </main>
     </StudioShell>
   );

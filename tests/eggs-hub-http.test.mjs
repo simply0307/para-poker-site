@@ -13,7 +13,7 @@ test("built Hub journeys with real local PostgreSQL and simulated Auth/PostgREST
  const publisher=await login("publisher"),editor=await login("editor"),alice=await login("alice"),bob=await login("bob"),operator=await login("operator");
  await t.test("anonymous visitor discovers stable showcases and official destinations",async()=>{
   const home=await request("/");assert.equal(home.status,200);assert.match(await home.text(),/Discover the projects/u);
-  for(const project of bootstrapProjects){const page=await request("/projects/"+project.slug);assert.equal(page.status,200);assert.ok((await page.text()).includes(project.content.destination));}
+  for(const project of bootstrapProjects){const page=await request("/projects/"+project.slug);if(project.slug==="reath-digest"){assert.equal(page.status,308);assert.equal(page.headers.get("location"),"/reath-digest");const reader=await request("/reath-digest");assert.equal(reader.status,200);assert.match(await reader.text(),/Reath Funnies/u);}else{assert.equal(page.status,200);assert.ok((await page.text()).includes(project.content.destination));}}
   assert.equal((await request("/projects/unknown-project")).status,404);
   assert.match(await (await request("/projects?category=world")).text(),/Nothing published/u);
  });

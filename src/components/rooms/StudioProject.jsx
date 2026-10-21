@@ -1,8 +1,15 @@
 import Link from "next/link";
 import Image from "next/image";
 import { categories, statuses } from "@/lib/hub/catalog.mjs";
+import {
+  projectBrand,
+  projectLanding,
+  isPokerClient,
+} from "@/lib/hub/destinations.mjs";
+import { PokerClientMark } from "@/components/hub/PokerClientMark";
 export function StudioProject({ project }) {
   const c = project.content;
+  const brand = projectBrand(project);
   return (
     <article className={"studio-window studio-project project-" + project.slug}>
       <div className="window-bar">
@@ -11,15 +18,19 @@ export function StudioProject({ project }) {
         </span>
         <span aria-hidden="true">↗</span>
       </div>
-      <Link href={"/projects/" + project.slug}>
+      <Link href={projectLanding(project)}>
         <div className="studio-poster" aria-hidden="true">
-          {c.asset === "para" ? (
+          {brand ? (
             <Image
-              src="/images/para-wordmark.svg"
-              width={220}
-              height={75}
+              className={"project-brand project-brand-" + project.slug}
+              src={brand.src}
+              width={brand.width}
+              height={brand.height}
               alt=""
+              unoptimized
             />
+          ) : isPokerClient(project) ? (
+            <PokerClientMark />
           ) : (
             <>
               <span className="poster-orbit" />

@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { accountFetch } from "@/components/eggs/accountFetch";
 import { workAssets } from "@/lib/rooms/registry.mjs";
+import { publicationFormats } from "@/lib/reath/catalog.mjs";
 const empty = {
   title: "",
   summary: "",
@@ -93,6 +94,49 @@ export function WorkEditor({ work, projects }) {
           />
         </label>
         <label>
+          Publication format (optional)
+          <select
+            value={content.format || ""}
+            onChange={(e) => {
+              const format = e.target.value;
+              setContent((current) => {
+                const next = { ...current };
+                if (format) next.format = format;
+                else delete next.format;
+                if (format !== "video") delete next.media_url;
+                return next;
+              });
+              setDirty(true);
+            }}
+          >
+            <option value="">General work</option>
+            {Object.entries(publicationFormats)
+              .filter(([id]) => id !== "work")
+              .map(([id, label]) => (
+                <option key={id} value={id}>
+                  {label}
+                </option>
+              ))}
+          </select>
+        </label>
+        {content.format === "video" ? (
+          <label>
+            Public video link
+            <input
+              type="url"
+              required
+              value={content.media_url || ""}
+              maxLength={200}
+              onChange={(e) => update("media_url", e.target.value)}
+              placeholder="https://www.youtube.com/watch?v=…"
+            />
+            <span className="eggs-help">
+              Only a public, editorially cleared YouTube or Vimeo watch link.
+              Viewers choose whether to open it; no video loads automatically.
+            </span>
+          </label>
+        ) : null}
+        <label>
           Registered visual
           <select
             value={content.asset_id}
@@ -129,6 +173,11 @@ export function WorkEditor({ work, projects }) {
             ) : null}
           </select>
         </label>
+        <p className="eggs-help">
+          Associate a released work with Reath Digest to collect it on the
+          reader page. Drafts stay private until a publisher approves the saved
+          revision.
+        </p>
         {error ? <p role="alert">{error}</p> : null}
         <button className="eggs-button" disabled={busy}>
           {busy ? "Saving…" : "Save work draft"}

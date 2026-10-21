@@ -3,8 +3,12 @@ import "./globals.css";
 import "./eggs.css";
 import "./hub.css";
 import "./rooms.css";
+import "./reath.css";
+import "./people.css";
+import "./community.css";
+import "./product.css";
 import { EggsNav } from "@/components/eggs/EggsNav";
-import {roomsEnabled} from "@/lib/rooms/core.mjs";
+import { roomsEnabled } from "@/lib/rooms/core.mjs";
 
 const robotoFlex = localFont({
   src: "./fonts/RobotoFlex-Variable.ttf",
@@ -15,15 +19,14 @@ const robotoFlex = localFont({
 
 export const metadata = {
   title: { default: "EGGS — Projects, people & play", template: "%s | EGGS" },
-  description: "Explore EGGS projects, Para competition, and the Para Poker League public archive.",
+  description:
+    "Independent games, Reath Digest, things we make, and the people who bring EGGS to life.",
+  icons: { icon: { url: "/brand/eggs-initial.svg", type: "image/svg+xml" } },
 };
 
 export default function RootLayout({ children }) {
   return (
-    <html
-      lang="en"
-      className={`${robotoFlex.variable} h-full antialiased`}
-    >
+    <html lang="en" className={`${robotoFlex.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         <EggsNav personal={roomsEnabled()} />
         {children}
