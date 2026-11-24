@@ -5,6 +5,7 @@ import { candidateFromMatch, matchesFilters } from "@/lib/league/candidates.mjs"
 
 export default function AssignmentDesk({ sessions = [], operator = false }) {
   const [saved,setSaved] = useState([]), [game,setGame] = useState("All");
+  const [opponents,setOpponents] = useState("All opponents");
   const [finished,setFinished] = useState(false), [long,setLong] = useState(false);
   const [error,setError] = useState(""), [selected,setSelected] = useState(null), [angle,setAngle] = useState("");
   const [draft,setDraft] = useState(""), [busy,setBusy] = useState(false);
@@ -26,7 +27,7 @@ export default function AssignmentDesk({ sessions = [], operator = false }) {
     setSaved(merged); input.value = ""; setError(failures.length ? "Could not read: "+failures.join(", ") : "");
     try { sessionStorage.setItem("para.editorial.candidates", JSON.stringify(merged)); } catch { setError("Tab storage is full. These selections are available until reload."); }
   }
-  const rows = [...sessions,...saved].filter(row=>matchesFilters(row,game,finished,long));
+  const rows = [...sessions,...saved].filter(row=>matchesFilters(row,game,finished,long) && (opponents==="All opponents" || row.opposition===opponents));
   const prompt = selected ? ["Write a Reath sports desk assignment about "+selected.title+".",angle.trim(), "Use only the recorded details below. Attribute uncertainty and distinguish a saved game from an official league result.", JSON.stringify(selected,null,2)].filter(Boolean).join("\n\n") : "";
   async function generate() {
     setBusy(true); setError(""); setDraft("");
@@ -43,6 +44,7 @@ export default function AssignmentDesk({ sessions = [], operator = false }) {
     <label className="cursor-pointer underline">Open saved match files <input className="block max-w-full text-sm" type="file" accept=".json,application/json" multiple onChange={addFiles}/></label></div>
     <fieldset className="flex flex-wrap items-center gap-5"><legend className="mb-2 font-bold">Filter candidates</legend>
       <label>Game <select className="bg-white text-black" value={game} onChange={e=>setGame(e.target.value)}>{["All","SuitFire","Poker"].map(v=><option key={v}>{v}</option>)}</select></label>
+      <label>Opponents <select className="bg-white text-black" value={opponents} onChange={e=>setOpponents(e.target.value)}>{["All opponents","Human opponents","AI opponent"].map(v=><option key={v}>{v}</option>)}</select></label>
       <label><input type="checkbox" checked={finished} onChange={e=>setFinished(e.target.checked)}/> Finished game</label>
       <label><input type="checkbox" checked={long} onChange={e=>setLong(e.target.checked)}/> Over 1 minute long</label>
     </fieldset>
