@@ -8,7 +8,8 @@ function getProviderConfig() {
       provider: "gemini",
       apiKey: process.env.GEMINI_API_KEY,
       baseUrl: process.env.GOOGLE_GEMINI_BASE_URL || "https://generativelanguage.googleapis.com",
-      model: process.env.GEMINI_MODEL || "gemini-2.5-flash-lite",
+      model: (!process.env.GEMINI_MODEL || process.env.GEMINI_MODEL === "gemini-2.5-flash-lite")
+        ? "gemini-flash-lite-latest" : process.env.GEMINI_MODEL,
       fallbackModels: parseModelList(process.env.GEMINI_FALLBACK_MODELS),
     };
   }
