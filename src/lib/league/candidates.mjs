@@ -10,9 +10,13 @@ export function candidateFromMatch(input) {
   const start = Date.parse(record.startedAt);
   const end = Date.parse(record.completedAt);
   return { id: record.matchId.slice(0,100), game: "SuitFire", title: players.map(p=>p.name).join(" vs. "),
-    finished: Number.isFinite(end) && !["pending","abandoned","cancelled"].includes(record.completion?.status) && (record.completion?.status === "finalized" || players.some(p => p.result)),
+    finished: Number.isFinite(end) && !record.abandonmentReason && !['abandoned','cancelled'].includes(record.completionReason) && !["pending","abandoned","cancelled"].includes(record.completion?.status) && (record.completion?.status === "finalized" || players.some(p => p.result)),
     durationMs: Number.isFinite(end-start) && end >= start ? end-start : null,
     date: Number.isFinite(end) ? new Date(end).toISOString() : null,
+    opposition: (input.participants || record.participants).some(p => p.identityType==="ai" || p.identityType==="bot") ? "AI opponent" : (input.participants || record.participants).length===2 && (input.participants || record.participants).every(p=>["account","guest","human","player"].includes(p.identityType)) ? "Human opponents" : "Opponent type unconfirmed",
+    decisiveTurn: Number.isInteger(record.notableMoments?.decisiveTurn) ? record.notableMoments.decisiveTurn : null,
+    damageDealt: Number.isFinite(record.combatStats?.totalDamageDealt) ? record.combatStats.totalDamageDealt : null,
+    largestAttack: Number.isFinite(record.combatStats?.largestAttack?.value) ? record.combatStats.largestAttack.value : null,
     turns: Number.isInteger(record.turnCount) ? record.turnCount : null, players };
 }
 
