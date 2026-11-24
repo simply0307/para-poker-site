@@ -12,7 +12,7 @@ export const POST=withOperatorAuthorization(async request=>{
     const message=String(error?.message || "");
     const status=Number(error?.status) || 502;
     const reason=/quota|rate.limit|credit|billing/i.test(message) ? "The writing provider has reached its quota." : /not found|not supported|unknown model/i.test(message) ? "The configured writing model is unavailable." : /missing|key|unauthoriz|credential/i.test(message) ? "The writing provider credentials are unavailable." : /invalid JSON|parseable JSON|empty response/i.test(message) ? "The writing provider returned an unreadable draft." : "The writing provider could not complete this draft.";
-    console.error("Reath assignment provider failure",{status,reason});
+    console.error("Reath assignment provider failure",{status,reason,detail:message.replace(/Bearer\s+\S+|AIza[\w-]+|sk-[\w-]+/gi,"[redacted]").slice(0,400)});
     return Response.json({error:reason+" Your reporting prompt is available above."},{status:502});
   }
 });
