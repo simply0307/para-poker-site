@@ -11,7 +11,7 @@ export default function OperatorLoginPage() {
   return (
     <main className="grid min-h-screen place-items-center bg-[#f4f0e8] px-5 text-zinc-950">
       <section className="w-full max-w-md rounded-lg border border-zinc-300 bg-white p-8 shadow-xl">
-        <p className="text-xs font-black uppercase tracking-[0.2em] text-amber-700">Para-Poker League</p>
+        <p className="text-xs font-black uppercase tracking-[0.2em] text-amber-700">Para League</p>
         <h1 className="mt-3 text-4xl font-black">Operator sign-in</h1>
         <p className="mt-4 leading-7 text-zinc-600">Use your existing league operator account. Authorization is verified by the server on every privileged request.</p>
         {configured ? (
