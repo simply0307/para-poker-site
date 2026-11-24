@@ -28,11 +28,15 @@ export default function AssignmentDesk({ sessions = [], operator = false }) {
     try { sessionStorage.setItem("para.editorial.candidates", JSON.stringify(merged)); } catch { setError("Tab storage is full. These selections are available until reload."); }
   }
   const rows = [...sessions,...saved].filter(row=>matchesFilters(row,game,finished,long) && (opponents==="All opponents" || row.opposition===opponents));
-  const prompt = selected ? ["Write a Reath sports desk assignment about "+selected.title+".",angle.trim(), "Use only the recorded details below. Attribute uncertainty and distinguish a saved game from an official league result.", JSON.stringify(selected,null,2)].filter(Boolean).join("\n\n") : "";
+  const prior = selected?.game==="SuitFire" ? saved.filter(row =>
+    row.id!==selected.id && Date.parse(row.date)<Date.parse(selected.date) &&
+    row.players?.some(player=>player.name!=="Unknown Vanguard" && selected.players?.some(other=>other.name===player.name))
+  ).sort((a,b)=>Date.parse(b.date)-Date.parse(a.date)).slice(0,3) : [];
+  const prompt = selected ? ["Write a Reath sports desk assignment about "+selected.title+".",angle.trim(), "Use only the recorded details below. Attribute uncertainty and distinguish a saved game from an official league result.", JSON.stringify({selected,earlierSavedGames:prior},null,2)].filter(Boolean).join("\n\n") : "";
   async function generate() {
     setBusy(true); setError(""); setDraft("");
     try {
-      const res = await fetch("/api/admin/newsroom/assignment",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({candidate:selected,angle})});
+      const res = await fetch("/api/admin/newsroom/assignment",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({candidate:selected,angle,history:prior})});
       const data = await res.json(); if (!res.ok) throw new Error(data.error || "Generation failed.");
       const prose=[data.headline,data.subheadline,data.recap_body].filter(Boolean).join("\n\n");
       setDraft(prose);try { sessionStorage.setItem("para.draft."+selected.id,prose); } catch { /* The draft remains in the editor. */ }
