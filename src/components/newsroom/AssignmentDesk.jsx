@@ -34,7 +34,8 @@ export default function AssignmentDesk({ sessions = [], operator = false }) {
     try {
       const res = await fetch("/api/admin/newsroom/assignment",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({candidate:selected,angle})});
       const data = await res.json(); if (!res.ok) throw new Error(data.error || "Generation failed.");
-      setDraft([data.headline,data.subheadline,data.recap_body].filter(Boolean).join("\n\n"));
+      const prose=[data.headline,data.subheadline,data.recap_body].filter(Boolean).join("\n\n");
+      setDraft(prose);try { sessionStorage.setItem("para.draft."+selected.id,prose); } catch { /* The draft remains in the editor. */ }
     } catch(e) { setError(e.message); } finally {setBusy(false);}
   }
   return <section className="my-6 space-y-5 rounded border border-stone-400/50 p-5">
@@ -50,14 +51,14 @@ export default function AssignmentDesk({ sessions = [], operator = false }) {
     </fieldset>
     <p aria-live="polite">{rows.length} candidate{rows.length===1?"":"s"}</p>
     <ul className="divide-y divide-stone-400/30">{rows.map(row=><li key={row.game+row.id} className="flex flex-wrap items-center gap-4 py-3">
-      <button disabled={busy} className="text-left font-bold underline" onClick={()=>{setSelected(row);setAngle("");setDraft("");}}>{row.title}</button>
+      <button disabled={busy} className="text-left font-bold underline" onClick={()=>{setSelected(row);setAngle("");setDraft(sessionStorage.getItem("para.draft."+row.id)||"");}}>{row.title}</button>
       <small>{row.game} · {row.finished ? "Finished" : "Finish unconfirmed"} · {row.durationMs == null ? "Duration unknown" : Math.floor(row.durationMs/1000)+"s"+(row.minimumDuration?" or longer":"")}</small>
     </li>)}</ul>
     {selected && <div className="space-y-3"><h3 className="text-xl font-bold">Assignment · {selected.title}</h3>
       <label className="block">Story angle<input className="block w-full rounded border bg-white p-2 text-black" value={angle} maxLength={1000} onChange={e=>setAngle(e.target.value)} placeholder="What decided this game?"/></label>
       <label className="block">Reporting prompt<textarea readOnly className="block w-full rounded border bg-white p-3 text-black" rows={7} value={prompt}/></label>
       {operator && selected.sessionId ? <Link className="underline" href={"/admin/sessions/"+encodeURIComponent(selected.sessionId)}>Open session evidence and recap editor</Link> : operator ? <button disabled={busy} className="rounded bg-slate-900 px-4 py-2 text-white" onClick={generate}>{busy?"Drafting…":"Generate Reath draft"}</button> : <Link className="underline" href="/admin/newsroom">Sign in for AI drafting and league sessions</Link>}
-      {draft && <label className="block">Working draft<textarea rows={10} className="block w-full rounded border bg-white p-3 text-black" value={draft} onChange={e=>setDraft(e.target.value)}/></label>}
+      {draft && <label className="block">Working draft<textarea rows={10} className="block w-full rounded border bg-white p-3 text-black" value={draft} onChange={e=>{setDraft(e.target.value);try {sessionStorage.setItem("para.draft."+selected.id,e.target.value);} catch { /* Editor retains current text. */ }}}/></label>}
     </div>}
     {error && <p role="alert">{error}</p>}
   </section>;
