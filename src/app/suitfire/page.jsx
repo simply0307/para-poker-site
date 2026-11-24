@@ -1,18 +1,30 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { LeagueHero, NewsroomShell } from "@/components/newsroom/NewsroomShell";
 import { approvedMatches } from "@/lib/suitfire/league";
 import { seasonRecords } from "@/lib/suitfire/records.mjs";
 
 export const dynamic = "force-dynamic";
 
-export default async function SuitFireLeague() {
-  const matches = await approvedMatches();
-  const seasons = [...new Set(matches.map(match => match.season))];
+export default function SuitFireLeague() {
   return <NewsroomShell eyebrow="Competitive SuitFire">
     <LeagueHero eyebrow="Para League" title="SuitFire Para League" dek="Official play, Vanguard records, and match coverage from the Reath desk." />
     <a className="inline-block rounded border border-amber-300 px-4 py-2" href="https://gauntlet-online.vercel.app/?page=compete&view=para">Enter the event hub in SuitFire →</a>
     <p className="mt-3 text-stone-300">Check the schedule, enter free, and track your Prestige in the event hub.</p>
-    {!seasons.length && <p className="my-8">The first season record will appear here when a match result is approved.</p>}
+    <Suspense fallback={<p role="status" className="my-8">Loading season records…</p>}><SeasonArchive /></Suspense>
+  </NewsroomShell>;
+}
+
+async function SeasonArchive() {
+  let matches;
+  try {
+    matches = await approvedMatches();
+  } catch (error) {
+    console.error("SuitFire season archive unavailable", error.message);
+    return <p role="status" className="my-8">Season records are temporarily unavailable. You can still open the event hub above.</p>;
+  }
+  const seasons = [...new Set(matches.map(match => match.season))];
+  return <>{!seasons.length && <p className="my-8">The first season record will appear here when a match result is approved.</p>}
     {seasons.map(season => {
       const games = matches.filter(match => match.season === season);
       return <section key={season} className="my-10 space-y-5">
@@ -35,5 +47,5 @@ export default async function SuitFireLeague() {
         </li>)}</ul>
       </section>;
     })}
-  </NewsroomShell>;
+  </>;
 }
