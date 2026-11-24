@@ -21,7 +21,7 @@ export function NewsroomShell({ children }) {
               <Image src="/images/para-league-logo.png" alt="Para League" width={78} height={78} className="h-14 w-14 object-cover md:h-[4.75rem] md:w-[4.75rem]" priority />
             </span>
             <span>
-              <span className="block text-[0.64rem] font-bold uppercase tracking-[0.2em] text-[#d8c087] md:text-sm md:tracking-[0.26em]">Para-Poker</span>
+              <span className="block text-[0.64rem] font-bold uppercase tracking-[0.2em] text-[#d8c087] md:text-sm md:tracking-[0.26em]">Para</span>
               <span className="block text-base font-black leading-none md:text-xl">League</span>
             </span>
           </Link>
@@ -55,8 +55,8 @@ function BranchFooter() {
   return (
     <footer className="mb-5 grid gap-5 border-t border-[#d8c087]/25 px-1 py-6 text-stone-400 md:grid-cols-[1fr_auto] md:items-end">
       <div>
-        <p className="text-[0.62rem] font-bold uppercase tracking-[0.2em] text-[#d8c087]">Para-Poker League</p>
-        <p className="mt-2 max-w-xl text-sm leading-6">Sessions, standings, players, moments, and the public record.</p>
+        <p className="text-[0.62rem] font-bold uppercase tracking-[0.2em] text-[#d8c087]">Para League</p>
+        <p className="mt-2 max-w-xl text-sm leading-6">SuitFire and Poker · Competition, records, and Reath coverage.</p>
       </div>
       <ParaProjectEndorsement />
     </footer>
