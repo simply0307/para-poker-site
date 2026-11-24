@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const publicLinks = [
+  ["/suitfire", "SuitFire"],
   ["/sessions", "Sessions"],
   ["/players", "Players"],
   ["/standings", "Standings"],
