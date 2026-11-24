@@ -19,7 +19,14 @@ export default async function SuitFireLeague() {
         <h2 className="text-3xl font-bold">Season {season}</h2>
         <table className="w-full text-left"><caption className="pb-2 text-left font-semibold">Vanguard match records</caption>
           <thead><tr>{["Vanguard", "Wins", "Losses", "Draws"].map(label => <th key={label}>{label}</th>)}</tr></thead>
-          <tbody>{seasonRecords(games).map(row => <tr key={row.id}><th scope="row">{row.name}</th><td>{row.win}</td><td>{row.loss}</td><td>{row.draw}</td></tr>)}</tbody>
+          <tbody>{seasonRecords(games).map(row => <tr key={row.id}><th scope="row"><details className="py-1 font-normal">
+            <summary className="cursor-pointer font-semibold">{row.name}</summary>
+            <ul className="py-2">{games.filter(game => game.players.some(player => player.id === row.id)).map(game => {
+              const vanguard = game.players.find(player => player.id === row.id);
+              const opponent = game.players.find(player => player.seat !== vanguard.seat);
+              return <li key={game.sessionId}><Link className="underline" href={`/suitfire/match?sessionId=${game.sessionId}`}>{vanguard.result} vs. {opponent.name}</Link>{vanguard.faction && ` · ${vanguard.faction}`}</li>;
+            })}</ul>
+          </details></th><td>{row.win}</td><td>{row.loss}</td><td>{row.draw}</td></tr>)}</tbody>
         </table>
         <h3 className="text-xl font-bold">Results and Reath coverage</h3>
         <ul className="divide-y divide-stone-700">{games.map(match => <li className="py-3" key={match.sessionId}>
