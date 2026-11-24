@@ -9,8 +9,8 @@ const robotoFlex = localFont({
 });
 
 export const metadata = {
-  title: "Para-Poker League",
-  description: "Official Para-Poker League newsroom, standings, sessions, and player archive.",
+  title: "Para League",
+  description: "Official Para League coverage of competitive SuitFire and Poker, with season records and reporting from Reath.",
 };
 
 export default function RootLayout({ children }) {

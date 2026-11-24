@@ -5,11 +5,8 @@ import { usePathname } from "next/navigation";
 
 const publicLinks = [
   ["/suitfire", "SuitFire"],
-  ["/sessions", "Sessions"],
-  ["/players", "Players"],
-  ["/standings", "Standings"],
-  ["/moments", "Moments"],
-  ["/articles", "Articles"],
+  ["/poker", "Poker"],
+  ["/newsroom", "Reath newsroom"],
 ];
 
 function isActive(pathname, href) {
@@ -23,7 +20,7 @@ export function PublicNav() {
     <div className="flex min-w-0 flex-1 items-center justify-end overflow-x-auto sm:overflow-visible">
       <div className="flex min-w-max items-center gap-1 text-xs text-stone-300 sm:gap-2 md:text-sm">
         {publicLinks.map(([href, label]) => {
-          const active = isActive(pathname, href);
+          const active = isActive(pathname, href) || (href === "/poker" && /^\/(sessions|standings|players|moments)(\/|$)/.test(pathname));
           return (
             <Link
               key={href}
