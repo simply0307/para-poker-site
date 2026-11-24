@@ -26,7 +26,8 @@ export function seasonRecords(matches) {
 }
 
 export function storyHistory(match, matches) {
-  return matches.filter(other => other.season === match.season && other.sessionId !== match.sessionId &&
+  const playerIds = new Set(match.players.map(player => player.id).filter(Boolean));
+  return matches.filter(other => other.players.some(player => playerIds.has(player.id)) && other.season === match.season && other.sessionId !== match.sessionId &&
     Date.parse(other.playedAt) < Date.parse(match.playedAt)).slice(0, 12)
-    .map(({ matchId, playedAt, players }) => ({ matchId, playedAt, players }));
+    .map(({ sessionId, matchId, playedAt, players }) => ({ sessionId, matchId, playedAt, players }));
 }
