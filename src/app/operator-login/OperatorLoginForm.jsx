@@ -23,7 +23,11 @@ export function OperatorLoginForm({ supabaseUrl, supabasePublishableKey }) {
   async function enter(token) {
     const response = await fetch("/api/operator-session",{method:"POST",headers:{Authorization:"Bearer "+token}});
     if (!response.ok) throw new Error(response.status===403 ? "This account is not an authorized league operator." : "Your operator session could not be established. Sign in again.");
-    router.replace("/admin/newsroom"); router.refresh();
+    const current=new URLSearchParams(window.location.search);
+    const desk=new URL("/admin/newsroom",window.location.origin);
+    desk.searchParams.set("division",current.get("division")==="poker" ? "poker" : "suitfire");
+    if (/^[a-zA-Z0-9-]{1,100}$/.test(current.get("match")||"")) desk.searchParams.set("match",current.get("match"));
+    router.replace(desk.pathname+desk.search); router.refresh();
   }
   useEffect(() => {
     const url=new URL(location.href), code=url.searchParams.get("code");
@@ -41,7 +45,7 @@ export function OperatorLoginForm({ supabaseUrl, supabasePublishableKey }) {
     if(!email.trim()) {setError("Enter your operator email first.");return;}
     setPending(true);setError("");setNotice("");
     try {
-      const {error}=await emailClient().auth.signInWithOtp({email:email.trim(),options:{shouldCreateUser:false,emailRedirectTo:location.origin+"/operator-login"}});
+      const {error}=await emailClient().auth.signInWithOtp({email:email.trim(),options:{shouldCreateUser:false,emailRedirectTo:location.origin+"/operator-login"+location.search}});
       if(error) throw error;
       setNotice("Check your operator email and open the link in this browser.");
     } catch(e) {setError(e.message);} finally {setPending(false);}

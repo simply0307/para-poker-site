@@ -24,7 +24,7 @@ export function AdminShell({ children, title, description, eyebrow = "Admin news
                 <Image src="/images/para-league-logo.png" alt="Para League" width={62} height={62} className="h-16 w-16 object-cover" priority />
               </span>
               <span>
-                <span className="block text-xs font-black uppercase tracking-[0.24em] text-amber-200">Para-Poker</span>
+                <span className="block text-xs font-black uppercase tracking-[0.24em] text-amber-200">Para League</span>
                 <span className="block text-2xl font-black leading-none">Admin</span>
               </span>
             </Link>
@@ -32,14 +32,13 @@ export function AdminShell({ children, title, description, eyebrow = "Admin news
               <Link href="/" className="rounded-sm border border-white/15 px-3 py-2 text-zinc-300 hover:border-amber-200/60 hover:text-white">
                 Public Site
               </Link>
-              <Link href="/sessions/S0-001" className="rounded-sm border border-amber-200/35 px-3 py-2 text-amber-100 hover:bg-amber-200 hover:text-zinc-950">
-                S0-001
-              </Link>
+              <Link className="rounded border border-amber-200/40 px-3 py-2" href="/admin/newsroom?division=suitfire">SuitFire desk</Link>
+              <Link className="rounded border border-amber-200/40 px-3 py-2" href="/admin/newsroom?division=poker">Poker desk</Link>
               <OperatorSignOut />
             </div>
           </div>
 
-          <nav className="grid gap-3 lg:grid-cols-4">
+          <details><summary className="cursor-pointer text-sm font-semibold">All league tools</summary><nav className="mt-3 grid gap-3 lg:grid-cols-4">
             {ADMIN_ROUTE_GROUPS.map((group) => (
               <section key={group.label} className="rounded-md border border-white/10 bg-white/[0.04] p-3">
                 <p className="mb-2 text-[0.65rem] font-black uppercase tracking-[0.2em] text-amber-200/80">{group.label}</p>
@@ -63,7 +62,7 @@ export function AdminShell({ children, title, description, eyebrow = "Admin news
                 </div>
               </section>
             ))}
-          </nav>
+          </nav></details>
         </div>
       </div>
 
