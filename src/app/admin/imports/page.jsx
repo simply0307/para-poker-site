@@ -17,7 +17,12 @@ function statusClass(status) {
   return "border-rose-600/30 bg-rose-50 text-rose-800";
 }
 
-export default async function AdminImportsPage() {
+export default async function AdminImportsPage({searchParams}) {
+  const suitfire=(await searchParams)?.division==="suitfire";
+  if(suitfire) {
+    const [season,players]=await Promise.all([readSeasonSettings(),safeQuery(supabase.from("players").select("id,display_name").order("display_name"),[])]);
+    return <AdminShell title="SuitFire match imports" description="Preview the completed duel, map both Vanguards, and review its evidence before committing the result."><GauntletMatchImportPanel initialSeasonCode={season.activeSeasonCode} leaguePlayers={players}/><Link href="/admin/newsroom?division=suitfire" className="underline">Return to SuitFire assignments</Link></AdminShell>;
+  }
   const [health, seasonSettings, leaguePlayers] = await Promise.all([
     buildImportHealthViewModel(),
     readSeasonSettings(),
@@ -26,10 +31,10 @@ export default async function AdminImportsPage() {
 
   return (
     <AdminShell
-      title="Import control room"
-      description="Import authoritative Gauntlet or EGGS evidence, or legacy raw hand-history CSV, then audit the canonical session projections before publishing coverage."
+      title="Poker session imports"
+      description="Preview Poker hand histories and EGGS session packages, review player results, and check the hands available for coverage."
     >
-      <GauntletMatchImportPanel initialSeasonCode={seasonSettings.activeSeasonCode} leaguePlayers={leaguePlayers} />
+      <Link href="/admin/imports?division=suitfire" className="underline">Go to SuitFire match imports</Link>
       <EggsSessionImportPanel initialSeasonCode={seasonSettings.activeSeasonCode} existingSessions={health.sessions} leaguePlayers={leaguePlayers} />
       <RawHandImportPanel initialSeasonCode={seasonSettings.activeSeasonCode} existingSessions={health.sessions} />
       <ImportSessionManager sessions={health.sessions} />
