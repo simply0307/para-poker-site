@@ -21,7 +21,7 @@ export default async function AdminImportsPage({searchParams}) {
   const suitfire=(await searchParams)?.division==="suitfire";
   if(suitfire) {
     const [season,players]=await Promise.all([readSeasonSettings(),safeQuery(supabase.from("players").select("id,display_name").order("display_name"),[])]);
-    return <AdminShell title="SuitFire match imports" description="Preview the completed duel, map both Vanguards, and review its evidence before committing the result."><GauntletMatchImportPanel initialSeasonCode={season.activeSeasonCode} leaguePlayers={players}/><Link href="/admin/newsroom?division=suitfire" className="underline">Return to SuitFire assignments</Link></AdminShell>;
+    return <AdminShell division="SuitFire" view="imports" title="SuitFire match imports" description="Preview the completed duel, map both Vanguards, and review its evidence before committing the result."><GauntletMatchImportPanel initialSeasonCode={season.activeSeasonCode} leaguePlayers={players}/><Link href="/admin/suitfire" className="underline">Return to SuitFire assignments</Link></AdminShell>;
   }
   const [health, seasonSettings, leaguePlayers] = await Promise.all([
     buildImportHealthViewModel(),
