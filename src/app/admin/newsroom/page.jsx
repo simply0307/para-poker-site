@@ -1,3 +1,4 @@
+import { supabase } from "@/lib/supabase";
 import { AdminShell } from "@/components/admin-newsroom/AdminShell";
 import { loadNewsroomEditorialDocs } from "@/lib/newsroom/editorialDocs";
 
@@ -12,12 +13,16 @@ export default async function AdminNewsroomPage({ searchParams }) {
   const division=poker?"Poker":"SuitFire";
   const [docs,result] = await Promise.all([loadNewsroomEditorialDocs(), sessionCandidates().then(rows=>({rows})).catch(error=>{console.error("Candidate sessions",error.message);return {error:true,rows:[]};})]);
 
+  const reports = poker ? { data: [] } : await supabase.from("suitfire_editorial_reports")
+    .select("match_id,headline,published_at,updated_at").order("updated_at",{ascending:false}).limit(60);
+
   return (
     <AdminShell
       title={division+" operator desk"}
       description={poker ? "Review table sessions, inspect hands and finishes, and edit a Poker recap for publication." : "Find a duel, compare earlier meetings, and draft a Reath match report. Approved results feed the season record."}
     >
-      <AssignmentDesk key={division} division={division} operator sessions={result.rows}/>
+      <AssignmentDesk key={division} division={division} operator sessions={result.rows} reports={reports.data || []}/>
+      {reports.error && <p role="alert">The shared SuitFire draft queue could not be loaded.</p>}
       {result.error && <p role="alert">League session lookup is unavailable. Saved match files can still be opened above.</p>}
       <nav className="flex gap-4 underline"><Link href={"/admin/imports?division="+division.toLowerCase()}>Import official evidence</Link><Link href="/admin/drafts">Draft queue</Link><Link href="/admin/prompt-studio">Prompt Studio</Link></nav>
       <details className="mt-8"><summary className="cursor-pointer font-bold">Editorial source library</summary><section className="mt-8 grid gap-4 md:grid-cols-2">
