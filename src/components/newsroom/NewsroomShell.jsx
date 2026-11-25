@@ -1,3 +1,4 @@
+import PokerFrame from "./PokerFrame";
 import Link from "next/link";
 import Image from "next/image";
 import { PublicNav } from "@/components/newsroom/PublicNav";
@@ -8,9 +9,9 @@ function publicText(value) {
   return stripPlayerHandlesFromText(String(value));
 }
 
-export function NewsroomShell({ children }) {
+export function NewsroomShell({ children, division }) {
   return (
-    <main className="relative min-h-screen overflow-x-hidden bg-[#05080b] text-stone-100">
+    <PokerFrame division={division} leagueHeader={<div className="relative min-h-screen overflow-x-hidden bg-[#05080b] text-stone-100">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_-10%,rgba(211,185,126,0.20),transparent_34%),radial-gradient(circle_at_12%_18%,rgba(124,31,31,0.18),transparent_24%),linear-gradient(180deg,rgba(11,20,28,0.96),rgba(4,5,7,1)_58%)]" />
       <div className="pointer-events-none absolute inset-0 opacity-[0.18] [background-image:linear-gradient(rgba(255,255,255,0.045)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px)] [background-size:44px_44px]" />
       <div className="pointer-events-none absolute left-1/2 top-20 h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(211,185,126,0.12),transparent_62%)] blur-2xl" />
@@ -27,10 +28,9 @@ export function NewsroomShell({ children }) {
           </Link>
           <PublicNav />
         </nav>
-        <div className="pb-12">{children}</div>
-        <BranchFooter />
+
       </div>
-    </main>
+    </div>} footer={<BranchFooter/>}>{children}</PokerFrame>
   );
 }
 

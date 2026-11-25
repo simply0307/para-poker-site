@@ -1,10 +1,12 @@
 "use client";
 import {useRouter} from "next/navigation";
+import {storyTypes} from "@/lib/suitfire/storyTypes.mjs";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { candidateFromMatch, matchesFilters } from "@/lib/league/candidates.mjs";
 
 export default function AssignmentDesk({ queueOnly = false, sessions = [], reports = [], operator = false, division = "SuitFire" }) {
+  const [beat,setBeat]=useState("season");
   const router=useRouter();
   const [saved,setSaved] = useState([]);
   const poker=division==="Poker";
@@ -42,7 +44,7 @@ export default function AssignmentDesk({ queueOnly = false, sessions = [], repor
     if(action==="publish" && !window.confirm("Publish this edited story on the public SuitFire desk?")) return;
     setBusy(true);setError("");setNotice("");
     try {
-      const response=await fetch("/api/admin/newsroom/reports",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({match:matchId,action,text:draft,version:report?.version||0})});
+      const response=await fetch("/api/admin/newsroom/reports",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({match:matchId,action,text:draft,storyType:selected.storyType || report?.story_type || "match",version:report?.version||0})});
       const data=await response.json();if(!response.ok) throw new Error(data.error||"Could not save.");
       setReport(data.report);router.refresh();setNotice(action==="publish"?"Published on the SuitFire desk.":action==="withdraw"?"Withdrawn from public coverage.":"Draft saved for both operators.");
     } catch(e){setError(e.message);} finally{setBusy(false);}
@@ -96,7 +98,9 @@ export default function AssignmentDesk({ queueOnly = false, sessions = [], repor
       <small>{row.date && new Date(row.date).toLocaleString()+" · "}{row.players?.map(p=>p.faction).filter(Boolean).join(" vs. ")} {row.season || ""} · {row.finished ? "Finished" : "Finish unconfirmed"} · {row.durationMs == null ? "Duration unknown" : Math.floor(row.durationMs/1000)+"s"+(row.minimumDuration?" or longer":"")}</small>
     </li>)}</ul>
     </>}
-    {queueOnly && !reports.length && <p>No SuitFire reports yet. Save a working draft from Duel intake to start the queue.</p>}
+    {operator && queueOnly && <div className="flex flex-wrap items-end gap-4"><label>Coverage type<select className="block rounded border bg-white p-2" value={beat} onChange={e=>setBeat(e.target.value)}>{Object.entries(storyTypes).filter(([key])=>key!=="match").map(([key,label])=><option key={key} value={key}>{label}</option>)}</select></label>
+      <button disabled={busy} className="rounded bg-stone-900 px-4 py-2 text-white" onClick={()=>{setSelected({id:"story-"+crypto.randomUUID(),title:storyTypes[beat],storyType:beat,existingReport:true,game:"SuitFire"});setDraft("");setError("");}}>Start feature</button></div>}
+    {queueOnly && !reports.length && <p>No SuitFire reports yet. Start a feature here or save a match report from Duel intake.</p>}
     {operator && !poker && queueOnly && reports.length>0 && <details open><summary className="cursor-pointer font-bold">Shared SuitFire reports</summary>
       <ul>{reports.map(r=><li key={r.match_id}><button className="underline" disabled={busy} onClick={()=>{
         if(matchId===r.match_id) return;
@@ -104,10 +108,10 @@ export default function AssignmentDesk({ queueOnly = false, sessions = [], repor
       }}>{r.headline}</button> · {r.published_at?"Published":"Private draft"}</li>)}</ul></details>}
     {selected && <div className="space-y-3"><h3 className="text-xl font-bold">Assignment · {selected.title}</h3>
       {winner && <p><b>{winner.name} won.</b> {selected.players.map(p=>p.name+" ("+(p.faction||"unknown faction")+", "+(p.life??"unknown")+" final life)").join(" vs. ")}{selected.turns ? " · "+selected.turns+" turns" : ""}{prior.length ? " · "+prior.length+" earlier meeting(s) available for context." : ""}</p>}
-      <details><summary className="cursor-pointer underline">Customize the suggested angle</summary><div className="my-2 flex flex-wrap gap-2">{angles.map(option=><button type="button" key={option} className="rounded border p-2 text-left text-sm" onClick={()=>setAngle(option)}>{option}</button>)}</div><label className="block">Story angle<input className="block w-full rounded border bg-white p-2 text-black" value={angle} maxLength={1000} onChange={e=>setAngle(e.target.value)} placeholder={brief}/></label></details>
-      <details><summary className="cursor-pointer underline">Review evidence and reporting prompt</summary><label className="block">Reporting prompt<textarea readOnly className="block w-full rounded border bg-white p-3 text-black" rows={7} value={prompt}/></label></details>
+      {!selected.existingReport && <><details><summary className="cursor-pointer underline">Customize the suggested angle</summary><div className="my-2 flex flex-wrap gap-2">{angles.map(option=><button type="button" key={option} className="rounded border p-2 text-left text-sm" onClick={()=>setAngle(option)}>{option}</button>)}</div><label className="block">Story angle<input className="block w-full rounded border bg-white p-2 text-black" value={angle} maxLength={1000} onChange={e=>setAngle(e.target.value)} placeholder={brief}/></label></details>
+      <details><summary className="cursor-pointer underline">Review evidence and reporting prompt</summary><label className="block">Reporting prompt<textarea readOnly className="block w-full rounded border bg-white p-3 text-black" rows={7} value={prompt}/></label></details></>}
       {operator && selected.sessionId ? <Link className="underline" href={"/admin/sessions/"+encodeURIComponent(selected.sessionId)}>Open session evidence and recap editor</Link> : operator ? !selected.existingReport && <button disabled={busy || (!poker && !reportReady)} className="rounded bg-slate-900 px-4 py-2 text-white" onClick={generate}>{busy?"Drafting…":"Generate Reath draft"}</button> : <Link className="underline" href={"/admin/newsroom?division=suitfire&match="+encodeURIComponent(selected.id)}>Continue with this match in the operator desk</Link>}
-      {operator && draft && <label className="block">Working draft<textarea disabled={busy || (!poker && !reportReady)} rows={10} className="block w-full rounded border bg-white p-3 text-black" value={draft} onChange={e=>{setDraft(e.target.value);try {sessionStorage.setItem("para.draft."+selected.id,e.target.value);} catch { /* Editor retains current text. */ }}}/></label>}
+      {operator && (draft || selected.existingReport) && <label className="block">Working draft<textarea disabled={busy || (!poker && !reportReady)} placeholder="Headline on the first line, followed by the story." rows={10} className="block w-full rounded border bg-white p-3 text-black" value={draft} onChange={e=>{setDraft(e.target.value);try {sessionStorage.setItem("para.draft."+selected.id,e.target.value);} catch { /* Editor retains current text. */ }}}/></label>}
       {operator && !poker && draft && <div className="flex flex-wrap gap-4"><button disabled={busy||!reportReady} onClick={()=>saveReport("save")} className="underline">Save league draft</button><button disabled={busy||!reportReady} onClick={()=>saveReport("publish")} className="underline">{report?.published_at?"Update published story":"Publish reviewed story"}</button>{report?.published_at && <button disabled={busy||!reportReady} onClick={()=>saveReport("withdraw")} className="underline">Withdraw story</button>}</div>}
       {notice && <p role="status">{notice}</p>}
     </div>}
