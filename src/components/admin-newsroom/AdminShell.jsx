@@ -11,12 +11,34 @@ function isActive(pathname, href) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export function AdminShell({ children, title, description, eyebrow = "Admin newsroom", actions }) {
+export function AdminShell({ children, title, description, eyebrow = "Admin newsroom", actions, division, view }) {
   const pathname = usePathname();
 
+  if (division === "SuitFire") {
+    const destinations = [
+      ["duels","Duel intake","/admin/suitfire"],
+      ["reports","Report queue","/admin/suitfire?view=reports"],
+      ["imports","Result review","/admin/imports?division=suitfire"],
+      ["records","Season ledger","/admin/suitfire?view=records"]
+    ];
+    return <main className="min-h-screen bg-stone-100 text-stone-950">
+      <div className="border-b-4 border-orange-500 bg-[#241615] text-white"><div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-5 py-4">
+        <Link href="/admin" className="text-sm font-bold">← Para League / Division selector</Link>
+        <div className="flex items-center gap-4 text-sm"><Link className="underline" href="/admin/newsroom?division=poker">Switch to Poker</Link><OperatorSignOut/></div>
+      </div></div>
+      <div className="mx-auto grid max-w-7xl lg:grid-cols-[245px_minmax(0,1fr)]">
+        <aside className="bg-[#36201d] p-5 text-white lg:min-h-screen lg:p-7">
+          <p className="text-xs font-bold uppercase tracking-widest text-orange-200">Competitive operations</p>
+          <p className="mb-6 mt-1 text-4xl font-black tracking-tight">SuitFire</p>
+          <nav aria-label="SuitFire operations" className="grid grid-cols-2 gap-2 lg:grid-cols-1">{destinations.map(([key,label,href])=><Link key={key} href={href} aria-current={key===view?"page":undefined} className={key===view?"rounded bg-orange-100 px-3 py-3 font-bold text-stone-950":"rounded border border-orange-100/35 px-3 py-3 hover:bg-white/10"}>{label}</Link>)}</nav>
+          <Link href="/suitfire" className="mt-6 inline-block text-sm text-orange-100 underline">Player-facing league ↗</Link>
+        </aside>
+        <section className="min-w-0 px-5 py-8 md:p-9"><header className="mb-6 border-b border-stone-300 pb-5"><p className="text-xs font-bold uppercase tracking-widest text-orange-800">SuitFire / League operations</p><h1 className="mt-2 text-4xl font-black tracking-tight">{title}</h1><p className="mt-3 max-w-2xl text-stone-700">{description}</p></header>{children}</section>
+      </div></main>;
+  }
   return (
     <main className="min-h-screen bg-[#f4f0e8] text-zinc-950">
-      <div className="border-b border-zinc-300 bg-[#0b1017] text-white shadow-xl shadow-black/15">
+      <div className="border-b border-zinc-300 bg-[#112c29] text-white shadow-xl shadow-black/15">
         <div className="mx-auto flex max-w-7xl flex-col gap-5 px-5 py-5 md:px-8">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <Link href="/admin" className="flex items-center gap-3">
@@ -25,20 +47,20 @@ export function AdminShell({ children, title, description, eyebrow = "Admin news
               </span>
               <span>
                 <span className="block text-xs font-black uppercase tracking-[0.24em] text-amber-200">Para League</span>
-                <span className="block text-2xl font-black leading-none">Admin</span>
+                <span className="block text-2xl font-black leading-none">{division==="League"?"Operator desks":"Poker operations"}</span>
               </span>
             </Link>
             <div className="flex flex-wrap gap-2 text-xs font-black uppercase tracking-[0.14em]">
               <Link href="/" className="rounded-sm border border-white/15 px-3 py-2 text-zinc-300 hover:border-amber-200/60 hover:text-white">
                 Public Site
               </Link>
-              <Link className="rounded border border-amber-200/40 px-3 py-2" href="/admin/newsroom?division=suitfire">SuitFire desk</Link>
+              <Link className="rounded border border-amber-200/40 px-3 py-2" href="/admin/suitfire">SuitFire desk</Link>
               <Link className="rounded border border-amber-200/40 px-3 py-2" href="/admin/newsroom?division=poker">Poker desk</Link>
               <OperatorSignOut />
             </div>
           </div>
 
-          <details><summary className="cursor-pointer text-sm font-semibold">All league tools</summary><nav className="mt-3 grid gap-3 lg:grid-cols-4">
+          {division !== "League" && <details><summary className="cursor-pointer text-sm font-semibold">Poker and league tools</summary><nav className="mt-3 grid gap-3 lg:grid-cols-4">
             {ADMIN_ROUTE_GROUPS.map((group) => (
               <section key={group.label} className="rounded-md border border-white/10 bg-white/[0.04] p-3">
                 <p className="mb-2 text-[0.65rem] font-black uppercase tracking-[0.2em] text-amber-200/80">{group.label}</p>
@@ -62,7 +84,7 @@ export function AdminShell({ children, title, description, eyebrow = "Admin news
                 </div>
               </section>
             ))}
-          </nav></details>
+          </nav></details>}
         </div>
       </div>
 

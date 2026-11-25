@@ -25,7 +25,13 @@ export function OperatorLoginForm({ supabaseUrl, supabasePublishableKey }) {
     if (!response.ok) throw new Error(response.status===403 ? "This account is not an authorized league operator." : "Your operator session could not be established. Sign in again.");
     const current=new URLSearchParams(window.location.search);
     const desk=new URL("/admin/newsroom",window.location.origin);
-    desk.searchParams.set("division",current.get("division")==="poker" ? "poker" : "suitfire");
+    const division=current.get("division"), view=current.get("view");
+    if(["suitfire","poker"].includes(division)) desk.searchParams.set("division",division);
+    if(view==="imports") desk.pathname="/admin/imports";
+    else if(division==="suitfire") {
+      desk.pathname="/admin/suitfire"; desk.searchParams.delete("division");
+      if(["reports","records"].includes(view)) desk.searchParams.set("view",view);
+    }
     if (/^[a-zA-Z0-9-]{1,100}$/.test(current.get("match")||"")) desk.searchParams.set("match",current.get("match"));
     router.replace(desk.pathname+desk.search); router.refresh();
   }

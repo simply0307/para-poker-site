@@ -1,9 +1,11 @@
 "use client";
+import {useRouter} from "next/navigation";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { candidateFromMatch, matchesFilters } from "@/lib/league/candidates.mjs";
 
-export default function AssignmentDesk({ sessions = [], reports = [], operator = false, division = "SuitFire" }) {
+export default function AssignmentDesk({ queueOnly = false, sessions = [], reports = [], operator = false, division = "SuitFire" }) {
+  const router=useRouter();
   const [saved,setSaved] = useState([]);
   const poker=division==="Poker";
   const [opponents,setOpponents] = useState("All opponents");
@@ -42,7 +44,7 @@ export default function AssignmentDesk({ sessions = [], reports = [], operator =
     try {
       const response=await fetch("/api/admin/newsroom/reports",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({match:matchId,action,text:draft,version:report?.version||0})});
       const data=await response.json();if(!response.ok) throw new Error(data.error||"Could not save.");
-      setReport(data.report);setNotice(action==="publish"?"Published on the SuitFire desk.":action==="withdraw"?"Withdrawn from public coverage.":"Draft saved for both operators.");
+      setReport(data.report);router.refresh();setNotice(action==="publish"?"Published on the SuitFire desk.":action==="withdraw"?"Withdrawn from public coverage.":"Draft saved for both operators.");
     } catch(e){setError(e.message);} finally{setBusy(false);}
   }
   async function addFiles(event) {
@@ -78,6 +80,7 @@ export default function AssignmentDesk({ sessions = [], reports = [], operator =
     } catch(e) { setError(e.message); } finally {setBusy(false);}
   }
   return <section className="my-6 space-y-5 rounded border border-stone-400/50 p-5">
+    {!queueOnly && <>
     <h2 className="text-2xl font-bold">{poker?"Choose a Poker session":"Choose a SuitFire match"}</h2>
     {!poker && <>
     <div className="flex flex-wrap gap-5"><a className="underline" href="https://gauntlet-online.vercel.app/?page=matches">Browse my SuitFire matches</a>
@@ -89,10 +92,12 @@ export default function AssignmentDesk({ sessions = [], reports = [], operator =
     </fieldset>
     <p aria-live="polite">{rows.length} candidate{rows.length===1?"":"s"}</p>
     <ul className="divide-y divide-stone-400/30">{rows.map(row=><li key={row.game+row.id} className="flex flex-wrap items-center gap-4 py-3">
-      {operator && row.sessionId ? <Link className="font-bold underline" href={"/admin/sessions/"+encodeURIComponent(row.sessionId)}>{row.title} · Open recap editor</Link> : <button disabled={busy} className="text-left font-bold underline" onClick={()=>{setSelected(row);setAngle("");setDraft(operator ? sessionStorage.getItem("para.draft."+row.id)||"" : "");}}>{row.title}</button>}
+      {operator && row.sessionId ? <Link className="font-bold underline" href={poker?"/admin/sessions/"+encodeURIComponent(row.sessionId):"/suitfire/match?sessionId="+encodeURIComponent(row.sessionId)}>{row.title} · {poker?"Open recap editor":"View duel record"}</Link> : <button disabled={busy} className="text-left font-bold underline" onClick={()=>{setSelected(row);setAngle("");setDraft(operator ? sessionStorage.getItem("para.draft."+row.id)||"" : "");}}>{row.title}</button>}
       <small>{row.date && new Date(row.date).toLocaleString()+" · "}{row.players?.map(p=>p.faction).filter(Boolean).join(" vs. ")} {row.season || ""} · {row.finished ? "Finished" : "Finish unconfirmed"} · {row.durationMs == null ? "Duration unknown" : Math.floor(row.durationMs/1000)+"s"+(row.minimumDuration?" or longer":"")}</small>
     </li>)}</ul>
-    {operator && !poker && reports.length>0 && <details open><summary className="cursor-pointer font-bold">Shared SuitFire reports</summary>
+    </>}
+    {queueOnly && !reports.length && <p>No SuitFire reports yet. Save a working draft from Duel intake to start the queue.</p>}
+    {operator && !poker && queueOnly && reports.length>0 && <details open><summary className="cursor-pointer font-bold">Shared SuitFire reports</summary>
       <ul>{reports.map(r=><li key={r.match_id}><button className="underline" disabled={busy} onClick={()=>{
         if(matchId===r.match_id) return;
         setDraft(""); setSelected(saved.find(row=>row.id===r.match_id) || {id:r.match_id,title:r.headline,existingReport:true,game:"SuitFire"});
