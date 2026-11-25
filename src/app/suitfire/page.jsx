@@ -1,3 +1,4 @@
+import SuitFirePublishedReports from "@/components/newsroom/SuitFirePublishedReports";
 import Link from "next/link";
 import { Suspense } from "react";
 import { LeagueHero, NewsroomShell } from "@/components/newsroom/NewsroomShell";
@@ -12,7 +13,7 @@ export default function SuitFireLeague() {
     <a className="inline-block rounded border border-amber-300 px-4 py-2" href="https://gauntlet-online.vercel.app/?page=compete&view=para">Enter the event hub in SuitFire →</a>
     <p className="mt-3 text-stone-300">Check the schedule, enter free, and track your Prestige in the event hub.</p>
     <p className="my-4"><Link className="underline text-amber-200" href="/newsroom?division=suitfire">Bring a saved match to the Reath newsroom</Link></p>
-    <div id="records" /><Suspense fallback={<p role="status" className="my-8">Loading season records…</p>}><SeasonArchive /></Suspense>
+    <Suspense fallback={<p>Loading Reath coverage…</p>}><SuitFirePublishedReports/></Suspense><div id="records" /><Suspense fallback={<p role="status" className="my-8">Loading season records…</p>}><SeasonArchive /></Suspense>
   </NewsroomShell>;
 }
 

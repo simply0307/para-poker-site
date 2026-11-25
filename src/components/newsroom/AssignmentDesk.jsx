@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { candidateFromMatch, matchesFilters } from "@/lib/league/candidates.mjs";
 
-export default function AssignmentDesk({ sessions = [], operator = false, division = "SuitFire" }) {
+export default function AssignmentDesk({ sessions = [], reports = [], operator = false, division = "SuitFire" }) {
   const [saved,setSaved] = useState([]);
   const poker=division==="Poker";
   const [opponents,setOpponents] = useState("All opponents");
@@ -23,6 +23,28 @@ export default function AssignmentDesk({ sessions = [], operator = false, divisi
       if (incoming && !poker) { setSelected(incoming); sessionStorage.setItem("para.editorial.candidates",JSON.stringify(rows)); history.replaceState(null,"",location.pathname+location.search); }
     } catch { setError("This match summary could not be opened."); }
   },[operator,poker]);
+  const [report,setReport]=useState(null), [reportReady,setReportReady]=useState(false), [notice,setNotice]=useState("");
+  const matchId=selected?.id;
+  useEffect(()=>{
+    let live=true;
+    setReport(null);setReportReady(false);setNotice("");
+    if(!operator || poker || !matchId) return;
+    fetch("/api/admin/newsroom/reports?match="+encodeURIComponent(matchId),{cache:"no-store"}).then(async r=>{
+      if(!r.ok) throw new Error("Could not load the league copy of this draft.");
+      const {report}=await r.json();if(!live) return;
+      setReport(report);setReportReady(true);if(report) setDraft(report.headline+"\n\n"+report.prose);
+    }).catch(e=>{if(live)setError(e.message);});
+    return ()=>{live=false;};
+  },[matchId,operator,poker]);
+  async function saveReport(action) {
+    if(action==="publish" && !window.confirm("Publish this edited story on the public SuitFire desk?")) return;
+    setBusy(true);setError("");setNotice("");
+    try {
+      const response=await fetch("/api/admin/newsroom/reports",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({match:matchId,action,text:draft,version:report?.version||0})});
+      const data=await response.json();if(!response.ok) throw new Error(data.error||"Could not save.");
+      setReport(data.report);setNotice(action==="publish"?"Published on the SuitFire desk.":action==="withdraw"?"Withdrawn from public coverage.":"Draft saved for both operators.");
+    } catch(e){setError(e.message);} finally{setBusy(false);}
+  }
   async function addFiles(event) {
     const input = event.target, files = Array.from(input.files), additions = [], failures = [];
     for (const file of files) {
@@ -70,12 +92,19 @@ export default function AssignmentDesk({ sessions = [], operator = false, divisi
       {operator && row.sessionId ? <Link className="font-bold underline" href={"/admin/sessions/"+encodeURIComponent(row.sessionId)}>{row.title} · Open recap editor</Link> : <button disabled={busy} className="text-left font-bold underline" onClick={()=>{setSelected(row);setAngle("");setDraft(operator ? sessionStorage.getItem("para.draft."+row.id)||"" : "");}}>{row.title}</button>}
       <small>{row.date && new Date(row.date).toLocaleString()+" · "}{row.players?.map(p=>p.faction).filter(Boolean).join(" vs. ")} {row.season || ""} · {row.finished ? "Finished" : "Finish unconfirmed"} · {row.durationMs == null ? "Duration unknown" : Math.floor(row.durationMs/1000)+"s"+(row.minimumDuration?" or longer":"")}</small>
     </li>)}</ul>
+    {operator && !poker && reports.length>0 && <details open><summary className="cursor-pointer font-bold">Shared SuitFire reports</summary>
+      <ul>{reports.map(r=><li key={r.match_id}><button className="underline" disabled={busy} onClick={()=>{
+        if(matchId===r.match_id) return;
+        setDraft(""); setSelected(saved.find(row=>row.id===r.match_id) || {id:r.match_id,title:r.headline,existingReport:true,game:"SuitFire"});
+      }}>{r.headline}</button> · {r.published_at?"Published":"Private draft"}</li>)}</ul></details>}
     {selected && <div className="space-y-3"><h3 className="text-xl font-bold">Assignment · {selected.title}</h3>
       {winner && <p><b>{winner.name} won.</b> {selected.players.map(p=>p.name+" ("+(p.faction||"unknown faction")+", "+(p.life??"unknown")+" final life)").join(" vs. ")}{selected.turns ? " · "+selected.turns+" turns" : ""}{prior.length ? " · "+prior.length+" earlier meeting(s) available for context." : ""}</p>}
       <details><summary className="cursor-pointer underline">Customize the suggested angle</summary><div className="my-2 flex flex-wrap gap-2">{angles.map(option=><button type="button" key={option} className="rounded border p-2 text-left text-sm" onClick={()=>setAngle(option)}>{option}</button>)}</div><label className="block">Story angle<input className="block w-full rounded border bg-white p-2 text-black" value={angle} maxLength={1000} onChange={e=>setAngle(e.target.value)} placeholder={brief}/></label></details>
       <details><summary className="cursor-pointer underline">Review evidence and reporting prompt</summary><label className="block">Reporting prompt<textarea readOnly className="block w-full rounded border bg-white p-3 text-black" rows={7} value={prompt}/></label></details>
-      {operator && selected.sessionId ? <Link className="underline" href={"/admin/sessions/"+encodeURIComponent(selected.sessionId)}>Open session evidence and recap editor</Link> : operator ? <button disabled={busy} className="rounded bg-slate-900 px-4 py-2 text-white" onClick={generate}>{busy?"Drafting…":"Generate Reath draft"}</button> : <Link className="underline" href={"/admin/newsroom?division=suitfire&match="+encodeURIComponent(selected.id)}>Continue with this match in the operator desk</Link>}
-      {operator && draft && <label className="block">Working draft<textarea rows={10} className="block w-full rounded border bg-white p-3 text-black" value={draft} onChange={e=>{setDraft(e.target.value);try {sessionStorage.setItem("para.draft."+selected.id,e.target.value);} catch { /* Editor retains current text. */ }}}/></label>}
+      {operator && selected.sessionId ? <Link className="underline" href={"/admin/sessions/"+encodeURIComponent(selected.sessionId)}>Open session evidence and recap editor</Link> : operator ? !selected.existingReport && <button disabled={busy || (!poker && !reportReady)} className="rounded bg-slate-900 px-4 py-2 text-white" onClick={generate}>{busy?"Drafting…":"Generate Reath draft"}</button> : <Link className="underline" href={"/admin/newsroom?division=suitfire&match="+encodeURIComponent(selected.id)}>Continue with this match in the operator desk</Link>}
+      {operator && draft && <label className="block">Working draft<textarea disabled={busy || (!poker && !reportReady)} rows={10} className="block w-full rounded border bg-white p-3 text-black" value={draft} onChange={e=>{setDraft(e.target.value);try {sessionStorage.setItem("para.draft."+selected.id,e.target.value);} catch { /* Editor retains current text. */ }}}/></label>}
+      {operator && !poker && draft && <div className="flex flex-wrap gap-4"><button disabled={busy||!reportReady} onClick={()=>saveReport("save")} className="underline">Save league draft</button><button disabled={busy||!reportReady} onClick={()=>saveReport("publish")} className="underline">{report?.published_at?"Update published story":"Publish reviewed story"}</button>{report?.published_at && <button disabled={busy||!reportReady} onClick={()=>saveReport("withdraw")} className="underline">Withdraw story</button>}</div>}
+      {notice && <p role="status">{notice}</p>}
     </div>}
     {error && <p role="alert">{error}</p>}
   </section>;
