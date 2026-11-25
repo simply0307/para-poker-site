@@ -9,7 +9,7 @@ async function verifyAccessToken(accessToken) {
 
 async function resolveProfile(authUserId) {
   const { data, error } = await supabase
-    .from("profiles")
+    .from("para_newsroom_operators")
     .select("id, role, auth_user_id")
     .eq("auth_user_id", authUserId)
     .maybeSingle();
