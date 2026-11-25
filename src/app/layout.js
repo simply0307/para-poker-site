@@ -19,7 +19,7 @@ export default function RootLayout({ children }) {
       lang="en"
       className={`${robotoFlex.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">{children}<footer aria-label="Para League signature" className="flex items-center justify-center gap-4 bg-black px-4 py-5 text-white"><a href="/" aria-label="Para League home"><img src="/images/para-signature-reverse.svg" alt="PARA" width="96" height="27"/></a><a href="/images/para-signature-sheet.svg" className="text-xs tracking-wide underline">League identity</a></footer></body>
     </html>
   );
 }
